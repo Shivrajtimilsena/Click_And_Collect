@@ -17,10 +17,11 @@ Route::get('/aboutus', function () {
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    // Redirect to landing page - modals handle auth UI
+    Route::get('/login', fn() => redirect('/'));
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::get('/register', fn() => redirect('/'));
+    Route::post('/register', [AuthController::class, 'register'])->name('register');
 });
 
 Route::middleware('auth')->group(function () {

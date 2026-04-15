@@ -12,14 +12,6 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * Show the login form
-     */
-    public function showLoginForm()
-    {
-        return view('auth.login');
-    }
-
-    /**
      * Handle login request
      */
     public function login(Request $request)
@@ -46,14 +38,6 @@ class AuthController extends Controller
         throw ValidationException::withMessages([
             'email' => __('auth.failed'),
         ]);
-    }
-
-    /**
-     * Show the registration form
-     */
-    public function showRegistrationForm()
-    {
-        return view('auth.register');
     }
 
     /**
