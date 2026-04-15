@@ -41,6 +41,19 @@ return [
             'journal_mode' => null,
             'synchronous' => null,
         ],
+        'oracle' => [
+            'driver' => 'oracle',
+            'tns' => '',
+            'host' => env('DB_HOST', '192.168.10.100'),
+            'port' => env('DB_PORT', '1521'),
+            'database' => '',
+            'service_name' => env('DB_SERVICE_NAME', 'XEPDB1'),
+            'username' => env('DB_USERNAME', 'CC_APP'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'AL32UTF8'),
+            'prefix' => '',
+            'prefix_schema' => '',
+        ],
 
         'mysql' => [
             'driver' => 'mysql',
