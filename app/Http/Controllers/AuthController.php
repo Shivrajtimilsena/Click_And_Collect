@@ -31,7 +31,16 @@ class AuthController extends Controller
 
         if (Auth::attempt($validated, $request->boolean('remember'))) {
             $request->session()->regenerate();
+            
+            if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['success' => true], 200);
+            }
+            
             return redirect()->intended('/');
+        }
+
+        if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json(['success' => false, 'errors' => ['email' => __('auth.failed')]], 422);
         }
 
         throw ValidationException::withMessages([
@@ -68,6 +77,10 @@ class AuthController extends Controller
         Auth::login($user);
 
         $request->session()->regenerate();
+
+        if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json(['success' => true], 201);
+        }
 
         return redirect('/');
     }

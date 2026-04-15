@@ -121,8 +121,8 @@
                             </div>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-zinc-600 hover:text-zinc-800 transition-all">Sign In</a>
-                        <a href="{{ route('register') }}" class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-white bg-primary px-6 py-2 rounded-full hover:bg-primary-dim transition-all">Sign Up</a>
+                        <button onclick="openLoginModal()" class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-zinc-600 hover:text-zinc-800 transition-all">Sign In</button>
+                        <button onclick="openSignupModal()" class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-white bg-primary px-6 py-2 rounded-full hover:bg-primary-dim transition-all">Sign Up</button>
                     @endauth
                 </div>
             </div>
@@ -314,5 +314,11 @@
             </div>
         </div>
     </main>
+
+    <!-- Modals -->
+    @guest
+        @include('components.login-modal')
+        @include('components.signup-modal')
+    @endguest
 </body>
 </html>
