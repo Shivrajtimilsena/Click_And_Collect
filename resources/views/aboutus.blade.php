@@ -4,33 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us - Click & Collect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
 </head>
 <body class="bg-white">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <span class="text-2xl font-bold text-gray-900">Click&Collect</span>
+    <!-- Top Navigation Bar -->
+    <nav class="fixed top-0 w-full z-50 h-20 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl shadow-[0_10px_30px_rgba(45,47,47,0.04)]">
+        <div class="flex justify-between items-center px-12 w-full max-w-[1920px] mx-auto h-full">
+            <a href="/" class="text-2xl font-black text-zinc-800 dark:text-zinc-100 tracking-tighter hover:opacity-80 transition-opacity">Click&Collect</a>
+            <div class="hidden md:flex items-center gap-8">
+                <a class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-white transition-all" href="/">Home</a>
+                <a class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-white transition-all" href="#">New Arrivals</a>
+                <a class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-white transition-all" href="#">Shops</a>
+                <a class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-orange-700 dark:text-orange-500 border-b-2 border-orange-700 pb-1" href="/aboutus">About Us</a>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="relative hidden lg:block">
+                    <input class="bg-gray-100 border-none rounded-full px-6 py-2 text-sm w-64 focus:ring-2 focus:ring-red-600/20 transition-all" placeholder="Search local curators..." type="text"/>
                 </div>
-                <div class="flex items-center space-x-8">
-                    <a href="/" class="text-gray-700 hover:text-gray-900">HOME</a>
-                    <a href="#" class="text-gray-700 hover:text-gray-900">NEW ARRIVALS</a>
-                    <a href="#" class="text-gray-700 hover:text-gray-900">SHOPS</a>
-                    <a href="/aboutus" class="text-red-500 font-semibold hover:text-red-600">ABOUTUS</a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <button class="text-gray-700 hover:text-gray-900">🔎</button>
-                    <button class="text-gray-700 hover:text-gray-900">❤️</button>
-                    <button class="text-gray-700 hover:text-gray-900">👤</button>
+                <div class="flex gap-4">
+                    @auth
+                        <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined text-zinc-800" data-icon="favorite">favorite</span></button>
+                        <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined text-zinc-800" data-icon="shopping_bag">shopping_bag</span></button>
+                        <div class="relative group">
+                            <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined text-zinc-800" data-icon="person">person</span></button>
+                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 py-2">
+                                <p class="px-4 py-2 text-sm font-medium text-zinc-800">{{ auth()->user()->name }}</p>
+                                <a href="#" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-gray-100 transition-colors">My Profile</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-gray-100 transition-colors">My Orders</a>
+                                <form method="POST" action="{{ route('logout') }}" class="block">
+                                    @csrf
+                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-zinc-700 hover:bg-gray-100 transition-colors">Logout</button>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-zinc-600 hover:text-zinc-800 transition-all">Sign In</a>
+                        <a href="{{ route('register') }}" class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-white bg-red-600 px-6 py-2 rounded-full hover:bg-red-700 transition-all">Sign Up</a>
+                    @endauth
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <div class="bg-gray-50 py-20">
+    <div class="bg-gray-50 py-20 pt-32">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 gap-12 items-center">
                 <div>

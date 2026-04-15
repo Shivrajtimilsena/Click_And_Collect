@@ -93,7 +93,7 @@
     <!-- Top Navigation Bar -->
     <nav class="fixed top-0 w-full z-50 h-20 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl shadow-[0_10px_30px_rgba(45,47,47,0.04)]">
         <div class="flex justify-between items-center px-12 w-full max-w-[1920px] mx-auto h-full">
-            <div class="text-2xl font-black text-zinc-800 dark:text-zinc-100 tracking-tighter">Click&Collect</div>
+            <a href="/" class="text-2xl font-black text-zinc-800 dark:text-zinc-100 tracking-tighter hover:opacity-80 transition-opacity">Click&Collect</a>
             <div class="hidden md:flex items-center gap-8">
                 <a class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-orange-700 dark:text-orange-500 border-b-2 border-orange-700 pb-1" href="/">Home</a>
                 <a class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-white transition-all" href="#">New Arrivals</a>
@@ -105,9 +105,25 @@
                     <input class="bg-surface-container-high border-none rounded-full px-6 py-2 text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search local curators..." type="text"/>
                 </div>
                 <div class="flex gap-4">
-                    <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined text-zinc-800" data-icon="favorite">favorite</span></button>
-                    <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined text-zinc-800" data-icon="shopping_bag">shopping_bag</span></button>
-                    <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined text-zinc-800" data-icon="person">person</span></button>
+                    @auth
+                        <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined text-zinc-800" data-icon="favorite">favorite</span></button>
+                        <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined text-zinc-800" data-icon="shopping_bag">shopping_bag</span></button>
+                        <div class="relative group">
+                            <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined text-zinc-800" data-icon="person">person</span></button>
+                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 py-2">
+                                <p class="px-4 py-2 text-sm font-medium text-zinc-800">{{ auth()->user()->name }}</p>
+                                <a href="#" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-surface transition-colors">My Profile</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-surface transition-colors">My Orders</a>
+                                <form method="POST" action="{{ route('logout') }}" class="block">
+                                    @csrf
+                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-zinc-700 hover:bg-surface transition-colors">Logout</button>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-zinc-600 hover:text-zinc-800 transition-all">Sign In</a>
+                        <a href="{{ route('register') }}" class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-white bg-primary px-6 py-2 rounded-full hover:bg-primary-dim transition-all">Sign Up</a>
+                    @endauth
                 </div>
             </div>
         </div>
