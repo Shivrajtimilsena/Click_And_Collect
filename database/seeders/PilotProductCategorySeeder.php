@@ -13,18 +13,25 @@ class PilotProductCategorySeeder extends Seeder
         $now = Carbon::now();
 
         $categories = [
-            ['category_name' => 'Meat',         'description' => 'Butcher product type'],
-            ['category_name' => 'Vegetables',   'description' => 'Greengrocer product type'],
-            ['category_name' => 'Seafood',      'description' => 'Fishmonger product type'],
-            ['category_name' => 'Bakery',       'description' => 'Bakery product type'],
-            ['category_name' => 'Delicatessen', 'description' => 'Deli product type'],
+            ['category_name' => 'Artisan Bakery'],
+            ['category_name' => 'Local Butcher'],
+            ['category_name' => 'Daily Greens'],
+            ['category_name' => 'Dairy & Eggs'],
+            ['category_name' => 'Fresh Catch'],
+            ['category_name' => 'Coffee & Tea'],
+            ['category_name' => 'Wine & Spirits'],
+            ['category_name' => 'Meat'],
+            ['category_name' => 'Vegetables'],
+            ['category_name' => 'Seafood'],
+            ['category_name' => 'Bakery'],
+            ['category_name' => 'Delicatessen'],
         ];
 
         foreach ($categories as $category) {
             DB::table('product_categories')->updateOrInsert(
                 ['category_name' => $category['category_name']],
                 [
-                    'description' => $category['description'],
+                    'description' => $category['category_name'] . ' products',
                     'is_active'   => 'Y',
                     'created_at'  => $now,
                     'updated_at'  => $now,
