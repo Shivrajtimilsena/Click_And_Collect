@@ -1,27 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Click & Collect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-white">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-center h-16">
-                <div class="flex items-center space-x-12">
-                    <a href="/" class="text-gray-700 hover:text-gray-900">HOME</a>
-                    <a href="#" class="text-gray-700 hover:text-gray-900">NEW ARRIVALS</a>
-                    <a href="#" class="text-gray-700 hover:text-gray-900">SHOPS</a>
-                    <a href="/aboutus" class="text-red-500 font-semibold hover:text-red-600">ABOUTUS</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+@extends('app')
 
-    <!-- Hero Section -->
+@section('content')
     <div class="bg-gray-50 py-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 gap-12 items-center">
@@ -220,5 +199,4 @@
             </div>
         </div>
     </footer>
-</body>
-</html>
+@endsection
