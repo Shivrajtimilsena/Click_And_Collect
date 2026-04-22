@@ -38,12 +38,24 @@ Route::middleware('guest')->group(function () {
             'password' => ['required'],
         ]);
         
+        $user = \App\Models\User::where('email', $credentials['email'])->first();
+        \Illuminate\Support\Facades\Log::info('User found: ' . ($user ? 'yes' : 'no'));
+        if ($user) {
+            \Illuminate\Support\Facades\Log::info('User status: ' . $user->status);
+            \Illuminate\Support\Facades\Log::info('Password hash exists: ' . ($user->password ? 'yes' : 'no'));
+        }
+        
         if (auth()->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+            \Illuminate\Support\Facades\Log::info('Login successful for: ' . $credentials['email']);
             return redirect()->intended('/');
         }
         
-        return redirect()->route('signin')->withErrors(['email' => 'Invalid credentials'])->onlyInput('email');
+        \Illuminate\Support\Facades\Log::info('Login failed for: ' . $credentials['email']);
+        
+        return back()->withInput($request->only('email'))->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ]);
     });
     
     Route::get('/register', function () {
@@ -60,7 +72,7 @@ Route::middleware('guest')->group(function () {
         $user = \App\Models\User::create([
             'full_name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
+            'password' => $validated['password'],
             'status' => 'ACTIVE',
             'role' => 'CUSTOMER',
         ]);
@@ -91,6 +103,11 @@ Route::get('/shops/{shop}', [ShopController::class, 'show'])->name('shops.show')
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {
+    // Profile
+    Route::get('/profile', function () {
+        return view('profile.edit');
+    })->name('profile.edit');
+    
     // Cart
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
