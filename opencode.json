@@ -1,0 +1,18 @@
+{
+  "confirmation": {
+    "enabled": true,
+    "message": "Can I apply this change?"
+  },
+  "project": {
+    "name": "clickandcollect",
+    "type": "laravel"
+  },
+  "commands": {
+    "lint": "php artisan pest --filter=without",
+    "typecheck": "php artisan tinker"
+  },
+  "settings": {
+    "auto_format": true,
+    "auto_lint": false
+  }
+}
