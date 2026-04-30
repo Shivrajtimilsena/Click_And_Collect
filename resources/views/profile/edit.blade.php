@@ -10,7 +10,7 @@
             <!-- Profile Card -->
             <div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_10px_30px_rgba(45,47,47,0.04)] relative overflow-hidden">
                 <!-- Subtle Gradient Accent -->
-                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full"></div>
+                <div class="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-primary/10 to-transparent rounded-bl-full"></div>
                 <div class="relative z-10">
                     <!-- Profile Avatar -->
                     <div class="w-24 h-24 rounded-full overflow-hidden mb-6 ring-4 ring-surface-container">
@@ -206,7 +206,7 @@
                                 <td class="px-8 py-6">
                                     <!-- Status Badge -->
                                     <span class="inline-flex items-center space-x-1.5 @if($order->order_status === 'COMPLETED') text-zinc-600 bg-zinc-100 @elseif($order->order_status === 'READY') text-green-600 bg-green-100 @else text-amber-600 bg-amber-100 @endif px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                                        <span class="w-1.5 h-1.5 rounded-full @if($order->order_status === 'COMPLETED') bg-zinc-400 @elseif($order->order_status === 'READY') bg-green-400 @else bg-amber-400 @endif"></span>
+                                        <span class="w-1.5 h-1.5 rounded-full @if($order->order_status === 'COMPLETED') bg-zinc-400 @elseif($order->order_status === 'READY') @else @endif"></span>
                                         <span>{{ ucfirst(strtolower($order->order_status)) }}</span>
                                     </span>
                                 </td>

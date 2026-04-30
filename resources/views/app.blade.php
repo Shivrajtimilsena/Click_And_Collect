@@ -93,7 +93,7 @@
 <body class="bg-surface text-on-background selection:bg-primary-container selection:text-on-primary-container">
     @include('components.navbar')
 
-    <main class="pt-24 pb-12 px-4 md:px-12 max-w-[1920px] mx-auto">
+    <main class="pt-24 pb-12 px-4 md:px-12 max-w-480 mx-auto">
         @if ($errors->any())
             <div class="mb-4 p-4 bg-error/10 text-error rounded-lg">
                 <ul class="list-disc list-inside">
