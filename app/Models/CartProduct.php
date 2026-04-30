@@ -10,25 +10,29 @@ class CartProduct extends Model
     use HasFactory;
 
     protected $table = 'cart_products';
+    public $timestamps = false;
+    public $incrementing = false;
 
     protected $fillable = [
         'cart_id',
         'product_id',
         'quantity',
+        'price_at_add',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
+        'price_at_add' => 'float',
     ];
 
     public function cart()
     {
-        return $this->belongsTo(Cart::class);
+        return $this->belongsTo(Cart::class, 'cart_id', 'cart_id');
     }
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
     }
 
     public function getSubtotalAttribute(): float

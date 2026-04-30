@@ -9,21 +9,25 @@ class Trader extends Model
 {
     use HasFactory;
 
+    protected $table = 'traders';
+    protected $primaryKey = 'trader_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
     protected $fillable = [
         'user_id',
-        'business_name',
-        'business_type',
-        'description',
-        'rating',
+        'shop_type',
+        'logo_url',
+        'is_active',
     ];
 
     protected $casts = [
-        'rating' => 'float',
+        'is_active' => 'boolean',
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
     public function shops()

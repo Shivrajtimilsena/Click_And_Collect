@@ -10,19 +10,26 @@ class WishlistProduct extends Model
     use HasFactory;
 
     protected $table = 'wishlist_products';
+    public $timestamps = true;
+    public $incrementing = false;
 
     protected $fillable = [
         'wishlist_id',
         'product_id',
+        'added_at',
+    ];
+
+    protected $casts = [
+        'added_at' => 'datetime',
     ];
 
     public function wishlist()
     {
-        return $this->belongsTo(Wishlist::class);
+        return $this->belongsTo(Wishlist::class, 'wishlist_id', 'wishlist_id');
     }
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
     }
 }

@@ -9,18 +9,23 @@ class Admin extends Model
 {
     use HasFactory;
 
+    protected $table = 'admins';
+    protected $primaryKey = 'admin_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
     protected $fillable = [
         'user_id',
-        'role',
-        'permissions',
+        'access_level',
+        'last_login',
     ];
 
     protected $casts = [
-        'permissions' => 'array',
+        'last_login' => 'datetime',
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 }

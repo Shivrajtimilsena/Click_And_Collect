@@ -9,18 +9,23 @@ class Cart extends Model
 {
     use HasFactory;
 
+    protected $table = 'carts';
+    protected $primaryKey = 'cart_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
     protected $fillable = [
         'customer_id',
     ];
 
     public function customer()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(Customer::class, 'customer_id', 'customer_id');
     }
 
     public function products()
     {
-        return $this->hasMany(CartProduct::class);
+        return $this->hasMany(CartProduct::class, 'cart_id', 'cart_id');
     }
 
     public function getTotalAttribute(): float

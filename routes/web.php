@@ -8,6 +8,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ProfileController;
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -103,10 +104,18 @@ Route::get('/shops/{shop}', [ShopController::class, 'show'])->name('shops.show')
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {
-    // Profile
-    Route::get('/profile', function () {
-        return view('profile.edit');
-    })->name('profile.edit');
+    // Profile routes
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('/dashboard', [ProfileController::class, 'dashboard'])->name('dashboard');
+        Route::get('/orders', [ProfileController::class, 'orders'])->name('orders');
+        Route::get('/shops', [ProfileController::class, 'shops'])->name('shops');
+        Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
+        Route::patch('/update', [ProfileController::class, 'update'])->name('update');
+    });
+    
+    // Backward compatibility
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.old-update');
     
     // Cart
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
