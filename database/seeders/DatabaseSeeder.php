@@ -29,32 +29,36 @@ class DatabaseSeeder extends Seeder
             $categories[] = ProductCategory::firstOrCreate(['category_name' => $cat['category_name']], $cat);
         }
 
-        // Create test trader user
-        $traderUser = User::firstOrCreate(
-            ['email' => 'trader@example.com'],
-            [
-                'full_name' => 'Test Trader',
-                'phone_no' => '555-0000',
-                'password' => bcrypt('password'),
-                'role' => 'TRADER',
-                'status' => 'ACTIVE',
-            ]
-        );
-
-        $trader = Trader::firstOrCreate(
-            ['user_id' => $traderUser->user_id],
-            [
-                'shop_type' => 'Multi-Vendor',
-                'is_active' => 'Y',
-            ]
-        );
-
-        // Create shops
+        // Create traders and their shops
         $shopNames = ['Green Root', 'Flour & Salt', 'Old Town Butcher', 'Pure Farm', 'Bean Craft', 'Ocean Fresh'];
         $createdShops = [];
+        $traders = [];
 
         foreach ($shopNames as $idx => $name) {
-            $createdShops[] = Shop::firstOrCreate(
+            // Create unique trader for each shop
+            $traderUser = User::firstOrCreate(
+                ['email' => 'trader' . ($idx + 1) . '@example.com'],
+                [
+                    'full_name' => $name . ' Trader',
+                    'phone_no' => '555-' . str_pad($idx, 4, '0', STR_PAD_LEFT),
+                    'password' => bcrypt('password'),
+                    'role' => 'TRADER',
+                    'status' => 'ACTIVE',
+                ]
+            );
+
+            $trader = Trader::firstOrCreate(
+                ['user_id' => $traderUser->user_id],
+                [
+                    'shop_type' => 'Single-Vendor',
+                    'is_active' => 'Y',
+                ]
+            );
+
+            $traders[] = $trader;
+
+            // Create shop for this trader
+            $shop = Shop::firstOrCreate(
                 ['shop_name' => $name],
                 [
                     'trader_id' => $trader->trader_id,
@@ -62,6 +66,8 @@ class DatabaseSeeder extends Seeder
                     'is_active' => 'Y',
                 ]
             );
+
+            $createdShops[] = $shop;
         }
 
         // Create products
