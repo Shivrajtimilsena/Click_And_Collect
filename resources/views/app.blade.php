@@ -105,8 +105,11 @@
         @endif
 
         @if (session('success'))
-            <div class="mb-4 p-4 bg-green-500/10 text-green-700 rounded-lg">
-                {{ session('success') }}
+            <div id="successNotification" class="mb-4 p-4 bg-green-500/15 text-green-700 rounded-lg border border-green-500/30 flex justify-between items-center">
+                <span>{{ session('success') }}</span>
+                <button onclick="document.getElementById('successNotification').style.display='none'" class="text-green-700 hover:text-green-800 font-bold text-xl leading-none">
+                    ×
+                </button>
             </div>
         @endif
 

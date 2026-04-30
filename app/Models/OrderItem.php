@@ -10,26 +10,30 @@ class OrderItem extends Model
     use HasFactory;
 
     protected $table = 'order_items';
+    public $timestamps = false;
+    public $incrementing = false;
 
     protected $fillable = [
         'order_id',
         'product_id',
         'quantity',
-        'price',
+        'unit_price',
+        'line_total',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
-        'price' => 'float',
+        'unit_price' => 'float',
+        'line_total' => 'float',
     ];
 
     public function order()
     {
-        return $this->belongsTo(Order::class);
+        return $this->belongsTo(Order::class, 'order_id', 'order_id');
     }
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
     }
 }

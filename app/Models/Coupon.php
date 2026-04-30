@@ -9,20 +9,26 @@ class Coupon extends Model
 {
     use HasFactory;
 
+    protected $table = 'coupons';
+    protected $primaryKey = 'coupon_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
     protected $fillable = [
-        'code',
-        'discount_percentage',
-        'discount_fixed_amount',
-        'usage_limit',
-        'used_count',
-        'expiry_date',
+        'coupon_code',
+        'amount',
+        'discount_percent',
+        'start_date',
+        'end_date',
+        'description',
         'is_active',
     ];
 
     protected $casts = [
-        'discount_percentage' => 'float',
-        'discount_fixed_amount' => 'float',
-        'expiry_date' => 'datetime',
+        'amount' => 'float',
+        'discount_percent' => 'float',
+        'start_date' => 'date',
+        'end_date' => 'date',
         'is_active' => 'boolean',
     ];
 

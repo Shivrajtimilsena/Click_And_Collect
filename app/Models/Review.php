@@ -9,24 +9,31 @@ class Review extends Model
 {
     use HasFactory;
 
+    protected $table = 'reviews';
+    protected $primaryKey = 'review_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
     protected $fillable = [
         'product_id',
         'customer_id',
-        'rating',
-        'comment',
+        'review_rating',
+        'review',
+        'review_date',
     ];
 
     protected $casts = [
-        'rating' => 'integer',
+        'review_rating' => 'float',
+        'review_date' => 'date',
     ];
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
     }
 
     public function customer()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(Customer::class, 'customer_id', 'customer_id');
     }
 }

@@ -10,36 +10,40 @@ class CollectionSlot extends Model
     use HasFactory;
 
     protected $table = 'collection_slots';
+    protected $primaryKey = 'collection_slot_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'shop_id',
+        'slot_date',
+        'slot_day',
+        'slot_label',
         'start_time',
         'end_time',
-        'max_orders',
-        'current_orders',
-        'is_available',
+        'capacity',
+        'total_order',
+        'is_active',
     ];
 
     protected $casts = [
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
-        'max_orders' => 'integer',
-        'current_orders' => 'integer',
-        'is_available' => 'boolean',
+        'slot_date' => 'date',
+        'capacity' => 'integer',
+        'total_order' => 'integer',
     ];
 
     public function shop()
     {
-        return $this->belongsTo(Shop::class);
+        return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
     }
 
     public function orders()
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(Order::class, 'collection_slot_id', 'collection_slot_id');
     }
 
     public function isFull(): bool
     {
-        return $this->current_orders >= $this->max_orders;
+        return $this->total_order >= $this->capacity;
     }
 }
