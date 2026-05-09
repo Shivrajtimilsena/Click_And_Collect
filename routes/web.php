@@ -1,14 +1,19 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\TraderController;
+use App\Http\Controllers\WishlistController;
+use App\Models\Customer;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -27,65 +32,73 @@ Route::middleware('guest')->group(function () {
     Route::get('/signup', function () {
         return view('auth.auth', ['tab' => 'signup']);
     })->name('signup');
-    
+
     // Legacy routes also work
     Route::get('/login', function () {
         return redirect()->route('signin');
     })->name('login');
-    
-    Route::post('/login', function (\Illuminate\Http\Request $request) {
+
+    Route::post('/login', function (Request $request) {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
-        
-        $user = \App\Models\User::where('email', $credentials['email'])->first();
-        \Illuminate\Support\Facades\Log::info('User found: ' . ($user ? 'yes' : 'no'));
+
+        $user = User::where('email', $credentials['email'])->first();
+        Log::info('User found: '.($user ? 'yes' : 'no'));
         if ($user) {
-            \Illuminate\Support\Facades\Log::info('User status: ' . $user->status);
-            \Illuminate\Support\Facades\Log::info('Password hash exists: ' . ($user->password ? 'yes' : 'no'));
+            Log::info('User status: '.$user->status);
+            Log::info('Password hash exists: '.($user->password ? 'yes' : 'no'));
         }
-        
+
         if (auth()->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            \Illuminate\Support\Facades\Log::info('Login successful for: ' . $credentials['email']);
+            Log::info('Login successful for: '.$credentials['email']);
+
             return redirect()->intended('/');
         }
-        
-        \Illuminate\Support\Facades\Log::info('Login failed for: ' . $credentials['email']);
-        
+
+        Log::info('Login failed for: '.$credentials['email']);
+
         return back()->withInput($request->only('email'))->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ]);
     });
-    
+
     Route::get('/register', function () {
         return redirect()->route('signup');
     })->name('register');
-    
-    Route::post('/register', function (\Illuminate\Http\Request $request) {
+
+    Route::post('/register', function (Request $request) {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
-        
-        $user = \App\Models\User::create([
+
+        $user = User::create([
             'full_name' => $validated['name'],
             'email' => $validated['email'],
             'password' => $validated['password'],
             'status' => 'ACTIVE',
             'role' => 'CUSTOMER',
         ]);
-        
+
+        Customer::create([
+            'user_id' => $user->user_id,
+            'loyalty_points' => 0,
+            'is_active' => 'Y',
+        ]);
+
         auth()->login($user);
-        
+
         return redirect('/');
     });
 });
 
 Route::post('/logout', function () {
     auth()->logout();
+
     return redirect('/');
 })->middleware('auth')->name('logout');
 
@@ -102,6 +115,10 @@ Route::get('/category/{slug}', function ($slug) {
 Route::get('/shops', [ShopController::class, 'index'])->name('shops.index');
 Route::get('/shops/{shop}', [ShopController::class, 'show'])->name('shops.show');
 
+// Trader Application (Public - no auth required)
+Route::get('/trader/apply', [TraderController::class, 'showApplyForm'])->name('trader.apply');
+Route::post('/trader/apply', [TraderController::class, 'submitApplication'])->name('trader.apply.submit');
+
 // Authenticated routes
 Route::middleware('auth')->group(function () {
     // Profile routes
@@ -112,17 +129,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
         Route::patch('/update', [ProfileController::class, 'update'])->name('update');
     });
-    
+
     // Backward compatibility
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.old-update');
-    
+
     // Cart
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
     Route::post('/cart/{cartProduct}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/{cartProduct}', [CartController::class, 'remove'])->name('cart.remove');
-    Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
     // Wishlist
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
@@ -137,4 +154,21 @@ Route::middleware('auth')->group(function () {
 
     // Reviews
     Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+
+    // Trader Portal (protected - only approved traders)
+    Route::prefix('trader')->name('trader.')->middleware('auth')->group(function () {
+        Route::get('/dashboard', function () {
+            $user = auth()->user();
+            if ($user->role !== 'TRADER' || $user->status !== 'ACTIVE') {
+                abort(403, 'Your trader application is still pending approval.');
+            }
+
+            return app(TraderController::class)->dashboard();
+        })->name('dashboard');
+        Route::get('/orders', [TraderController::class, 'orders'])->name('orders.index');
+        Route::get('/inventory', [TraderController::class, 'inventory'])->name('inventory.index');
+        Route::get('/product/create', [TraderController::class, 'productCreate'])->name('product.create');
+        Route::post('/product', [TraderController::class, 'productStore'])->name('product.store');
+        Route::get('/settings', [TraderController::class, 'settings'])->name('settings');
+    });
 });

@@ -19,9 +19,9 @@ class ReviewController extends Controller
         $customer = auth()->user()->customer;
 
         $product->reviews()->create([
-            'customer_id' => $customer->id,
-            'rating' => $request->rating,
-            'comment' => $request->comment,
+            'customer_id' => $customer->customer_id,
+            'review_rating' => $request->rating,
+            'review' => $request->comment,
         ]);
 
         return back()->with('success', 'Review added successfully!');

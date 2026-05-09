@@ -3,122 +3,181 @@
 @section('title', 'Checkout | Click&Collect')
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <div class="lg:col-span-2">
-        <h1 class="text-3xl font-extrabold mb-8">Checkout</h1>
+<div class="max-w-3xl mx-auto py-12">
+    <h1 class="text-3xl font-headline font-bold text-on-surface mb-8">Checkout</h1>
 
-        <!-- Collection Slot Selection -->
-        <form action="{{ route('orders.store') }}" method="POST" id="checkout-form" class="space-y-6">
-            @csrf
+    <form action="{{ route('orders.store') }}" method="POST" id="checkout-form" class="space-y-6">
+        @csrf
 
-            <div class="bg-surface-container-lowest rounded-lg p-6">
-                <h2 class="text-xl font-extrabold mb-4">Select Collection Slot</h2>
-                
-                <div class="space-y-4">
-                    @forelse ($collectionSlots as $shopId => $slots)
-                        @php
-                            $shop = $slots[0]->shop;
-                        @endphp
-                        <div class="border-2 border-surface-container rounded-lg p-4">
-                            <h3 class="font-bold mb-4">{{ $shop->name }}</h3>
-                            <div class="space-y-2">
-                                @foreach ($slots as $slot)
-                                    <label class="flex items-center gap-3 p-3 hover:bg-surface-container rounded cursor-pointer">
-                                        <input type="radio" name="collection_slot_id" value="{{ $slot->id }}" required class="w-4 h-4">
-                                        <div class="flex-grow">
-                                            <p class="font-bold">
-                                                {{ $slot->start_time->format('h:i A') }} - {{ $slot->end_time->format('h:i A') }}
-                                            </p>
-                                            <p class="text-sm text-on-surface-variant">
-                                                {{ $slot->max_orders - $slot->current_orders }} slots available
-                                            </p>
-                                        </div>
-                                    </label>
-                                @endforeach
-                            </div>
-                        </div>
-                    @empty
-                        <p class="text-on-surface-variant">No collection slots available</p>
-                    @endforelse
+        @if ($errors->any())
+            <div class="bg-error/10 text-error p-4 border border-error/30">
+                <ul class="list-disc list-inside">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        @if (session('success'))
+            <div class="bg-green-500/15 text-green-700 p-4 border border-green-500/30">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <div class="bg-surface-container-lowest border border-surface-container-high p-8">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="material-symbols-outlined text-primary text-2xl">schedule</span>
+                <div>
+                    <h2 class="text-xl font-headline font-bold text-on-surface">Select Collection Slot</h2>
+                    <p class="text-sm text-secondary">Collection available 24 hours after order placement</p>
                 </div>
             </div>
-
-            <!-- Coupon Code -->
-            <div class="bg-surface-container-lowest rounded-lg p-6">
-                <h2 class="text-xl font-extrabold mb-4">Promo Code</h2>
-                <input type="text" name="coupon_code" placeholder="Enter coupon code" class="w-full px-4 py-3 border border-surface-container rounded-lg"/>
-                <p class="text-xs text-on-surface-variant mt-2">Optional: Enter a valid coupon code to apply discount</p>
-            </div>
-
-            <!-- Customer Info -->
-            <div class="bg-surface-container-lowest rounded-lg p-6">
-                <h2 class="text-xl font-extrabold mb-4">Delivery Information</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-bold mb-2">Full Name</label>
-                        <input type="text" value="{{ $customer->user->name }}" readonly class="w-full px-4 py-3 border border-surface-container rounded-lg bg-surface"/>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold mb-2">Email</label>
-                        <input type="email" value="{{ $customer->user->email }}" readonly class="w-full px-4 py-3 border border-surface-container rounded-lg bg-surface"/>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold mb-2">Phone</label>
-                        <input type="text" value="{{ $customer->phone ?? '' }}" readonly class="w-full px-4 py-3 border border-surface-container rounded-lg bg-surface"/>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold mb-2">Address</label>
-                        <textarea readonly class="w-full px-4 py-3 border border-surface-container rounded-lg bg-surface">{{ $customer->address ?? '' }}</textarea>
-                    </div>
+            
+            @if ($collectionSlots->isEmpty())
+                <div class="bg-orange-50 border border-orange-200 p-4 text-center">
+                    <p class="text-on-surface-variant">No collection slots available. Please check back later.</p>
                 </div>
-            </div>
-
-            <button type="submit" class="w-full bg-primary text-on-primary px-6 py-4 rounded-lg font-bold text-lg hover:opacity-90">
-                Complete Order
-            </button>
-        </form>
-    </div>
-
-    <!-- Order Summary -->
-    <div class="lg:col-span-1">
-        <div class="bg-surface-container-lowest rounded-lg p-6 sticky top-32 space-y-4">
-            <h2 class="text-xl font-extrabold">Order Summary</h2>
-
-            <div class="space-y-3 max-h-96 overflow-y-auto">
-                @foreach ($cart->products as $item)
-                    <div class="flex justify-between text-sm">
-                        <span>{{ $item->product->name }} x {{ $item->quantity }}</span>
-                        <span>${{ number_format($item->subtotal, 2) }}</span>
-                    </div>
-                @endforeach
-            </div>
-
-            @php
-                $subtotal = $cart->products->sum(fn($item) => $item->subtotal);
-                $tax = $subtotal * 0.1;
-                $total = $subtotal + $tax;
-            @endphp
-
-            <div class="border-t border-surface-container pt-4 space-y-2">
-                <div class="flex justify-between">
-                    <span>Subtotal</span>
-                    <span>${{ number_format($subtotal, 2) }}</span>
+            @else
+                <h3 class="text-lg font-bold text-on-surface mb-4">Select Day</h3>
+                <div class="grid grid-cols-3 gap-4 mb-8">
+                    <button type="button" class="day-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-day="Wednesday">
+                        Wednesday
+                    </button>
+                    <button type="button" class="day-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-day="Thursday">
+                        Thursday
+                    </button>
+                    <button type="button" class="day-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-day="Friday">
+                        Friday
+                    </button>
                 </div>
-                <div class="flex justify-between">
-                    <span>Tax (10%)</span>
-                    <span>${{ number_format($tax, 2) }}</span>
-                </div>
-                <div class="flex justify-between font-extrabold text-lg">
-                    <span>Total</span>
-                    <span>${{ number_format($total, 2) }}</span>
-                </div>
-            </div>
 
-            <div class="bg-primary/10 border-l-4 border-primary p-3 rounded text-sm">
-                <p class="font-bold text-primary mb-1">Collection Info</p>
-                <p class="text-xs">Select a collection slot above to choose when and where to pick up your order.</p>
+                <h3 class="text-lg font-bold text-on-surface mb-4">Select Time Slot</h3>
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <button type="button" class="time-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-time="10:00">
+                        10:00 - 13:00
+                    </button>
+                    <button type="button" class="time-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-time="13:00">
+                        13:00 - 16:00
+                    </button>
+                    <button type="button" class="time-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-time="16:00">
+                        16:00 - 19:00
+                    </button>
+                </div>
+
+                <select name="collection_slot_id" id="collection_slot_id" required class="hidden">
+                    <option value="">-- Select collection slot --</option>
+                    @foreach ($collectionSlots as $shopId => $slots)
+                        @foreach ($slots as $slot)
+                            @php
+                                $day = \Carbon\Carbon::parse($slot->slot_date)->format('l');
+                                $time = $slot->start_time;
+                                $available = $slot->capacity - $slot->total_order;
+                            @endphp
+                            <option value="{{ $slot->collection_slot_id }}" data-day="{{ $day }}" data-time="{{ $time }}" data-available="{{ $available }}">
+                                {{ $day }}, {{ $slot->slot_date->format('M d') }} - {{ $slot->slot_label }} ({{ $available }} left)
+                            </option>
+                        @endforeach
+                    @endforeach
+                </select>
+
+                <div id="selection-display" class="p-4 bg-primary/10 border-l-4 border-primary hidden">
+                    <p class="text-sm">
+                        <span class="font-bold text-primary">Selected:</span>
+                        <span id="selected-text" class="text-on-surface">-</span>
+                    </p>
+                </div>
+            @endif
+        </div>
+
+        <div class="bg-surface-container-lowest border border-surface-container-high p-8">
+            <h3 class="text-lg font-bold text-on-surface mb-4">Promo Code (Optional)</h3>
+            <div class="flex gap-4">
+                <input type="text" name="coupon_code" placeholder="Enter coupon code" class="flex-1 px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20"/>
+                <button type="button" class="px-6 py-3 bg-surface-container-high text-secondary font-bold hover:bg-surface-container transition-all">Apply</button>
             </div>
         </div>
-    </div>
+
+        <div class="space-y-3">
+            <button type="submit" id="complete-order-btn" disabled class="w-full bg-surface-container-high text-on-surface px-6 py-4 font-bold text-lg cursor-not-allowed transition-all">
+                Complete Order
+            </button>
+            <p id="slot-message" class="text-center text-sm text-secondary">Select a day and time slot to continue</p>
+        </div>
+    </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dayButtons = document.querySelectorAll('.day-selector');
+    const timeButtons = document.querySelectorAll('.time-selector');
+    const selectElement = document.getElementById('collection_slot_id');
+    const displayDiv = document.getElementById('selection-display');
+    const submitBtn = document.getElementById('complete-order-btn');
+    const message = document.getElementById('slot-message');
+
+    let selectedDay = null;
+    let selectedTime = null;
+
+    dayButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            dayButtons.forEach(b => b.classList.remove('bg-primary/10', 'border-primary'));
+            this.classList.add('bg-primary/10', 'border-primary');
+            selectedDay = this.dataset.day;
+            checkSelection();
+        });
+    });
+
+    timeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            timeButtons.forEach(b => b.classList.remove('bg-primary/10', 'border-primary'));
+            this.classList.add('bg-primary/10', 'border-primary');
+            selectedTime = this.dataset.time;
+            checkSelection();
+        });
+    });
+
+    function checkSelection() {
+        if (!selectedDay || !selectedTime) {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('bg-surface-container-high', 'text-on-surface', 'cursor-not-allowed');
+            submitBtn.classList.remove('bg-primary', 'text-on-primary');
+            return;
+        }
+
+        const options = selectElement.querySelectorAll('option[value]');
+        let found = false;
+        
+        for (let option of options) {
+            if (option.dataset.day === selectedDay && option.dataset.time === selectedTime) {
+                selectElement.value = option.value;
+                document.getElementById('selected-text').textContent = option.textContent;
+                displayDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-surface-container-high', 'text-on-surface', 'cursor-not-allowed');
+                submitBtn.classList.add('bg-primary', 'text-on-primary');
+                message.classList.add('hidden');
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            selectElement.value = '';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('bg-surface-container-high', 'text-on-surface', 'cursor-not-allowed');
+            submitBtn.classList.remove('bg-primary', 'text-on-primary');
+            message.classList.remove('hidden');
+            message.textContent = 'No slot available for this selection. Please try another combination.';
+        }
+    }
+
+    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+        if (!selectElement.value) {
+            e.preventDefault();
+            alert('Please select a collection slot.');
+        }
+    });
+});
+</script>
 @endsection

@@ -2,115 +2,215 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
 use App\Models\CollectionSlot;
-use App\Models\Coupon;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
+use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class OrderController extends Controller
 {
     use AuthorizesRequests;
+
     public function index(): View
     {
         $orders = request()->user()->customer->orders()
-            ->with('items.product', 'collectionSlot.shop')
+            ->with('items.product.shop', 'collectionSlot.shop')
             ->latest()
-            ->paginate(10);
+            ->get();
 
-        return view('orders.index', ['orders' => $orders]);
+        $orderGroups = $orders->groupBy(function ($order) {
+            return $order->group_id ?? 'single_'.$order->order_id;
+        });
+
+        return view('orders.index', ['orderGroups' => $orderGroups]);
     }
 
     public function show(Order $order): View
     {
         $this->authorize('view', $order);
-        
-        $order->load('items.product', 'collectionSlot.shop', 'payment');
 
-        return view('orders.show', ['order' => $order]);
+        $order->load('items.product.shop', 'collectionSlot.shop', 'payment');
+
+        $groupOrders = $order->group_id
+            ? Order::where('group_id', $order->group_id)
+                ->with('items.product.shop', 'collectionSlot.shop')
+                ->get()
+            : collect([$order]);
+
+        return view('orders.show', [
+            'order' => $order,
+            'groupOrders' => $groupOrders,
+        ]);
     }
 
     public function checkout(): View|RedirectResponse
     {
-        $customer = request()->user()->customer;
-        $cart = $customer->getOrCreateCart();
-        $cart->load('products.product');
+        try {
+            $user = request()->user();
+            if (! $user) {
+                return redirect()->route('signin')->with('error', 'Please log in to view your cart.');
+            }
 
-        if ($cart->products()->count() === 0) {
-            return redirect()->route('cart.index')->with('error', 'Cart is empty!');
+            $customer = $user->customer;
+            if (! $customer) {
+                return redirect('/')->with('error', 'Customer record not found.');
+            }
+
+            $cart = $customer->getOrCreateCart();
+            $cart->load('products.product');
+
+            if ($cart->products()->count() === 0) {
+                return redirect()->route('cart.index')->with('error', 'Your cart is empty. Please add items before checking out.');
+            }
+
+            $cartTotal = $cart->products()->sum('quantity');
+            if ($cartTotal > 20) {
+                return redirect()->route('cart.index')->with('error', 'max 20 item allowed to order');
+            }
+
+            $now = Carbon::now();
+            $minDateTime = $now->clone()->addHours(24);
+
+            $collectionSlots = CollectionSlot::where('is_active', 'Y')
+                ->where('total_order', '<', \DB::raw('capacity'))
+                ->with('shop')
+                ->get()
+                ->filter(function ($slot) use ($minDateTime) {
+                    $slotDateTime = Carbon::createFromFormat(
+                        'Y-m-d H:i',
+                        $slot->slot_date->format('Y-m-d').' '.$slot->start_time
+                    );
+
+                    return $slotDateTime->gte($minDateTime);
+                })
+                ->groupBy('shop_id');
+
+            $availableDays = $collectionSlots->flatten()->pluck('slot_day')->unique()->values()->toArray();
+            $availableDates = $collectionSlots->flatten()->pluck('slot_date')->unique()->map(function ($date) {
+                return Carbon::parse($date)->format('Y-m-d');
+            })->values()->toArray();
+
+            return view('orders.checkout', [
+                'cart' => $cart,
+                'collectionSlots' => $collectionSlots,
+                'customer' => $customer,
+                'availableDays' => $availableDays,
+                'availableDates' => $availableDates,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Checkout view error: '.$e->getMessage(), [
+                'user_id' => request()->user()?->user_id,
+                'exception' => $e,
+            ]);
+
+            return redirect('/')->with('error', 'An error occurred while loading the checkout page. Please try again.');
         }
-
-        $collectionSlots = CollectionSlot::where('is_available', true)
-            ->where('current_orders', '<', 'max_orders')
-            ->with('shop')
-            ->get()
-            ->groupBy('shop_id');
-
-        return view('orders.checkout', [
-            'cart' => $cart,
-            'collectionSlots' => $collectionSlots,
-            'customer' => $customer,
-        ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'collection_slot_id' => 'required|exists:collection_slots,id',
-            'coupon_code' => 'nullable|string',
-        ]);
-
-        $customer = request()->user()->customer;
-        $cart = $customer->getOrCreateCart();
-
-        if ($cart->products()->count() === 0) {
-            return back()->with('error', 'Cart is empty!');
-        }
-
-        $cartItems = $cart->products()->with('product')->get();
-        $totalPrice = $cartItems->sum(fn($item) => $item->product->discounted_price * $item->quantity);
-
-        // Apply coupon if provided
-        if ($request->filled('coupon_code')) {
-            $coupon = Coupon::where('code', $request->coupon_code)->first();
-            
-            if ($coupon && $coupon->isValid()) {
-                if ($coupon->discount_percentage) {
-                    $totalPrice -= $totalPrice * ($coupon->discount_percentage / 100);
-                } else {
-                    $totalPrice -= $coupon->discount_fixed_amount;
-                }
-                $coupon->increment('used_count');
-            }
-        }
-
-        // Create order
-        $order = $customer->orders()->create([
-            'collection_slot_id' => $request->collection_slot_id,
-            'total_price' => max(0, $totalPrice),
-            'status' => 'pending',
-        ]);
-
-        // Create order items
-        foreach ($cartItems as $item) {
-            $unitPrice = $item->product->discounted_price;
-            $order->items()->create([
-                'product_id' => $item->product->product_id,
-                'quantity' => $item->quantity,
-                'unit_price' => $unitPrice,
-                'line_total' => $unitPrice * $item->quantity,
+        try {
+            $validated = $request->validate([
+                'collection_slot_id' => 'required|exists:collection_slots,collection_slot_id',
+                'coupon_code' => 'nullable|string',
             ]);
+
+            $user = request()->user();
+            if (! $user) {
+                return redirect()->route('home')->with('error', 'You must be logged in to place an order.');
+            }
+
+            $customer = $user->customer;
+            if (! $customer) {
+                return redirect()->route('home')->with('error', 'Customer record not found.');
+            }
+
+            $cart = $customer->getOrCreateCart();
+            if ($cart->products()->count() === 0) {
+                return redirect()->route('home')->with('error', 'Your cart is empty.');
+            }
+
+            $cartTotalQty = $cart->products()->sum('quantity');
+            if ($cartTotalQty > 20) {
+                return redirect()->route('cart.index')->with('error', 'max 20 item allowed to order');
+            }
+
+            $cartItems = $cart->products()->with('product.discount', 'product.shop')->get();
+
+            $selectedSlot = CollectionSlot::findOrFail($request->collection_slot_id);
+
+            $shopGroups = $cartItems->groupBy(fn ($item) => $item->product->shop_id);
+
+            $group_id = (string) Str::uuid();
+
+            DB::transaction(function () use ($shopGroups, $customer, $selectedSlot, $group_id) {
+                foreach ($shopGroups as $shopId => $items) {
+                    $slot = CollectionSlot::where('shop_id', $shopId)
+                        ->where('slot_date', $selectedSlot->slot_date)
+                        ->where('start_time', $selectedSlot->start_time)
+                        ->where('is_active', 'Y')
+                        ->where('total_order', '<', DB::raw('capacity'))
+                        ->first();
+
+                    if (! $slot) {
+                        $shopName = $items->first()->product->shop->shop_name ?? 'Shop #'.$shopId;
+                        throw new \Exception("The selected time slot is not available for {$shopName}. Please choose a different slot.");
+                    }
+
+                    $orderAmount = $items->sum(fn ($item) => $item->product->discounted_price * $item->quantity);
+                    $totalAmount = max(0, $orderAmount);
+
+                    $order = $customer->orders()->create([
+                        'shop_id' => $shopId,
+                        'collection_slot_id' => $slot->collection_slot_id,
+                        'group_id' => $group_id,
+                        'order_amount' => $orderAmount,
+                        'discount_amount' => 0,
+                        'total_amount' => $totalAmount,
+                        'order_status' => 'PENDING',
+                        'payment_status' => 'UNPAID',
+                    ]);
+
+                    foreach ($items as $item) {
+                        $unitPrice = $item->product->discounted_price;
+                        $order->items()->create([
+                            'product_id' => $item->product->product_id,
+                            'quantity' => $item->quantity,
+                            'unit_price' => $unitPrice,
+                            'line_total' => $unitPrice * $item->quantity,
+                        ]);
+
+                        $item->product->decrement('stock', $item->quantity);
+                    }
+
+                    $slot->increment('total_order');
+                }
+            });
+
+            $cart->products()->delete();
+
+            $shopCount = $shopGroups->count();
+            $message = $shopCount > 1
+                ? "Order placed successfully! Your items from {$shopCount} shops will be ready for collection at the selected time slot."
+                : 'Order placed successfully! You can collect your order at the selected time slot.';
+
+            $request->session()->flash('success', $message);
+
+            return redirect()->route('home');
+
+        } catch (\Exception $e) {
+            \Log::error('Order creation failed: '.$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->route('home')->with('error', 'Failed to create order: '.$e->getMessage());
         }
-
-        // Update collection slot
-        $collectionSlot = CollectionSlot::find($request->collection_slot_id);
-        $collectionSlot->increment('current_orders');
-
-        // Clear cart
-        $cart->products()->delete();
-
-        return redirect()->route('orders.show', $order)->with('success', 'Order placed successfully!');
     }
 }

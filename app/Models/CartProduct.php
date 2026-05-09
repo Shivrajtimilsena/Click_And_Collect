@@ -10,8 +10,14 @@ class CartProduct extends Model
     use HasFactory;
 
     protected $table = 'cart_products';
+
+    protected $primaryKey = 'cart_product_id';
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
+
     public $timestamps = false;
-    public $incrementing = false;
 
     protected $fillable = [
         'cart_id',

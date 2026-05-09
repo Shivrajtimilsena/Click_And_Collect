@@ -10,10 +10,10 @@
         @forelse ($shops as $shop)
             <a href="{{ route('shops.show', $shop) }}" class="bg-surface-container-lowest rounded-lg overflow-hidden hover:shadow-lg transition-all group">
                 <div class="aspect-video bg-gradient-to-br from-primary to-primary-fixed flex items-center justify-center text-white text-center p-6">
-                    <h3 class="text-2xl font-bold">{{ $shop->name }}</h3>
+                    <h3 class="text-2xl font-bold">{{ $shop->shop_name }}</h3>
                 </div>
                 <div class="p-6">
-                    <p class="text-sm text-primary font-bold mb-2">{{ $shop->trader->business_type ?? 'Shop' }}</p>
+                    <p class="text-sm text-primary font-bold mb-2">{{ $shop->trader->shop_type ?? 'Shop' }}</p>
                     <p class="text-on-surface-variant text-sm mb-4">{{ $shop->description ?? 'Quality local products' }}</p>
                     
                     <div class="flex items-center gap-4">

@@ -9,22 +9,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cart_products', function (Blueprint $table) {
+            $table->bigIncrements('cart_product_id');
             $table->unsignedBigInteger('cart_id');
             $table->unsignedBigInteger('product_id');
             $table->integer('quantity')->default(1);
             $table->decimal('price_at_add', 10, 2)->nullable();
 
-            $table->primary(['cart_id', 'product_id'], 'pk_cart_products');
+            $table->unique(['cart_id', 'product_id'], 'uk_cart_products');
 
             $table->foreign('cart_id', 'fk_cp_cart')
-                  ->references('cart_id')
-                  ->on('carts')
-                  ->onDelete('cascade');
+                ->references('cart_id')
+                ->on('carts')
+                ->onDelete('cascade');
 
             $table->foreign('product_id', 'fk_cp_product')
-                  ->references('product_id')
-                  ->on('products')
-                  ->onDelete('cascade');
+                ->references('product_id')
+                ->on('products')
+                ->onDelete('cascade');
         });
     }
 

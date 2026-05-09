@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
@@ -15,10 +15,10 @@ class ProfileController extends Controller
     public function dashboard(): View
     {
         $user = Auth::user();
-        
+
         // Ensure customer record exists
         $customer = $user->customer;
-        if (!$customer) {
+        if (! $customer) {
             $customer = Customer::firstOrCreate(
                 ['user_id' => $user->user_id],
                 ['user_id' => $user->user_id]
@@ -57,7 +57,7 @@ class ProfileController extends Controller
         $user = Auth::user();
         $customer = $user->customer;
 
-        if (!$customer) {
+        if (! $customer) {
             $customer = Customer::firstOrCreate(
                 ['user_id' => $user->user_id],
                 ['user_id' => $user->user_id]
@@ -65,11 +65,15 @@ class ProfileController extends Controller
         }
 
         $orders = $customer->orders()
-            ->with('collectionSlot.shop', 'items')
+            ->with('items.product.shop', 'collectionSlot.shop')
             ->orderBy('order_date', 'desc')
-            ->paginate(15);
+            ->get();
 
-        return view('profile.orders', ['orders' => $orders]);
+        $orderGroups = $orders->groupBy(function ($order) {
+            return $order->group_id ?? 'single_'.$order->order_id;
+        });
+
+        return view('profile.orders', ['orderGroups' => $orderGroups]);
     }
 
     /**
@@ -80,7 +84,7 @@ class ProfileController extends Controller
         $user = Auth::user();
         $customer = $user->customer;
 
-        if (!$customer) {
+        if (! $customer) {
             $customer = Customer::firstOrCreate(
                 ['user_id' => $user->user_id],
                 ['user_id' => $user->user_id]
@@ -102,7 +106,7 @@ class ProfileController extends Controller
         $user = Auth::user();
         $customer = $user->customer;
 
-        if (!$customer) {
+        if (! $customer) {
             $customer = Customer::firstOrCreate(
                 ['user_id' => $user->user_id],
                 ['user_id' => $user->user_id]
@@ -129,7 +133,7 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->user_id . ',user_id',
+            'email' => 'required|email|unique:users,email,'.$user->user_id.',user_id',
             'phone_no' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:100',
@@ -140,9 +144,9 @@ class ProfileController extends Controller
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
-            $filename = 'avatar_' . $user->user_id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $filename = 'avatar_'.$user->user_id.'_'.time().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('avatars', $filename, 'public');
-            $validated['avatar_url'] = '/storage/' . $path;
+            $validated['avatar_url'] = '/storage/'.$path;
         }
 
         // Update user info (including address fields and avatar)
@@ -151,4 +155,3 @@ class ProfileController extends Controller
         return redirect()->route('profile.settings')->with('success', 'Profile updated successfully!');
     }
 }
-

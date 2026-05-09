@@ -5,15 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Shop;
-use App\Models\Discount;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
     public function index(): View
     {
-        $categories = ProductCategory::where('is_active', true)->get();
-        
+        $categories = ProductCategory::where('is_active', 'Y')->get();
+
         // Flash deals: products with active discounts
         $flashDeals = Product::query()
             ->join('discounts', 'products.product_id', '=', 'discounts.product_id')

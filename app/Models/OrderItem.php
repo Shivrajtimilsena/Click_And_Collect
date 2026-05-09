@@ -10,8 +10,14 @@ class OrderItem extends Model
     use HasFactory;
 
     protected $table = 'order_items';
+
+    protected $primaryKey = 'order_item_id';
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
+
     public $timestamps = false;
-    public $incrementing = false;
 
     protected $fillable = [
         'order_id',
