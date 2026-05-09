@@ -1,27 +1,27 @@
 @extends('app')
 
-@section('title', $product->name . ' | Click&Collect')
+@section('title', $product->product_name . ' | Click&Collect')
 
 @section('content')
 <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
     <!-- Product Image -->
     <div class="sticky top-32">
         <div class="aspect-square rounded-lg overflow-hidden bg-surface-container-low">
-            <img src="{{ $product->image ?? 'https://via.placeholder.com/600' }}" 
-                 alt="{{ $product->name }}" class="w-full h-full object-cover"/>
+            <img src="{{ $product->image_url ?? 'https://via.placeholder.com/600' }}" 
+                 alt="{{ $product->product_name }}" class="w-full h-full object-cover"/>
         </div>
     </div>
 
     <!-- Product Details -->
     <div class="space-y-6">
         <div>
-            <p class="text-primary font-bold text-sm mb-2">{{ $product->shop->name }}</p>
-            <h1 class="text-4xl font-extrabold mb-4">{{ $product->name }}</h1>
+            <p class="text-primary font-bold text-sm mb-2">{{ $product->shop->shop_name ?? 'Shop' }}</p>
+            <h1 class="text-4xl font-extrabold mb-4">{{ $product->product_name }}</h1>
             
             <div class="flex items-center gap-4 mb-4">
                 <div class="flex items-center gap-1">
                     <span class="material-symbols-outlined text-orange-500 fill-current">star</span>
-                    <span class="font-bold">{{ number_format($product->reviews->avg('rating') ?? 0, 1) }}</span>
+                    <span class="font-bold">{{ number_format($product->reviews->avg('review_rating') ?? 0, 1) }}</span>
                     <span class="text-on-surface-variant">({{ $product->reviews->count() }} reviews)</span>
                 </div>
             </div>
@@ -29,10 +29,10 @@
             <div class="space-y-2">
                 <div class="text-sm text-on-surface-variant">
                     <strong>Availability:</strong> 
-                    @if ($product->quantity > 20)
-                        <span class="text-green-600">In Stock ({{ $product->quantity }} available)</span>
-                    @elseif ($product->quantity > 0)
-                        <span class="text-orange-600">Limited Stock ({{ $product->quantity }} available)</span>
+                    @if ($product->stock > 20)
+                        <span class="text-green-600">In Stock ({{ $product->stock }} available)</span>
+                    @elseif ($product->stock > 0)
+                        <span class="text-orange-600">Limited Stock ({{ $product->stock }} available)</span>
                     @else
                         <span class="text-error">Out of Stock</span>
                     @endif
@@ -44,14 +44,14 @@
         <div class="space-y-2 py-6 border-y border-surface-container">
             <div class="flex items-baseline gap-4">
                 <span class="text-5xl font-extrabold">${{ number_format($product->discounted_price, 2) }}</span>
-                @if ($product->discount_percentage > 0)
+                @if ($product->discount && $product->discount->discount_percentage > 0)
                     <span class="text-2xl line-through text-on-surface-variant">${{ number_format($product->price, 2) }}</span>
-                    <span class="bg-error text-white px-3 py-1 rounded text-sm font-bold">{{ $product->discount_percentage }}% OFF</span>
+                    <span class="bg-error text-white px-3 py-1 rounded text-sm font-bold">{{ $product->discount->discount_percentage }}% OFF</span>
                 @endif
             </div>
-            @if ($product->allergy_info)
+            @if ($product->allergy_information)
                 <div class="text-sm text-on-surface-variant">
-                    <strong>Allergy Info:</strong> {{ $product->allergy_info }}
+                    <strong>Allergy Info:</strong> {{ $product->allergy_information }}
                 </div>
             @endif
         </div>
@@ -67,18 +67,18 @@
         <!-- Add to Cart Form -->
         <form action="{{ route('cart.add') }}" method="POST" class="space-y-4">
             @csrf
-            <input type="hidden" name="product_id" value="{{ $product->id }}">
+            <input type="hidden" name="product_id" value="{{ $product->product_id }}">
             
             <div class="flex items-center gap-4">
-                <input type="number" name="quantity" value="1" min="1" max="{{ $product->quantity }}" class="w-24 px-4 py-3 border border-surface-container rounded-lg">
-                <button type="submit" {{ $product->quantity === 0 ? 'disabled' : '' }} class="flex-1 bg-primary text-on-primary px-8 py-3 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50">
+                <input type="number" name="quantity" value="1" min="1" max="{{ $product->stock }}" class="w-24 px-4 py-3 border border-surface-container rounded-lg">
+                <button type="submit" {{ $product->stock === 0 ? 'disabled' : '' }} class="flex-1 bg-primary text-on-primary px-8 py-3 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50">
                     <span class="material-symbols-outlined inline mr-2">shopping_cart</span>
                     Add to Cart
                 </button>
             </div>
 
             @if (auth()->check())
-                <button type="button" onclick="addToWishlist({{ $product->id }})" class="w-full border-2 border-primary text-primary px-8 py-3 rounded-lg font-bold hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
+                <button type="button" onclick="addToWishlist({{ $product->product_id }})" class="w-full border-2 border-primary text-primary px-8 py-3 rounded-lg font-bold hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined">favorite</span>
                     Add to Wishlist
                 </button>
@@ -98,7 +98,7 @@
                     <span class="material-symbols-outlined text-[32px]">storefront</span>
                 </div>
                 <div>
-                    <p class="font-bold">{{ $product->shop->name }}</p>
+                    <p class="font-bold">{{ $product->shop->shop_name ?? 'Shop' }}</p>
                     <p class="text-sm text-on-surface-variant">{{ $product->shop->description ?? 'Quality local products' }}</p>
                     <a href="{{ route('shops.show', $product->shop) }}" class="text-primary font-bold text-sm hover:underline">
                         Visit Shop →
@@ -147,7 +147,7 @@
                     <div>
                         <p class="font-bold">{{ $review->customer->user->name }}</p>
                         <div class="flex items-center gap-1">
-                            @for ($i = 0; $i < $review->rating; $i++)
+                            @for ($i = 0; $i < $review->review_rating; $i++)
                                 <span class="material-symbols-outlined text-orange-500 fill-current text-sm">star</span>
                             @endfor
                         </div>

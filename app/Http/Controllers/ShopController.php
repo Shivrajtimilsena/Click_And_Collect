@@ -9,7 +9,7 @@ class ShopController extends Controller
 {
     public function index(): View
     {
-        $shops = Shop::where('is_active', true)
+        $shops = Shop::where('is_active', 'Y')
             ->with('products', 'trader')
             ->paginate(12);
 
@@ -19,7 +19,7 @@ class ShopController extends Controller
     public function show(Shop $shop): View
     {
         $shop->load('products', 'trader', 'collectionSlots');
-        
+
         $products = $shop->products()->with('reviews')->paginate(12);
 
         return view('shops.show', [

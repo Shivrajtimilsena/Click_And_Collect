@@ -34,8 +34,20 @@ class Coupon extends Model
 
     public function isValid(): bool
     {
-        return $this->is_active && 
-               ($this->used_count < $this->usage_limit) && 
-               now()->lessThanOrEqualTo($this->expiry_date);
+        // Check if coupon is active
+        if ($this->is_active !== 'Y') {
+            return false;
+        }
+        
+        // Check if within valid date range
+        $now = \Carbon\Carbon::now()->toDateString();
+        if ($this->start_date && $this->start_date > $now) {
+            return false; // Not started yet
+        }
+        if ($this->end_date && $this->end_date < $now) {
+            return false; // Already expired
+        }
+        
+        return true;
     }
 }

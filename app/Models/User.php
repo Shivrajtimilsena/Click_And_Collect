@@ -3,18 +3,22 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     protected $table = 'users';
+
     protected $primaryKey = 'user_id';
+
     public $incrementing = true;
+
     protected $keyType = 'int';
 
     /**
@@ -59,17 +63,35 @@ class User extends Authenticatable
 
     public function customer()
     {
-        return $this->hasOne(Customer::class, 'user_id');
+        return $this->hasOne(Customer::class, 'user_id', 'user_id');
+    }
+
+    public function getCustomerRecord()
+    {
+        if (! $this->customer) {
+            Customer::create([
+                'user_id' => $this->user_id,
+                'loyalty_points' => 0,
+                'is_active' => 'Y',
+            ]);
+            $this->load('customer');
+        }
+
+        return $this->customer;
     }
 
     public function trader()
     {
-        return $this->hasOne(Trader::class);
+        return $this->hasOne(Trader::class, 'user_id', 'user_id');
+    }
+
+    public function isTrader(): bool
+    {
+        return $this->role === 'TRADER';
     }
 
     public function admin()
     {
-        return $this->hasOne(Admin::class);
+        return $this->hasOne(Admin::class, 'user_id', 'user_id');
     }
 }
-

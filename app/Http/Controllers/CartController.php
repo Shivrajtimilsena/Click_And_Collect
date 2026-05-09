@@ -2,55 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
+use App\Actions\AddToCartAction;
+use App\Http\Requests\AddToCartRequest;
+use App\Http\Requests\UpdateCartRequest;
 use App\Models\CartProduct;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
-use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
     public function index(): View
     {
-        $cart = auth()->user()->customer->getOrCreateCart();
+        $cart = auth()->user()->getCustomerRecord()->getOrCreateCart();
         $cart->load('products.product');
 
         return view('cart.index', ['cart' => $cart]);
     }
 
-    public function add(Request $request): RedirectResponse
+    public function add(AddToCartRequest $request, AddToCartAction $action): RedirectResponse
     {
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
-        ]);
+        $validated = $request->validated();
+        $product = Product::findOrFail($validated['product_id']);
 
-        $cart = auth()->user()->customer->getOrCreateCart();
-        $product = Product::findOrFail($request->product_id);
-
-        // Check if product already in cart
-        $cartItem = $cart->products()->where('product_id', $product->id)->first();
-
-        if ($cartItem) {
-            $cartItem->increment('quantity', $request->quantity);
-        } else {
-            $cart->products()->create([
-                'product_id' => $product->id,
-                'quantity' => $request->quantity,
-            ]);
+        try {
+            $action->execute(
+                auth()->user()->getCustomerRecord(),
+                $product,
+                $validated['quantity']
+            );
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
 
         return back()->with('success', 'Product added to cart!');
     }
 
-    public function update(Request $request, CartProduct $cartProduct): RedirectResponse
+    public function update(UpdateCartRequest $request, CartProduct $cartProduct): RedirectResponse
     {
-        $request->validate([
-            'quantity' => 'required|integer|min:1',
-        ]);
+        $cart = $cartProduct->cart;
+        $currentTotal = $cart->products()->sum('quantity');
+        $newTotal = $currentTotal - $cartProduct->quantity + $request->validated('quantity');
 
-        $cartProduct->update(['quantity' => $request->quantity]);
+        if ($newTotal > 20) {
+            return back()->with('error', 'max 20 item allowed to order');
+        }
+
+        $cartProduct->update(['quantity' => $request->validated('quantity')]);
 
         return back()->with('success', 'Cart updated!');
     }
@@ -64,8 +62,7 @@ class CartController extends Controller
 
     public function clear(): RedirectResponse
     {
-        $cart = auth()->user()->customer->getOrCreateCart();
-        $cart->products()->delete();
+        auth()->user()->getCustomerRecord()->getOrCreateCart()->products()->delete();
 
         return back()->with('success', 'Cart cleared!');
     }

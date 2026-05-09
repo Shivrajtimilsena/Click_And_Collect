@@ -10,8 +10,11 @@ class Trader extends Model
     use HasFactory;
 
     protected $table = 'traders';
+
     protected $primaryKey = 'trader_id';
+
     public $incrementing = true;
+
     protected $keyType = 'int';
 
     protected $fillable = [
@@ -32,6 +35,6 @@ class Trader extends Model
 
     public function shops()
     {
-        return $this->hasMany(Shop::class);
+        return $this->hasMany(Shop::class, 'trader_id', 'trader_id');
     }
 }

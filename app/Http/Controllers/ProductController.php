@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\ProductCategory;
-use Illuminate\View\View;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ProductController extends Controller
 {
@@ -16,22 +16,27 @@ class ProductController extends Controller
         // Filter by category - try to match slug, name, or ID
         if ($request->filled('category')) {
             $catInput = $request->category;
-            
+
+            // Try slug match first (e.g., 'artisan-bakery' -> 'Artisan Bakery')
+            $category = ProductCategory::where('category_name', ucwords(str_replace('-', ' ', $catInput)))->first();
+
             // Try exact match by name (case insensitive)
-            $category = ProductCategory::whereRaw('LOWER(category_name) = ?', [strtolower($catInput)])->first();
-            
-            // Try exact ID match
-            if (!$category) {
+            if (! $category) {
+                $category = ProductCategory::whereRaw('LOWER(category_name) = ?', [strtolower($catInput)])->first();
+            }
+
+            // Try exact ID match only if input is numeric
+            if (! $category && is_numeric($catInput)) {
                 $category = ProductCategory::find($catInput);
             }
-            
+
             // Try partial name match
-            if (!$category) {
-                $category = ProductCategory::where('category_name', 'like', '%' . ucwords(str_replace('-', ' ', $catInput)) . '%')
-                    ->orWhere('category_name', 'like', '%' . $catInput . '%')
+            if (! $category) {
+                $category = ProductCategory::where('category_name', 'like', '%'.ucwords(str_replace('-', ' ', $catInput)).'%')
+                    ->orWhere('category_name', 'like', '%'.$catInput.'%')
                     ->first();
             }
-            
+
             if ($category) {
                 $query->where('product_category_id', $category->product_category_id);
             }
@@ -54,11 +59,13 @@ class ProductController extends Controller
             'rating' => $query->orderByDesc(
                 function ($q) {
                     return $q->from('reviews')
-                        ->selectRaw('avg(rating)')
-                        ->whereColumn('product_id', 'products.id');
+                        ->selectRaw('avg(review_rating)')
+                        ->whereColumn('product_id', 'products.product_id');
                 }
             ),
-            default => $query->orderByDesc('discount_percentage'),
+            default => $query->leftJoin('discounts', 'products.product_id', '=', 'discounts.product_id')
+                ->select('products.*')
+                ->orderByRaw('nvl(discounts.discount_percentage, 0) desc'),
         };
 
         $products = $query->paginate(24);
@@ -74,8 +81,8 @@ class ProductController extends Controller
     public function show(Product $product): View
     {
         $product->load('shop', 'reviews', 'reviews.customer');
-        $relatedProducts = Product::where('category_id', $product->category_id)
-            ->where('id', '!=', $product->id)
+        $relatedProducts = Product::where('product_category_id', $product->product_category_id)
+            ->where('product_id', '!=', $product->product_id)
             ->limit(6)
             ->get();
 
@@ -87,7 +94,7 @@ class ProductController extends Controller
 
     public function byCategory(ProductCategory $category): View
     {
-        $products = Product::where('category_id', $category->id)
+        $products = Product::where('product_category_id', $category->product_category_id)
             ->with('shop', 'reviews')
             ->paginate(24);
 

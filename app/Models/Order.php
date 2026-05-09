@@ -10,19 +10,29 @@ class Order extends Model
     use HasFactory;
 
     protected $table = 'orders';
+
     protected $primaryKey = 'order_id';
+
     public $incrementing = true;
+
     protected $keyType = 'int';
 
     protected $fillable = [
         'customer_id',
+        'shop_id',
         'collection_slot_id',
+        'group_id',
+        'order_amount',
+        'discount_amount',
         'total_amount',
         'order_status',
+        'payment_status',
         'notes',
     ];
 
     protected $casts = [
+        'order_amount' => 'float',
+        'discount_amount' => 'float',
         'total_amount' => 'float',
     ];
 
@@ -44,5 +54,23 @@ class Order extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class, 'order_id', 'order_id');
+    }
+
+    /**
+     * Get all shops involved in this order
+     */
+    public function shops()
+    {
+        return $this->items()
+            ->with('product.shop')
+            ->get()
+            ->pluck('product.shop')
+            ->unique('shop_id');
+    }
+
+    public function siblingOrders()
+    {
+        return $this->hasMany(Order::class, 'group_id', 'group_id')
+            ->where('order_id', '!=', $this->order_id);
     }
 }

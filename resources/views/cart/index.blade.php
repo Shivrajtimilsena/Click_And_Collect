@@ -11,14 +11,14 @@
             <div class="space-y-4">
                 @foreach ($cart->products as $item)
                     <div class="bg-surface-container-lowest rounded-lg p-6 flex gap-4">
-                        <img src="{{ $item->product->image ?? 'https://via.placeholder.com/100' }}" 
-                             alt="{{ $item->product->name }}" class="w-24 h-24 rounded-lg object-cover"/>
+                        <img src="{{ $item->product->image_url ?? 'https://via.placeholder.com/100' }}" 
+                             alt="{{ $item->product->product_name }}" class="w-24 h-24 rounded-lg object-cover"/>
                         
                         <div class="flex-grow">
                             <a href="{{ route('products.show', $item->product) }}" class="font-bold text-lg hover:text-primary">
-                                {{ $item->product->name }}
+                                {{ $item->product->product_name }}
                             </a>
-                            <p class="text-sm text-on-surface-variant">{{ $item->product->shop->name }}</p>
+                            <p class="text-sm text-on-surface-variant">{{ $item->product->shop->shop_name ?? 'Shop' }}</p>
                             <p class="text-primary font-bold mt-2">${{ number_format($item->product->discounted_price, 2) }}</p>
                         </div>
 
