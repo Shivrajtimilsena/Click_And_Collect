@@ -151,6 +151,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::get('/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/confirmation/{groupId}', [PayPalController::class, 'confirmation'])->name('orders.confirmation');
+
+    // PayPal
+    Route::post('/paypal/create', [PayPalController::class, 'create'])->name('paypal.create');
+    Route::post('/paypal/capture', [PayPalController::class, 'capture'])->name('paypal.capture');
 
     // Reviews
     Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
