@@ -140,7 +140,7 @@
 </script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     const dayButtons = document.querySelectorAll('.day-selector');
     const timeButtons = document.querySelectorAll('.time-selector');
     const selectElement = document.getElementById('collection_slot_id');
@@ -153,18 +153,18 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedTime = null;
     let slotSelected = false;
 
-    dayButtons.forEach(button => {
+    dayButtons.forEach(function(button) {
         button.addEventListener('click', function() {
-            dayButtons.forEach(b => b.classList.remove('bg-primary/10', 'border-primary'));
+            dayButtons.forEach(function(b) { b.classList.remove('bg-primary/10', 'border-primary'); });
             this.classList.add('bg-primary/10', 'border-primary');
             selectedDay = this.dataset.day;
             checkSelection();
         });
     });
 
-    timeButtons.forEach(button => {
+    timeButtons.forEach(function(button) {
         button.addEventListener('click', function() {
-            timeButtons.forEach(b => b.classList.remove('bg-primary/10', 'border-primary'));
+            timeButtons.forEach(function(b) { b.classList.remove('bg-primary/10', 'border-primary'); });
             this.classList.add('bg-primary/10', 'border-primary');
             selectedTime = this.dataset.time;
             checkSelection();
@@ -179,10 +179,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const options = selectElement.querySelectorAll('option[value]');
-        let found = false;
-
-        for (let option of options) {
+        var found = false;
+        var options = selectElement.querySelectorAll('option[value]');
+        for (var i = 0; i < options.length; i++) {
+            var option = options[i];
             if (option.dataset.day === selectedDay && option.dataset.time === selectedTime) {
                 selectElement.value = option.value;
                 document.getElementById('selected-text').textContent = option.textContent;
@@ -202,7 +202,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    if (typeof paypal_sdk !== 'undefined') {
+    function initPayPalButtons() {
+        if (typeof paypal_sdk === 'undefined') {
+            setTimeout(initPayPalButtons, 300);
+            return;
+        }
+
         paypal_sdk.Buttons({
             createOrder: function() {
                 if (!slotSelected || !selectElement.value) {
@@ -258,13 +263,17 @@ document.addEventListener('DOMContentLoaded', function() {
             onCancel: function() {
                 alert('Payment cancelled. You can try again when ready.');
             },
-            onError: function(err) {
+            onError: function() {
                 alert('An error occurred with PayPal. Please try again.');
             },
         }).render('#paypal-button-container');
-    } else {
-        paypalContainer.innerHTML = '<p class="text-error text-center">PayPal failed to load. Please refresh the page.</p>';
     }
-});
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPayPalButtons);
+    } else {
+        initPayPalButtons();
+    }
+})();
 </script>
 @endsection
