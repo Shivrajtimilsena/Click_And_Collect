@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('wishlist_products', function (Blueprint $table) {
+        Schema::create('wishlist_product', function (Blueprint $table) {
             $table->bigIncrements('wishlist_product_id');
             $table->unsignedBigInteger('wishlist_id');
             $table->unsignedBigInteger('product_id');
@@ -18,18 +18,18 @@ return new class extends Migration
 
             $table->foreign('wishlist_id', 'fk_wlp_wishlist')
                 ->references('wishlist_id')
-                ->on('wishlists')
+                ->on('wishlist')
                 ->onDelete('cascade');
 
             $table->foreign('product_id', 'fk_wlp_product')
                 ->references('product_id')
-                ->on('products')
+                ->on('product')
                 ->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('wishlist_products');
+        Schema::dropIfExists('wishlist_product');
     }
 };

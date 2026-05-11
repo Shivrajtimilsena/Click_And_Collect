@@ -7,9 +7,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Review;
-use App\Models\Shop;
 use App\Models\Trader;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,43 +28,23 @@ class TraderController extends Controller
     public function submitApplication(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'shop_name' => 'required|string|max:255|unique:shops,shop_name',
+            'shop_name' => 'required|string|max:255',
             'location' => 'required|string|max:500',
-            'email' => 'required|string|email|max:255|unique:users,email',
+            'email' => 'required|string|email|max:255',
             'speciality' => 'required|string|max:300',
             'description' => 'required|string|max:600',
         ]);
 
-        $plainPassword = 'Trader123@';
-
-        $user = User::create([
-            'full_name' => $validated['shop_name'],
-            'email' => $validated['email'],
-            'password' => $plainPassword,
-            'role' => 'TRADER',
-            'status' => 'ACTIVE',
-            'address' => $validated['location'],
-        ]);
-
-        $trader = Trader::create([
-            'user_id' => $user->user_id,
-            'shop_type' => 'TRADER',
-            'is_active' => true,
-        ]);
-
-        Shop::create([
-            'trader_id' => $trader->trader_id,
+        TraderApplication::create([
             'shop_name' => $validated['shop_name'],
+            'email' => $validated['email'],
+            'location' => $validated['location'],
+            'speciality' => $validated['speciality'],
             'description' => $validated['description'],
-            'is_active' => 'Y',
-            'register_date' => now(),
+            'status' => 'PENDING',
         ]);
 
-        if (Auth::check()) {
-            Auth::logout();
-        }
-
-        return redirect()->route('home')->with('success', 'Your trader account has been created successfully! You can now log in with your email and password: Trader123@');
+        return redirect()->route('home')->with('success', 'Your application has been submitted for review. We will notify you once it has been approved.');
     }
 
     private function generatePassword(string $shopName): string
@@ -218,6 +196,7 @@ class TraderController extends Controller
     public function productCreate(): View
     {
         $categories = ProductCategory::where('is_active', 'Y')->get();
+
         return view('trader.product-create', ['categories' => $categories]);
     }
 
@@ -225,7 +204,7 @@ class TraderController extends Controller
     {
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
-            'product_category_id' => 'required|exists:product_categories,product_category_id',
+            'product_category_id' => 'required|exists:product_category,product_category_id',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'min_order' => 'nullable|integer|min:1',
@@ -237,19 +216,19 @@ class TraderController extends Controller
 
         $user = auth()->user();
         $trader = $user->trader;
-        
-        if (!$trader || $trader->shops()->count() === 0) {
+
+        if (! $trader || $trader->shops()->count() === 0) {
             return back()->with('error', 'You must have at least one shop to create products.');
         }
 
         $shop = $trader->shops()->first();
-        
+
         $imageUrl = null;
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $filename = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
             $image->storeAs('products', $filename, 'public');
-            $imageUrl = '/storage/products/' . $filename;
+            $imageUrl = '/storage/products/'.$filename;
         }
 
         Product::create([
@@ -266,4 +245,3 @@ class TraderController extends Controller
         return redirect()->route('trader.inventory.index')->with('success', 'Product created successfully!');
     }
 }
-

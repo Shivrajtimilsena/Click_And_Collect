@@ -13,22 +13,22 @@ class PilotProductSeeder extends Seeder
         $now = Carbon::now();
 
         $shops = [
-            'Hearth & Cleaver Traditional Meats' => DB::table('shops')->where('shop_name', 'Hearth & Cleaver Traditional Meats')->value('shop_id'),
-            'Old Orchard Produce' => DB::table('shops')->where('shop_name', 'Old Orchard Produce')->value('shop_id'),
-            'Heritage Catch' => DB::table('shops')->where('shop_name', 'Heritage Catch')->value('shop_id'),
-            'Stoneground Flour & Grain' => DB::table('shops')->where('shop_name', 'Stoneground Flour & Grain')->value('shop_id'),
-            'The Cleckhuddersfax Larder' => DB::table('shops')->where('shop_name', 'The Cleckhuddersfax Larder')->value('shop_id'),
+            'Hearth & Cleaver Traditional Meats' => DB::table('shop')->where('shop_name', 'Hearth & Cleaver Traditional Meats')->value('shop_id'),
+            'Old Orchard Produce' => DB::table('shop')->where('shop_name', 'Old Orchard Produce')->value('shop_id'),
+            'Heritage Catch' => DB::table('shop')->where('shop_name', 'Heritage Catch')->value('shop_id'),
+            'Stoneground Flour & Grain' => DB::table('shop')->where('shop_name', 'Stoneground Flour & Grain')->value('shop_id'),
+            'The Cleckhuddersfax Larder' => DB::table('shop')->where('shop_name', 'The Cleckhuddersfax Larder')->value('shop_id'),
         ];
 
         $categories = [
-            'Meat' => DB::table('product_categories')->where('category_name', 'Meat')->value('product_category_id'),
-            'Vegetables' => DB::table('product_categories')->where('category_name', 'Vegetables')->value('product_category_id'),
-            'Fruit' => DB::table('product_categories')->where('category_name', 'Fruit')->value('product_category_id'),
-            'Seafood' => DB::table('product_categories')->where('category_name', 'Seafood')->value('product_category_id'),
-            'Bakery' => DB::table('product_categories')->where('category_name', 'Bakery')->value('product_category_id'),
-            'Delicatessen' => DB::table('product_categories')->where('category_name', 'Delicatessen')->value('product_category_id'),
-            'Dairy & Eggs' => DB::table('product_categories')->where('category_name', 'Dairy & Eggs')->value('product_category_id'),
-            'Pantry' => DB::table('product_categories')->where('category_name', 'Pantry')->value('product_category_id'),
+            'Meat' => DB::table('product_category')->where('category_name', 'Meat')->value('product_category_id'),
+            'Vegetables' => DB::table('product_category')->where('category_name', 'Vegetables')->value('product_category_id'),
+            'Fruit' => DB::table('product_category')->where('category_name', 'Fruit')->value('product_category_id'),
+            'Seafood' => DB::table('product_category')->where('category_name', 'Seafood')->value('product_category_id'),
+            'Bakery' => DB::table('product_category')->where('category_name', 'Bakery')->value('product_category_id'),
+            'Delicatessen' => DB::table('product_category')->where('category_name', 'Delicatessen')->value('product_category_id'),
+            'Dairy & Eggs' => DB::table('product_category')->where('category_name', 'Dairy & Eggs')->value('product_category_id'),
+            'Pantry' => DB::table('product_category')->where('category_name', 'Pantry')->value('product_category_id'),
         ];
 
         $products = [
@@ -224,7 +224,7 @@ class PilotProductSeeder extends Seeder
         ];
 
         foreach ($products as $product) {
-            DB::table('products')->updateOrInsert(
+            DB::table('product')->updateOrInsert(
                 [
                     'shop_id' => $product['shop_id'],
                     'product_name' => $product['product_name'],

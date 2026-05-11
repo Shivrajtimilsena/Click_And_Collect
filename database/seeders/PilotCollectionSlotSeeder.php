@@ -12,7 +12,7 @@ class PilotCollectionSlotSeeder extends Seeder
     {
         $now = Carbon::now();
 
-        $shops = DB::table('shops')->where('is_active', 'Y')->pluck('shop_id');
+        $shops = DB::table('shop')->where('is_active', 'Y')->pluck('shop_id');
 
         if ($shops->isEmpty()) {
             $this->command->warn('No active shops found. Create shops first.');
@@ -36,7 +36,7 @@ class PilotCollectionSlotSeeder extends Seeder
 
             foreach ($shops as $shopId) {
                 foreach ($slotTemplates as $slot) {
-                    DB::table('collection_slots')->updateOrInsert(
+                    DB::table('collection_slot')->updateOrInsert(
                         [
                             'slot_date' => $date->toDateString(),
                             'slot_label' => $slot['slot_label'],

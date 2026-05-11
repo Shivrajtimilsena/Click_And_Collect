@@ -9,7 +9,7 @@ class Discount extends Model
 {
     use HasFactory;
 
-    protected $table = 'discounts';
+    protected $table = 'discount';
     protected $primaryKey = 'discount_id';
     public $incrementing = true;
     protected $keyType = 'int';

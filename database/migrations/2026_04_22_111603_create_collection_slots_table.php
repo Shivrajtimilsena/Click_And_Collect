@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('collection_slots', function (Blueprint $table) {
+        Schema::create('collection_slot', function (Blueprint $table) {
             $table->bigIncrements('collection_slot_id');
             $table->date('slot_date');
             $table->string('slot_day', 30)->nullable();
@@ -27,6 +27,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('collection_slots');
+        Schema::dropIfExists('collection_slot');
     }
 };

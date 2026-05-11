@@ -9,7 +9,7 @@ class Trader extends Model
 {
     use HasFactory;
 
-    protected $table = 'traders';
+    protected $table = 'trader';
 
     protected $primaryKey = 'trader_id';
 

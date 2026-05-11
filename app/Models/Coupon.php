@@ -9,7 +9,7 @@ class Coupon extends Model
 {
     use HasFactory;
 
-    protected $table = 'coupons';
+    protected $table = 'coupon';
     protected $primaryKey = 'coupon_id';
     public $incrementing = true;
     protected $keyType = 'int';

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
+        Schema::create('product', function (Blueprint $table) {
             $table->bigIncrements('product_id');
             $table->unsignedBigInteger('shop_id');
             $table->unsignedBigInteger('product_category_id');
@@ -28,18 +28,18 @@ return new class extends Migration
 
             $table->foreign('shop_id', 'fk_products_shop')
                   ->references('shop_id')
-                  ->on('shops')
+                  ->on('shop')
                   ->onDelete('cascade');
 
             // No onDelete('restrict') here — Oracle default behavior is enough.
             $table->foreign('product_category_id', 'fk_products_cat')
                   ->references('product_category_id')
-                  ->on('product_categories');
+                  ->on('product_category');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('products');
+        Schema::dropIfExists('product');
     }
 };

@@ -9,7 +9,7 @@ class WishlistProduct extends Model
 {
     use HasFactory;
 
-    protected $table = 'wishlist_products';
+    protected $table = 'wishlist_product';
 
     protected $primaryKey = 'wishlist_product_id';
 

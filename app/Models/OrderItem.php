@@ -9,7 +9,7 @@ class OrderItem extends Model
 {
     use HasFactory;
 
-    protected $table = 'order_items';
+    protected $table = 'order_item';
 
     protected $primaryKey = 'order_item_id';
 

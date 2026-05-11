@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('traders', function (Blueprint $table) {
+        Schema::create('trader', function (Blueprint $table) {
             $table->bigIncrements('trader_id');
             $table->unsignedBigInteger('user_id')->unique();
             $table->string('shop_type', 100)->nullable();
@@ -19,13 +19,13 @@ return new class extends Migration
 
             $table->foreign('user_id', 'fk_traders_user')
                   ->references('user_id')
-                  ->on('users')
+                  ->on('user')
                   ->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('traders');
+        Schema::dropIfExists('trader');
     }
 };

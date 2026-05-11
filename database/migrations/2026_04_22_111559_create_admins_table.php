@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('admins', function (Blueprint $table) {
+        Schema::create('admin', function (Blueprint $table) {
             $table->bigIncrements('admin_id');
             $table->unsignedBigInteger('user_id')->unique();
             $table->string('access_level', 50)->default('SYSTEM');
@@ -18,13 +18,13 @@ return new class extends Migration
 
             $table->foreign('user_id', 'fk_admins_user')
                   ->references('user_id')
-                  ->on('users')
+                  ->on('user')
                   ->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('admins');
+        Schema::dropIfExists('admin');
     }
 };
