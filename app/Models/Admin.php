@@ -9,7 +9,7 @@ class Admin extends Model
 {
     use HasFactory;
 
-    protected $table = 'admins';
+    protected $table = 'admin';
     protected $primaryKey = 'admin_id';
     public $incrementing = true;
     protected $keyType = 'int';

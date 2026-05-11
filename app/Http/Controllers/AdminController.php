@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Mail\TraderApprovedMail;
+use App\Models\Shop;
+use App\Models\Trader;
+use App\Models\TraderApplication;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
+
+class AdminController extends Controller
+{
+    public function dashboard(): View
+    {
+        $pendingCount = TraderApplication::where('status', 'PENDING')->count();
+        $approvedCount = TraderApplication::where('status', 'APPROVED')->count();
+        $rejectedCount = TraderApplication::where('status', 'REJECTED')->count();
+
+        return view('admin.dashboard', compact('pendingCount', 'approvedCount', 'rejectedCount'));
+    }
+
+    public function applications(): View
+    {
+        $applications = TraderApplication::latest()->get();
+
+        return view('admin.applications', compact('applications'));
+    }
+
+    public function showApplication(TraderApplication $application): View
+    {
+        return view('admin.application-show', compact('application'));
+    }
+
+    public function approve(Request $request, TraderApplication $application): RedirectResponse
+    {
+        if ($application->status !== 'PENDING') {
+            return back()->with('error', 'This application has already been reviewed.');
+        }
+
+        $plainPassword = Str::random(10);
+
+        $user = User::create([
+            'full_name' => $application->shop_name,
+            'email' => $application->email,
+            'password' => $plainPassword,
+            'role' => 'TRADER',
+            'status' => 'ACTIVE',
+            'address' => $application->location,
+        ]);
+
+        $trader = Trader::create([
+            'user_id' => $user->user_id,
+            'shop_type' => 'TRADER',
+            'is_active' => true,
+        ]);
+
+        Shop::create([
+            'trader_id' => $trader->trader_id,
+            'shop_name' => $application->shop_name,
+            'description' => $application->description,
+            'is_active' => 'Y',
+            'register_date' => now(),
+        ]);
+
+        $application->update([
+            'status' => 'APPROVED',
+            'reviewed_by' => $request->user()->user_id,
+            'reviewed_at' => now(),
+        ]);
+
+        try {
+            Mail::to($user->email)->send(new TraderApprovedMail($user, $plainPassword));
+        } catch (\Exception $e) {
+            Log::error('Failed to send trader approval email: '.$e->getMessage());
+        }
+
+        return redirect()->route('admin.applications')->with('success', 'Application approved. Trader account created and email sent.');
+    }
+
+    public function reject(Request $request, TraderApplication $application): RedirectResponse
+    {
+        $request->validate([
+            'admin_notes' => 'required|string|max:1000',
+        ]);
+
+        if ($application->status !== 'PENDING') {
+            return back()->with('error', 'This application has already been reviewed.');
+        }
+
+        $application->update([
+            'status' => 'REJECTED',
+            'admin_notes' => $request->admin_notes,
+            'reviewed_by' => $request->user()->user_id,
+            'reviewed_at' => now(),
+        ]);
+
+        return redirect()->route('admin.applications')->with('success', 'Application rejected.');
+    }
+}

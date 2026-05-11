@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('order_items', function (Blueprint $table) {
+        Schema::create('order_item', function (Blueprint $table) {
             $table->bigIncrements('order_item_id');
             $table->unsignedBigInteger('order_id');
             $table->unsignedBigInteger('product_id');
@@ -18,17 +18,17 @@ return new class extends Migration
 
             $table->foreign('order_id', 'fk_oi_order')
                 ->references('order_id')
-                ->on('orders')
+                ->on('order')
                 ->onDelete('cascade');
 
             $table->foreign('product_id', 'fk_oi_product')
                 ->references('product_id')
-                ->on('products');
+                ->on('product');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('order_items');
+        Schema::dropIfExists('order_item');
     }
 };

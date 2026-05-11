@@ -58,14 +58,14 @@ class ProductController extends Controller
             'price_high' => $query->orderByDesc('price'),
             'rating' => $query->orderByDesc(
                 function ($q) {
-                    return $q->from('reviews')
+                    return $q->from('review')
                         ->selectRaw('avg(review_rating)')
-                        ->whereColumn('product_id', 'products.product_id');
+                        ->whereColumn('product_id', 'product.product_id');
                 }
             ),
-            default => $query->leftJoin('discounts', 'products.product_id', '=', 'discounts.product_id')
-                ->select('products.*')
-                ->orderByRaw('nvl(discounts.discount_percentage, 0) desc'),
+            default => $query->leftJoin('discount', 'product.product_id', '=', 'discount.product_id')
+                ->select('product.*')
+                ->orderByRaw('nvl(discount.discount_percentage, 0) desc'),
         };
 
         $products = $query->paginate(24);

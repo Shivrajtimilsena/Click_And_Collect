@@ -8,18 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('collection_slots', function (Blueprint $table) {
+        Schema::table('collection_slot', function (Blueprint $table) {
             $table->unsignedBigInteger('shop_id')->after('collection_slot_id');
             
             $table->foreign('shop_id', 'fk_collection_slots_shop')
                   ->references('shop_id')
-                  ->on('shops');
+                  ->on('shop');
         });
     }
 
     public function down(): void
     {
-        Schema::table('collection_slots', function (Blueprint $table) {
+        Schema::table('collection_slot', function (Blueprint $table) {
             $table->dropForeignKey('fk_collection_slots_shop');
             $table->dropColumn('shop_id');
         });

@@ -14,7 +14,7 @@ class PilotUsersAndRolesSeeder extends Seeder
         $now = Carbon::now();
 
         // SYSTEM ADMIN
-        DB::table('users')->updateOrInsert(
+        DB::table('user')->updateOrInsert(
             ['email' => 'admin@clickcollect.local'],
             [
                 'full_name' => 'System Admin',
@@ -31,9 +31,9 @@ class PilotUsersAndRolesSeeder extends Seeder
             ]
         );
 
-        $adminUserId = DB::table('users')->where('email', 'admin@clickcollect.local')->value('user_id');
+        $adminUserId = DB::table('user')->where('email', 'admin@clickcollect.local')->value('user_id');
 
-        DB::table('admins')->updateOrInsert(
+        DB::table('admin')->updateOrInsert(
             ['user_id' => $adminUserId],
             [
                 'access_level' => 'SYSTEM',
@@ -78,7 +78,7 @@ class PilotUsersAndRolesSeeder extends Seeder
         ];
 
         foreach ($traders as $index => $trader) {
-            DB::table('users')->updateOrInsert(
+            DB::table('user')->updateOrInsert(
                 ['email' => $trader['email']],
                 [
                     'full_name' => $trader['full_name'],
@@ -95,9 +95,9 @@ class PilotUsersAndRolesSeeder extends Seeder
                 ]
             );
 
-            $userId = DB::table('users')->where('email', $trader['email'])->value('user_id');
+            $userId = DB::table('user')->where('email', $trader['email'])->value('user_id');
 
-            DB::table('traders')->updateOrInsert(
+            DB::table('trader')->updateOrInsert(
                 ['user_id' => $userId],
                 [
                     'shop_type' => $trader['shop_type'],
@@ -124,7 +124,7 @@ class PilotUsersAndRolesSeeder extends Seeder
         ];
 
         foreach ($customers as $customer) {
-            DB::table('users')->updateOrInsert(
+            DB::table('user')->updateOrInsert(
                 ['email' => $customer['email']],
                 [
                     'full_name' => $customer['full_name'],
@@ -141,9 +141,9 @@ class PilotUsersAndRolesSeeder extends Seeder
                 ]
             );
 
-            $userId = DB::table('users')->where('email', $customer['email'])->value('user_id');
+            $userId = DB::table('user')->where('email', $customer['email'])->value('user_id');
 
-            DB::table('customers')->updateOrInsert(
+            DB::table('customer')->updateOrInsert(
                 ['user_id' => $userId],
                 [
                     'loyalty_points' => 0,

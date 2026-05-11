@@ -35,10 +35,27 @@ class PayPalController extends Controller
             return response()->json(['error' => 'Cart is empty.'], 400);
         }
 
-        $total = $cartItems->sum(fn ($item) => $item->product->discounted_price * $item->quantity);
+        $total = 0;
+        $paypalItems = [];
+
+        foreach ($cartItems as $item) {
+            $price = $item->product->discounted_price ?? $item->product->price;
+            $quantity = $item->quantity;
+            $itemTotal = $price * $quantity;
+            $total += $itemTotal;
+
+            $paypalItems[] = [
+                'name' => $item->product->product_name,
+                'quantity' => (string) $quantity,
+                'unit_amount' => [
+                    'currency_code' => config('paypal.currency'),
+                    'value' => number_format($price, 2, '.', ''),
+                ],
+            ];
+        }
 
         try {
-            $paypalOrder = $this->paypalService->createOrder($total, config('paypal.currency'));
+            $paypalOrder = $this->paypalService->createOrder($total, config('paypal.currency'), $paypalItems);
 
             return response()->json([
                 'paypal_order_id' => $paypalOrder['id'],
@@ -52,7 +69,7 @@ class PayPalController extends Controller
     {
         $request->validate([
             'paypal_order_id' => 'required|string',
-            'collection_slot_id' => 'required|exists:collection_slots,collection_slot_id',
+            'collection_slot_id' => 'required|exists:collection_slot,collection_slot_id',
         ]);
 
         $user = Auth::user();
@@ -72,8 +89,13 @@ class PayPalController extends Controller
         try {
             $captureResult = $this->paypalService->captureOrder($request->paypal_order_id);
 
-            $paypalTxnId = $captureResult['purchase_units'][0]['payments']['captures'][0]['id']
-                ?? $request->paypal_order_id;
+            // Extract transaction ID from capture response
+            $paypalTxnId = $request->paypal_order_id;
+            if (isset($captureResult['purchase_units'][0]['payments']['captures'][0]['id'])) {
+                $paypalTxnId = $captureResult['purchase_units'][0]['payments']['captures'][0]['id'];
+            } elseif (isset($captureResult['id'])) {
+                $paypalTxnId = $captureResult['id'];
+            }
 
             $selectedSlot = CollectionSlot::findOrFail($request->collection_slot_id);
 

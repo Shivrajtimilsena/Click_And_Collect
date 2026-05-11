@@ -135,36 +135,42 @@
     </div>
 </div>
 
-<script src="https://www.paypal.com/sdk/js?client_id={{ config('paypal.client_id') }}&currency={{ config('paypal.currency') }}"
-    data-namespace="paypal_sdk">
+<script id="paypal-sdk" src="https://www.paypal.com/sdk/js?client-id={{ config('paypal.client_id') }}&currency={{ config('paypal.currency') }}">
 </script>
 
+<div id="paypal-fallback" class="hidden">
+    <p class="text-error text-center">PayPal is unavailable. Please refresh the page or try again later.</p>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const dayButtons = document.querySelectorAll('.day-selector');
-    const timeButtons = document.querySelectorAll('.time-selector');
-    const selectElement = document.getElementById('collection_slot_id');
-    const displayDiv = document.getElementById('selection-display');
-    const message = document.getElementById('paypal-message');
-    const paypalContainer = document.getElementById('paypal-button-container');
-    const loading = document.getElementById('paypal-loading');
+(function() {
+    var dayButtons = document.querySelectorAll('.day-selector');
+    var timeButtons = document.querySelectorAll('.time-selector');
+    var selectElement = document.getElementById('collection_slot_id');
+    var displayDiv = document.getElementById('selection-display');
+    var message = document.getElementById('paypal-message');
+    var paypalContainer = document.getElementById('paypal-button-container');
+    var loading = document.getElementById('paypal-loading');
+    var fallback = document.getElementById('paypal-fallback');
 
-    let selectedDay = null;
-    let selectedTime = null;
-    let slotSelected = false;
+    var selectedDay = null;
+    var selectedTime = null;
+    var slotSelected = false;
+    var paypalReady = false;
+    var attempts = 0;
 
-    dayButtons.forEach(button => {
+    dayButtons.forEach(function(button) {
         button.addEventListener('click', function() {
-            dayButtons.forEach(b => b.classList.remove('bg-primary/10', 'border-primary'));
+            dayButtons.forEach(function(b) { b.classList.remove('bg-primary/10', 'border-primary'); });
             this.classList.add('bg-primary/10', 'border-primary');
             selectedDay = this.dataset.day;
             checkSelection();
         });
     });
 
-    timeButtons.forEach(button => {
+    timeButtons.forEach(function(button) {
         button.addEventListener('click', function() {
-            timeButtons.forEach(b => b.classList.remove('bg-primary/10', 'border-primary'));
+            timeButtons.forEach(function(b) { b.classList.remove('bg-primary/10', 'border-primary'); });
             this.classList.add('bg-primary/10', 'border-primary');
             selectedTime = this.dataset.time;
             checkSelection();
@@ -179,10 +185,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const options = selectElement.querySelectorAll('option[value]');
-        let found = false;
-
-        for (let option of options) {
+        var found = false;
+        var options = selectElement.querySelectorAll('option[value]');
+        for (var i = 0; i < options.length; i++) {
+            var option = options[i];
             if (option.dataset.day === selectedDay && option.dataset.time === selectedTime) {
                 selectElement.value = option.value;
                 document.getElementById('selected-text').textContent = option.textContent;
@@ -202,8 +208,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    if (typeof paypal_sdk !== 'undefined') {
-        paypal_sdk.Buttons({
+    function renderButtons() {
+        if (paypalReady) return;
+
+        if (typeof window.paypal === 'undefined') {
+            attempts++;
+            if (attempts > 20) {
+                if (fallback) fallback.classList.remove('hidden');
+                paypalContainer.innerHTML = '<p class="text-error text-center">PayPal is unavailable. Please refresh the page or try again later.</p>';
+                return;
+            }
+            setTimeout(renderButtons, 500);
+            return;
+        }
+
+        paypalReady = true;
+
+        paypal.Buttons({
             createOrder: function() {
                 if (!slotSelected || !selectElement.value) {
                     alert('Please select a collection slot first.');
@@ -258,13 +279,24 @@ document.addEventListener('DOMContentLoaded', function() {
             onCancel: function() {
                 alert('Payment cancelled. You can try again when ready.');
             },
-            onError: function(err) {
+            onError: function() {
                 alert('An error occurred with PayPal. Please try again.');
             },
         }).render('#paypal-button-container');
-    } else {
-        paypalContainer.innerHTML = '<p class="text-error text-center">PayPal failed to load. Please refresh the page.</p>';
     }
-});
+
+    renderButtons();
+
+    var sdkScript = document.getElementById('paypal-sdk');
+    if (sdkScript) {
+        sdkScript.addEventListener('load', renderButtons);
+        sdkScript.addEventListener('error', function() {
+            if (!paypalReady) {
+                if (fallback) fallback.classList.remove('hidden');
+                paypalContainer.innerHTML = '<p class="text-error text-center">Failed to load PayPal. Please check your internet connection and disable any ad blockers.</p>';
+            }
+        });
+    }
+})();
 </script>
 @endsection

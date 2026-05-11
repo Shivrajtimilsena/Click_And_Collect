@@ -24,7 +24,7 @@ class PilotProductCategorySeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            DB::table('product_categories')->updateOrInsert(
+            DB::table('product_category')->updateOrInsert(
                 ['category_name' => $category['category_name']],
                 [
                     'description' => $category['description'],

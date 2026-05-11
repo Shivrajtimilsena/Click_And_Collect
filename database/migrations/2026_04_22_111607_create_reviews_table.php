@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('reviews', function (Blueprint $table) {
+        Schema::create('review', function (Blueprint $table) {
             $table->bigIncrements('review_id');
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('product_id');
@@ -20,12 +20,12 @@ return new class extends Migration
 
             $table->foreign('customer_id', 'fk_reviews_customer')
                   ->references('customer_id')
-                  ->on('customers')
+                  ->on('customer')
                   ->onDelete('cascade');
 
             $table->foreign('product_id', 'fk_reviews_product')
                   ->references('product_id')
-                  ->on('products')
+                  ->on('product')
                   ->onDelete('cascade');
 
             $table->unique(['customer_id', 'product_id'], 'uq_reviews_cust_prod');
@@ -34,6 +34,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('reviews');
+        Schema::dropIfExists('review');
     }
 };

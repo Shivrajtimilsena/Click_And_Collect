@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('orders', function (Blueprint $table) {
+        Schema::create('order', function (Blueprint $table) {
             $table->bigIncrements('order_id');
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('shop_id');
@@ -27,33 +27,33 @@ return new class extends Migration
 
             $table->foreign('customer_id', 'fk_orders_customer')
                   ->references('customer_id')
-                  ->on('customers')
+                  ->on('customer')
                   ->onDelete('cascade');
 
             // No onDelete('restrict') here — Oracle default behavior is enough.
             $table->foreign('shop_id', 'fk_orders_shop')
                   ->references('shop_id')
-                  ->on('shops');
+                  ->on('shop');
 
             $table->foreign('collection_slot_id', 'fk_orders_slot')
                   ->references('collection_slot_id')
-                  ->on('collection_slots')
+                  ->on('collection_slot')
                   ->onDelete('set null');
 
             $table->foreign('cart_id', 'fk_orders_cart')
                   ->references('cart_id')
-                  ->on('carts')
+                  ->on('cart')
                   ->onDelete('set null');
 
             $table->foreign('coupon_id', 'fk_orders_coupon')
                   ->references('coupon_id')
-                  ->on('coupons')
+                  ->on('coupon')
                   ->onDelete('set null');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('orders');
+        Schema::dropIfExists('order');
     }
 };

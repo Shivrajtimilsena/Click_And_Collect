@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
+        Schema::table('order', function (Blueprint $table) {
             // Make shop_id nullable to support orders from multiple shops
             $table->unsignedBigInteger('shop_id')->nullable()->change();
         });
@@ -16,7 +16,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
+        Schema::table('order', function (Blueprint $table) {
             $table->unsignedBigInteger('shop_id')->nullable(false)->change();
         });
     }

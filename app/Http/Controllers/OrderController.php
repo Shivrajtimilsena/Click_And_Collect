@@ -116,7 +116,7 @@ class OrderController extends Controller
     {
         try {
             $validated = $request->validate([
-                'collection_slot_id' => 'required|exists:collection_slots,collection_slot_id',
+                'collection_slot_id' => 'required|exists:collection_slot,collection_slot_id',
                 'coupon_code' => 'nullable|string',
             ]);
 

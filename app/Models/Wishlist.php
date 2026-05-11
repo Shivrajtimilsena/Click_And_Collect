@@ -9,7 +9,7 @@ class Wishlist extends Model
 {
     use HasFactory;
 
-    protected $table = 'wishlists';
+    protected $table = 'wishlist';
     protected $primaryKey = 'wishlist_id';
     public $incrementing = true;
     protected $keyType = 'int';

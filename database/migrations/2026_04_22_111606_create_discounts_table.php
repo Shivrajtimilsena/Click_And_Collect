@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('discounts', function (Blueprint $table) {
+        Schema::create('discount', function (Blueprint $table) {
             $table->bigIncrements('discount_id');
             $table->unsignedBigInteger('product_id');
             $table->decimal('discount_percentage', 5, 2);
@@ -20,13 +20,13 @@ return new class extends Migration
 
             $table->foreign('product_id', 'fk_discounts_product')
                   ->references('product_id')
-                  ->on('products')
+                  ->on('product')
                   ->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('discounts');
+        Schema::dropIfExists('discount');
     }
 };

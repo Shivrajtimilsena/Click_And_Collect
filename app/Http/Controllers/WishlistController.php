@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Wishlist;
 use App\Models\WishlistProduct;
-use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class WishlistController extends Controller
 {
@@ -17,7 +16,7 @@ class WishlistController extends Controller
         abort_unless($customer, 403);
 
         $wishlist = $customer->wishlists()->firstOrCreate([]);
-        
+
         $wishlist->load('products.product');
 
         return view('wishlist.index', ['wishlist' => $wishlist]);
@@ -26,7 +25,7 @@ class WishlistController extends Controller
     public function add(Request $request): RedirectResponse
     {
         $request->validate([
-            'product_id' => 'required|exists:products,id',
+            'product_id' => 'required|exists:product,id',
         ]);
 
         $customer = $request->user()?->customer;
@@ -35,7 +34,7 @@ class WishlistController extends Controller
         $wishlist = $customer->wishlists()->firstOrCreate([]);
 
         // Check if already in wishlist
-        if (!$wishlist->products()->where('product_id', $request->product_id)->exists()) {
+        if (! $wishlist->products()->where('product_id', $request->product_id)->exists()) {
             $wishlist->products()->create([
                 'product_id' => $request->product_id,
             ]);

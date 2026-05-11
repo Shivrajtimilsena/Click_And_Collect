@@ -15,12 +15,12 @@ class HomeController extends Controller
 
         // Flash deals: products with active discounts
         $flashDeals = Product::query()
-            ->join('discounts', 'products.product_id', '=', 'discounts.product_id')
-            ->where('products.product_status', 'ACTIVE')
-            ->where('discounts.start_date', '<=', now())
-            ->where('discounts.end_date', '>=', now())
-            ->select('products.*')
-            ->orderBy('discounts.discount_percentage', 'desc')
+            ->join('discount', 'product.product_id', '=', 'discount.product_id')
+            ->where('product.product_status', 'ACTIVE')
+            ->where('discount.start_date', '<=', now())
+            ->where('discount.end_date', '>=', now())
+            ->select('product.*')
+            ->orderBy('discount.discount_percentage', 'desc')
             ->with('shop', 'discount', 'reviews')
             ->limit(10)
             ->get();

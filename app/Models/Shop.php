@@ -11,7 +11,7 @@ class Shop extends Model
 {
     use HasFactory;
 
-    protected $table = 'shops';
+    protected $table = 'shop';
 
     protected $primaryKey = 'shop_id';
 

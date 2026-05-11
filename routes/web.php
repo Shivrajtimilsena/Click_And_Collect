@@ -1,18 +1,22 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\TraderController;
 use App\Http\Controllers\WishlistController;
+use App\Mail\WelcomeMail;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -72,7 +76,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', function (Request $request) {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'unique:users'],
+            'email' => ['required', 'string', 'email', 'unique:user'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -89,6 +93,12 @@ Route::middleware('guest')->group(function () {
             'loyalty_points' => 0,
             'is_active' => 'Y',
         ]);
+
+        try {
+            Mail::to($user->email)->send(new WelcomeMail($user));
+        } catch (Exception $e) {
+            Log::error('Failed to send welcome email: '.$e->getMessage());
+        }
 
         auth()->login($user);
 
@@ -175,5 +185,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/product/create', [TraderController::class, 'productCreate'])->name('product.create');
         Route::post('/product', [TraderController::class, 'productStore'])->name('product.store');
         Route::get('/settings', [TraderController::class, 'settings'])->name('settings');
+    });
+
+    // Admin Panel
+    Route::prefix('admin')->name('admin.')->middleware('auth', 'admin')->group(function () {
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/applications', [AdminController::class, 'applications'])->name('applications');
+        Route::get('/applications/{application}', [AdminController::class, 'showApplication'])->name('application.show');
+        Route::post('/applications/{application}/approve', [AdminController::class, 'approve'])->name('application.approve');
+        Route::post('/applications/{application}/reject', [AdminController::class, 'reject'])->name('application.reject');
     });
 });

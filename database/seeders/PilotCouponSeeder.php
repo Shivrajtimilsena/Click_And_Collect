@@ -12,7 +12,7 @@ class PilotCouponSeeder extends Seeder
     {
         $now = Carbon::now();
 
-        DB::table('coupons')->updateOrInsert(
+        DB::table('coupon')->updateOrInsert(
             ['coupon_code' => 'WELCOME10'],
             [
                 'amount'           => null,
