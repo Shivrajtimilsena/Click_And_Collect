@@ -6,106 +6,138 @@
 <div class="max-w-3xl mx-auto py-12">
     <h1 class="text-3xl font-headline font-bold text-on-surface mb-8">Checkout</h1>
 
-    <form action="{{ route('orders.store') }}" method="POST" id="checkout-form" class="space-y-6">
-        @csrf
+    @if ($errors->any())
+        <div class="mb-4 p-4 bg-error/10 text-error border border-error/30">
+            <ul class="list-disc list-inside">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-        @if ($errors->any())
-            <div class="bg-error/10 text-error p-4 border border-error/30">
-                <ul class="list-disc list-inside">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
+    @if (session('error'))
+        <div class="mb-4 p-4 bg-error/10 text-error border border-error/30">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    <!-- Collection Slot Section -->
+    <div class="bg-surface-container-lowest border border-surface-container-high p-8 mb-6">
+        <div class="flex items-center gap-3 mb-6">
+            <span class="material-symbols-outlined text-primary text-2xl">schedule</span>
+            <div>
+                <h2 class="text-xl font-headline font-bold text-on-surface">Select Collection Slot</h2>
+                <p class="text-sm text-secondary">Collection available 24 hours after order placement</p>
+            </div>
+        </div>
+
+        @if ($collectionSlots->isEmpty())
+            <div class="bg-orange-50 border border-orange-200 p-4 text-center">
+                <p class="text-on-surface-variant">No collection slots available. Please check back later.</p>
+            </div>
+        @else
+            <h3 class="text-lg font-bold text-on-surface mb-4">Select Day</h3>
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <button type="button" class="day-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-day="Wednesday">
+                    Wednesday
+                </button>
+                <button type="button" class="day-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-day="Thursday">
+                    Thursday
+                </button>
+                <button type="button" class="day-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-day="Friday">
+                    Friday
+                </button>
+            </div>
+
+            <h3 class="text-lg font-bold text-on-surface mb-4">Select Time Slot</h3>
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <button type="button" class="time-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-time="10:00">
+                    10:00 - 13:00
+                </button>
+                <button type="button" class="time-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-time="13:00">
+                    13:00 - 16:00
+                </button>
+                <button type="button" class="time-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-time="16:00">
+                    16:00 - 19:00
+                </button>
+            </div>
+
+            <select name="collection_slot_id" id="collection_slot_id" required class="hidden">
+                <option value="">-- Select collection slot --</option>
+                @foreach ($collectionSlots as $shopId => $slots)
+                    @foreach ($slots as $slot)
+                        @php
+                            $day = \Carbon\Carbon::parse($slot->slot_date)->format('l');
+                            $time = $slot->start_time;
+                            $available = $slot->capacity - $slot->total_order;
+                        @endphp
+                        <option value="{{ $slot->collection_slot_id }}" data-day="{{ $day }}" data-time="{{ $time }}" data-available="{{ $available }}">
+                            {{ $day }}, {{ $slot->slot_date->format('M d') }} - {{ $slot->slot_label }} ({{ $available }} left)
+                        </option>
                     @endforeach
-                </ul>
+                @endforeach
+            </select>
+
+            <div id="selection-display" class="p-4 bg-primary/10 border-l-4 border-primary hidden">
+                <p class="text-sm">
+                    <span class="font-bold text-primary">Selected:</span>
+                    <span id="selected-text" class="text-on-surface">-</span>
+                </p>
             </div>
         @endif
+    </div>
 
-        @if (session('success'))
-            <div class="bg-green-500/15 text-green-700 p-4 border border-green-500/30">
-                {{ session('success') }}
-            </div>
-        @endif
+    <!-- Order Summary -->
+    <div class="bg-surface-container-lowest border border-surface-container-high p-8 mb-6">
+        <h2 class="text-xl font-headline font-bold text-on-surface mb-6">Order Summary</h2>
 
-        <div class="bg-surface-container-lowest border border-surface-container-high p-8">
-            <div class="flex items-center gap-3 mb-6">
-                <span class="material-symbols-outlined text-primary text-2xl">schedule</span>
-                <div>
-                    <h2 class="text-xl font-headline font-bold text-on-surface">Select Collection Slot</h2>
-                    <p class="text-sm text-secondary">Collection available 24 hours after order placement</p>
-                </div>
-            </div>
-            
-            @if ($collectionSlots->isEmpty())
-                <div class="bg-orange-50 border border-orange-200 p-4 text-center">
-                    <p class="text-on-surface-variant">No collection slots available. Please check back later.</p>
-                </div>
-            @else
-                <h3 class="text-lg font-bold text-on-surface mb-4">Select Day</h3>
-                <div class="grid grid-cols-3 gap-4 mb-8">
-                    <button type="button" class="day-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-day="Wednesday">
-                        Wednesday
-                    </button>
-                    <button type="button" class="day-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-day="Thursday">
-                        Thursday
-                    </button>
-                    <button type="button" class="day-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-day="Friday">
-                        Friday
-                    </button>
-                </div>
+        @php
+            $combinedTotal = 0;
+            $shopGroups = $cart->products->groupBy(fn($item) => $item->product->shop->shop_name ?? 'Unknown');
+        @endphp
 
-                <h3 class="text-lg font-bold text-on-surface mb-4">Select Time Slot</h3>
-                <div class="grid grid-cols-3 gap-4 mb-6">
-                    <button type="button" class="time-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-time="10:00">
-                        10:00 - 13:00
-                    </button>
-                    <button type="button" class="time-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-time="13:00">
-                        13:00 - 16:00
-                    </button>
-                    <button type="button" class="time-selector px-6 py-4 border-2 border-surface-container-high font-bold text-center transition-all hover:border-primary" data-time="16:00">
-                        16:00 - 19:00
-                    </button>
+        @foreach($shopGroups as $shopName => $items)
+            @php $shopTotal = $items->sum(fn($item) => $item->product->discounted_price * $item->quantity); $combinedTotal += $shopTotal; @endphp
+            <div class="mb-4 pb-4 border-b border-surface-container-high last:border-b-0 last:pb-0 last:mb-0">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-secondary text-lg">store</span>
+                    <span class="font-bold text-on-surface">{{ $shopName }}</span>
                 </div>
-
-                <select name="collection_slot_id" id="collection_slot_id" required class="hidden">
-                    <option value="">-- Select collection slot --</option>
-                    @foreach ($collectionSlots as $shopId => $slots)
-                        @foreach ($slots as $slot)
-                            @php
-                                $day = \Carbon\Carbon::parse($slot->slot_date)->format('l');
-                                $time = $slot->start_time;
-                                $available = $slot->capacity - $slot->total_order;
-                            @endphp
-                            <option value="{{ $slot->collection_slot_id }}" data-day="{{ $day }}" data-time="{{ $time }}" data-available="{{ $available }}">
-                                {{ $day }}, {{ $slot->slot_date->format('M d') }} - {{ $slot->slot_label }} ({{ $available }} left)
-                            </option>
-                        @endforeach
+                <div class="space-y-2 ml-7">
+                    @foreach($items as $item)
+                        <div class="flex justify-between text-sm">
+                            <span class="text-secondary">{{ $item->quantity }}x {{ $item->product->product_name }}</span>
+                            <span class="text-on-surface">&pound;{{ number_format($item->product->discounted_price * $item->quantity, 2) }}</span>
+                        </div>
                     @endforeach
-                </select>
-
-                <div id="selection-display" class="p-4 bg-primary/10 border-l-4 border-primary hidden">
-                    <p class="text-sm">
-                        <span class="font-bold text-primary">Selected:</span>
-                        <span id="selected-text" class="text-on-surface">-</span>
-                    </p>
                 </div>
-            @endif
-        </div>
-
-        <div class="bg-surface-container-lowest border border-surface-container-high p-8">
-            <h3 class="text-lg font-bold text-on-surface mb-4">Promo Code (Optional)</h3>
-            <div class="flex gap-4">
-                <input type="text" name="coupon_code" placeholder="Enter coupon code" class="flex-1 px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20"/>
-                <button type="button" class="px-6 py-3 bg-surface-container-high text-secondary font-bold hover:bg-surface-container transition-all">Apply</button>
+                <div class="flex justify-between text-sm font-bold mt-2 ml-7">
+                    <span class="text-on-surface">Shop Total</span>
+                    <span class="text-on-surface">&pound;{{ number_format($shopTotal, 2) }}</span>
+                </div>
             </div>
-        </div>
+        @endforeach
 
-        <div class="space-y-3">
-            <button type="submit" id="complete-order-btn" disabled class="w-full bg-surface-container-high text-on-surface px-6 py-4 font-bold text-lg cursor-not-allowed transition-all">
-                Complete Order
-            </button>
-            <p id="slot-message" class="text-center text-sm text-secondary">Select a day and time slot to continue</p>
+        <div class="flex justify-between items-center pt-4 border-t border-surface-container-high">
+            <span class="font-headline font-bold text-xl text-on-surface">Total to Pay</span>
+            <span class="font-headline font-extrabold text-2xl text-primary" id="checkout-total">&pound;{{ number_format($combinedTotal, 2) }}</span>
         </div>
-    </form>
+    </div>
+
+    <!-- PayPal Button -->
+    <div class="bg-surface-container-lowest border border-surface-container-high p-8 mb-6">
+        <div id="paypal-button-container" class="min-h-[50px]"></div>
+        <p id="paypal-message" class="text-center text-sm text-secondary mt-3">Select a day and time slot to pay</p>
+        <div id="paypal-loading" class="hidden text-center py-4">
+            <span class="text-primary font-bold">Processing payment...</span>
+        </div>
+    </div>
 </div>
+
+<script src="https://www.paypal.com/sdk/js?client_id={{ config('paypal.client_id') }}&currency={{ config('paypal.currency') }}"
+    data-namespace="paypal_sdk">
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -113,11 +145,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const timeButtons = document.querySelectorAll('.time-selector');
     const selectElement = document.getElementById('collection_slot_id');
     const displayDiv = document.getElementById('selection-display');
-    const submitBtn = document.getElementById('complete-order-btn');
-    const message = document.getElementById('slot-message');
+    const message = document.getElementById('paypal-message');
+    const paypalContainer = document.getElementById('paypal-button-container');
+    const loading = document.getElementById('paypal-loading');
 
     let selectedDay = null;
     let selectedTime = null;
+    let slotSelected = false;
 
     dayButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -139,24 +173,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function checkSelection() {
         if (!selectedDay || !selectedTime) {
-            submitBtn.disabled = true;
-            submitBtn.classList.add('bg-surface-container-high', 'text-on-surface', 'cursor-not-allowed');
-            submitBtn.classList.remove('bg-primary', 'text-on-primary');
+            slotSelected = false;
+            message.textContent = 'Select a day and time slot to pay';
+            message.classList.remove('hidden');
             return;
         }
 
         const options = selectElement.querySelectorAll('option[value]');
         let found = false;
-        
+
         for (let option of options) {
             if (option.dataset.day === selectedDay && option.dataset.time === selectedTime) {
                 selectElement.value = option.value;
                 document.getElementById('selected-text').textContent = option.textContent;
                 displayDiv.classList.remove('hidden');
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('bg-surface-container-high', 'text-on-surface', 'cursor-not-allowed');
-                submitBtn.classList.add('bg-primary', 'text-on-primary');
                 message.classList.add('hidden');
+                slotSelected = true;
                 found = true;
                 break;
             }
@@ -164,20 +196,75 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!found) {
             selectElement.value = '';
-            submitBtn.disabled = true;
-            submitBtn.classList.add('bg-surface-container-high', 'text-on-surface', 'cursor-not-allowed');
-            submitBtn.classList.remove('bg-primary', 'text-on-primary');
+            slotSelected = false;
             message.classList.remove('hidden');
             message.textContent = 'No slot available for this selection. Please try another combination.';
         }
     }
 
-    document.getElementById('checkout-form').addEventListener('submit', function(e) {
-        if (!selectElement.value) {
-            e.preventDefault();
-            alert('Please select a collection slot.');
-        }
-    });
+    if (typeof paypal_sdk !== 'undefined') {
+        paypal_sdk.Buttons({
+            createOrder: function() {
+                if (!slotSelected || !selectElement.value) {
+                    alert('Please select a collection slot first.');
+                    return Promise.reject('No slot selected');
+                }
+
+                return fetch('{{ route('paypal.create') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                }).then(function(res) {
+                    if (!res.ok) {
+                        return res.json().then(function(data) {
+                            throw new Error(data.error || 'Failed to create order');
+                        });
+                    }
+                    return res.json();
+                }).then(function(data) {
+                    return data.paypal_order_id;
+                });
+            },
+            onApprove: function(data) {
+                loading.classList.remove('hidden');
+                paypalContainer.classList.add('hidden');
+
+                fetch('{{ route('paypal.capture') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: JSON.stringify({
+                        paypal_order_id: data.orderID,
+                        collection_slot_id: selectElement.value,
+                    }),
+                }).then(function(res) {
+                    return res.json();
+                }).then(function(result) {
+                    if (result.redirect_url) {
+                        window.location.href = result.redirect_url;
+                    } else {
+                        throw new Error(result.error || 'Payment failed');
+                    }
+                }).catch(function(err) {
+                    loading.classList.add('hidden');
+                    paypalContainer.classList.remove('hidden');
+                    alert('Payment failed: ' + err.message);
+                });
+            },
+            onCancel: function() {
+                alert('Payment cancelled. You can try again when ready.');
+            },
+            onError: function(err) {
+                alert('An error occurred with PayPal. Please try again.');
+            },
+        }).render('#paypal-button-container');
+    } else {
+        paypalContainer.innerHTML = '<p class="text-error text-center">PayPal failed to load. Please refresh the page.</p>';
+    }
 });
 </script>
 @endsection
