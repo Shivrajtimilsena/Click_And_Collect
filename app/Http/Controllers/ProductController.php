@@ -5,37 +5,32 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ProductController extends Controller
 {
     public function index(Request $request): View
     {
+        $categories = ProductCategory::all();
         $query = Product::with('shop', 'reviews');
 
         // Filter by category - try to match slug, name, or ID
         if ($request->filled('category')) {
-            $catInput = $request->category;
+            $catInput = trim($request->category);
+            $slugInput = Str::slug($catInput);
 
-            // Try slug match first (e.g., 'artisan-bakery' -> 'Artisan Bakery')
-            $category = ProductCategory::where('category_name', ucwords(str_replace('-', ' ', $catInput)))->first();
+            $category = $categories->first(function (ProductCategory $item) use ($catInput, $slugInput) {
+                if (is_numeric($catInput) && (int) $catInput === (int) $item->product_category_id) {
+                    return true;
+                }
 
-            // Try exact match by name (case insensitive)
-            if (! $category) {
-                $category = ProductCategory::whereRaw('LOWER(category_name) = ?', [strtolower($catInput)])->first();
-            }
+                if (strcasecmp($item->category_name, $catInput) === 0) {
+                    return true;
+                }
 
-            // Try exact ID match only if input is numeric
-            if (! $category && is_numeric($catInput)) {
-                $category = ProductCategory::find($catInput);
-            }
-
-            // Try partial name match
-            if (! $category) {
-                $category = ProductCategory::where('category_name', 'like', '%'.ucwords(str_replace('-', ' ', $catInput)).'%')
-                    ->orWhere('category_name', 'like', '%'.$catInput.'%')
-                    ->first();
-            }
+                return Str::slug($item->category_name) === $slugInput;
+            });
 
             if ($category) {
                 $query->where('product_category_id', $category->product_category_id);
@@ -43,11 +38,23 @@ class ProductController extends Controller
         }
 
         // Filter by price range
-        if ($request->filled('min_price') && $request->filled('max_price')) {
-            $query->whereBetween('price', [
-                $request->min_price,
-                $request->max_price,
-            ]);
+        $minPrice = $request->get('min_price');
+        $maxPrice = $request->get('max_price');
+
+        if ($request->filled('price_range')) {
+            $range = trim($request->get('price_range'));
+            if (str_contains($range, '-')) {
+                [$minPrice, $maxPrice] = array_map('trim', explode('-', $range, 2));
+            } elseif (str_ends_with($range, '+')) {
+                $minPrice = trim(rtrim($range, '+'));
+                $maxPrice = null;
+            }
+        }
+
+        if (is_numeric($minPrice) && is_numeric($maxPrice)) {
+            $query->whereBetween('price', [(float) $minPrice, (float) $maxPrice]);
+        } elseif (is_numeric($minPrice) && $maxPrice === null) {
+            $query->where('price', '>=', (float) $minPrice);
         }
 
         // Sort
@@ -69,7 +76,6 @@ class ProductController extends Controller
         };
 
         $products = $query->paginate(24);
-        $categories = ProductCategory::all();
 
         return view('products.index', [
             'products' => $products,

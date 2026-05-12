@@ -10,6 +10,12 @@
         <div class="flex items-center justify-between">
             <h1 class="text-2xl font-extrabold">Products</h1>
             <form action="{{ route('products.index') }}" method="GET" class="flex gap-2">
+                @if (request('category'))
+                    <input type="hidden" name="category" value="{{ request('category') }}">
+                @endif
+                @if (request('price_range'))
+                    <input type="hidden" name="price_range" value="{{ request('price_range') }}">
+                @endif
                 <select name="sort" onchange="this.form.submit()" class="px-4 py-2 rounded-full border-none bg-surface-container text-on-surface">
                     <option value="trending" {{ request('sort') === 'trending' ? 'selected' : '' }}>Trending</option>
                     <option value="newest" {{ request('sort') === 'newest' ? 'selected' : '' }}>Newest</option>
