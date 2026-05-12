@@ -113,7 +113,29 @@ class ProfileController extends Controller
             );
         }
 
-        return view('profile.settings', ['customer' => $customer]);
+        // Get recent orders for display
+        $orders = $customer->orders()
+            ->with(['items.product.shop.trader.user', 'collectionSlot'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        // Get upcoming collection slots
+        $upcomingSlots = $customer->orders()
+            ->with('collectionSlot')
+            ->whereIn('order_status', ['READY', 'PENDING'])
+            ->whereHas('collectionSlot', function ($query) {
+                $query->where('slot_date', '>=', now()->toDateString());
+            })
+            ->get()
+            ->map(fn($order) => $order->collectionSlot)
+            ->filter();
+
+        return view('profile.settings', [
+            'customer' => $customer,
+            'orders' => $orders,
+            'upcomingSlots' => $upcomingSlots,
+        ]);
     }
 
     /**

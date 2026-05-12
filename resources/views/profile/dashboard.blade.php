@@ -84,7 +84,7 @@
     </h3>
 
     @if($recentOrders->count() > 0)
-    <div class="bg-surface-container overflow-hidden rounded-2xl shadow-sm ring-1 ring-outline-variant/10">
+    <div class="bg-surface-container overflow-hidden shadow-sm ring-1 ring-outline-variant/10">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="text-on-surface-variant border-b border-outline-variant/10 bg-surface-container-low">
@@ -139,7 +139,7 @@
         @endif
     </div>
     @else
-    <div class="bg-surface-container p-12 text-center rounded-2xl shadow-sm ring-1 ring-outline-variant/10">
+    <div class="bg-surface-container p-12 text-center shadow-sm ring-1 ring-outline-variant/10">
         <span class="material-symbols-outlined text-4xl text-on-surface-variant mb-4 block">shopping_bag</span>
         <p class="text-on-surface-variant">No orders yet. Start shopping!</p>
         <a href="{{ route('home') }}" class="mt-4 inline-block px-6 py-2 bg-primary text-on-primary font-bold text-sm hover:opacity-90 transition-opacity">

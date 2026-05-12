@@ -44,12 +44,12 @@
                     </div>
 
                     <!-- Edit Profile Button -->
-                    <a 
-                        href="{{ route('profile.edit') }}"
-                        class="mt-8 w-full py-3 px-6 bg-on-background text-surface rounded-full font-bold text-sm tracking-wide hover:opacity-90 transition-opacity active:scale-95 inline-block text-center"
+                    <button
+                        onclick="openEditProfileModal()"
+                        class="mt-8 w-full py-3 px-6 bg-on-background text-surface rounded-full font-bold text-sm tracking-wide hover:opacity-90 transition-opacity active:scale-95 inline-block text-center cursor-pointer"
                     >
                         Edit Profile
-                    </a>
+                    </button>
                 </div>
             </div>
 
@@ -171,7 +171,7 @@
                 </h3>
 
                 @if($recentOrders->count() > 0)
-                <div class="bg-surface-container rounded-lg overflow-hidden">
+                <div class="bg-surface-container overflow-hidden">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="text-on-surface-variant border-b border-outline-variant/10">
@@ -226,7 +226,7 @@
                     @endif
                 </div>
                 @else
-                <div class="bg-surface-container rounded-lg p-12 text-center">
+                <div class="bg-surface-container p-12 text-center">
                     <span class="material-symbols-outlined text-4xl text-on-surface-variant mb-4 block">shopping_bag</span>
                     <p class="text-on-surface-variant">No orders yet. Start shopping!</p>
                     <a href="{{ route('home') }}" class="mt-4 inline-block px-6 py-2 bg-primary text-on-primary rounded-full font-bold text-sm hover:opacity-90 transition-opacity">
@@ -239,3 +239,5 @@
     </div>
 </main>
 @endsection
+
+@include('modals.edit-profile-modal')

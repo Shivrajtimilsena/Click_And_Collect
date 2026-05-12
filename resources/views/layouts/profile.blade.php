@@ -42,12 +42,12 @@
                     </div>
 
                     <!-- Edit Profile Button -->
-                    <a 
-                        href="{{ route('profile.settings') }}"
-                        class="mt-8 w-full py-3 px-6 bg-on-background text-surface rounded-full font-bold text-sm tracking-wide hover:opacity-90 transition-opacity active:scale-95 inline-block text-center"
+                    <button
+                        onclick="openEditProfileModal()"
+                        class="mt-8 w-full py-3 px-6 bg-on-background text-surface rounded-full font-bold text-sm tracking-wide hover:opacity-90 transition-opacity active:scale-95 inline-block text-center cursor-pointer"
                     >
                         Edit Profile
-                    </a>
+                    </button>
                 </div>
             </div>
 
@@ -91,3 +91,5 @@
     </div>
 </main>
 @endsection
+
+@include('modals.edit-profile-modal')
