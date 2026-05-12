@@ -17,14 +17,13 @@ class WishlistProduct extends Model
 
     protected $keyType = 'int';
 
-    public $timestamps = true;
+    const CREATED_AT = 'added_at';
 
     const UPDATED_AT = null;
 
     protected $fillable = [
         'wishlist_id',
         'product_id',
-        'added_at',
     ];
 
     protected $casts = [

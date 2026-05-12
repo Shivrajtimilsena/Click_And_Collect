@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Wishlist;
 use App\Models\WishlistProduct;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +16,7 @@ class WishlistController extends Controller
 
         $wishlist = $customer->wishlists()->firstOrCreate([]);
 
-        $wishlist->load('products.product');
+        $wishlist->load(['products.product.discount', 'products.product.reviews']);
 
         return view('wishlist.index', ['wishlist' => $wishlist]);
     }
@@ -25,7 +24,7 @@ class WishlistController extends Controller
     public function add(Request $request): RedirectResponse
     {
         $request->validate([
-            'product_id' => 'required|exists:product,id',
+            'product_id' => 'required|exists:product,product_id',
         ]);
 
         $customer = $request->user()?->customer;
@@ -33,11 +32,11 @@ class WishlistController extends Controller
 
         $wishlist = $customer->wishlists()->firstOrCreate([]);
 
-        // Check if already in wishlist
         if (! $wishlist->products()->where('product_id', $request->product_id)->exists()) {
             $wishlist->products()->create([
                 'product_id' => $request->product_id,
             ]);
+            $wishlist->increment('no_of_items');
         }
 
         return back()->with('success', 'Added to wishlist!');
@@ -46,6 +45,8 @@ class WishlistController extends Controller
     public function remove(WishlistProduct $wishlistProduct): RedirectResponse
     {
         $wishlistProduct->delete();
+
+        $wishlistProduct->wishlist()->decrement('no_of_items');
 
         return back()->with('success', 'Removed from wishlist!');
     }

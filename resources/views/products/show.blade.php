@@ -78,7 +78,7 @@
             </div>
 
             @if (auth()->check())
-                <button type="button" onclick="addToWishlist({{ $product->product_id }})" class="w-full border-2 border-primary text-primary px-8 py-3 rounded-lg font-bold hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
+                <button type="button" onclick="wishlistFromPage({{ $product->product_id }})" class="w-full border-2 border-primary text-primary px-8 py-3 rounded-lg font-bold hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined">favorite</span>
                     Add to Wishlist
                 </button>
@@ -175,7 +175,12 @@
 </section>
 
 <script>
-function addToWishlist(productId) {
+function wishlistFromPage(productId) {
+    const btn = event.currentTarget;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined">check</span> Added!';
+
     fetch('{{ route("wishlist.add") }}', {
         method: 'POST',
         headers: {
@@ -184,9 +189,13 @@ function addToWishlist(productId) {
         },
         body: JSON.stringify({ product_id: productId })
     }).then(response => {
-        if (response.ok) {
-            alert('Added to wishlist!');
+        if (!response.ok) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
+    }).catch(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
     });
 }
 </script>

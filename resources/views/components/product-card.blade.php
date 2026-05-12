@@ -8,11 +8,14 @@
                 -{{ $product->discount->discount_percentage }}%
             </span>
         @endif
+        <button type="button" onclick="addToWishlist({{ $product->product_id }}, event)" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm text-error flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:scale-110 duration-200 shadow-sm z-10">
+            <span class="material-symbols-outlined text-[18px]">favorite</span>
+        </button>
         <form action="{{ route('cart.add') }}" method="POST" class="absolute bottom-2 right-2">
             @csrf
             <input type="hidden" name="product_id" value="{{ $product->product_id }}">
             <input type="hidden" name="quantity" value="1">
-            <button type="submit" class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300 hover:bg-primary-dim">
+            <button type="submit" class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 duration-300 hover:bg-primary-dim shadow-sm">
                 <span class="material-symbols-outlined text-[18px]">add</span>
             </button>
         </form>

@@ -90,7 +90,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="bg-surface text-on-background selection:bg-primary-container selection:text-on-primary-container">
+<body class="bg-surface text-on-background selection:bg-primary-container selection:text-on-primary-container" data-auth="{{ auth()->check() ? 'true' : 'false' }}">
     @include('components.navbar')
 
     <main class="pt-24 pb-12 px-4 md:px-12 mx-auto @hasSection('trader-page') max-w-3xl @else max-w-480 @endif">
@@ -127,5 +127,41 @@
 
     @include('modals.auth-modal')
     @include('components.footer')
+
+    <script>
+    function addToWishlist(productId, event) {
+        const isAuth = document.body.dataset.auth === 'true';
+        if (!isAuth) {
+            if (typeof openAuthModal === 'function') {
+                openAuthModal('signup');
+            }
+            return;
+        }
+
+        const btn = event.currentTarget;
+
+        if (btn.dataset.wishlisted === 'true') {
+            return;
+        }
+
+        const icon = btn.querySelector('.material-symbols-outlined');
+
+        fetch('{{ route("wishlist.add") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ product_id: productId })
+        }).then(response => {
+            if (response.ok) {
+                btn.dataset.wishlisted = 'true';
+                icon.style.fontVariationSettings = "'FILL' 1, 'wght' 400";
+                btn.classList.add('bg-error', 'text-white');
+                btn.classList.remove('bg-white/80', 'text-error');
+            }
+        });
+    }
+    </script>
 </body>
 </html>
