@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Review;
 use App\Models\Trader;
+use App\Models\TraderApplication;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -140,6 +141,7 @@ class TraderController extends Controller
         $shopIds = $shops->pluck('shop_id')->toArray();
 
         $products = Product::whereIn('shop_id', $shopIds)
+            ->where('product_status', 'ACTIVE')
             ->with('shop', 'category', 'discount')
             ->latest()
             ->paginate(30);
@@ -202,6 +204,12 @@ class TraderController extends Controller
 
     public function productStore(Request $request): RedirectResponse
     {
+        \Log::info('Product store request', [
+            'has_files' => $request->hasFile('image'),
+            'all_files' => array_keys($request->allFiles()),
+            'all_input' => array_keys($request->all()),
+        ]);
+
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
             'product_category_id' => 'required|exists:product_category,product_category_id',
@@ -225,10 +233,18 @@ class TraderController extends Controller
 
         $imageUrl = null;
         if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $filename = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
-            $image->storeAs('products', $filename, 'public');
-            $imageUrl = '/storage/products/'.$filename;
+            try {
+                $image = $request->file('image');
+                $filename = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
+                $path = $image->storeAs('products', $filename, 'public');
+                \Log::info('Image uploaded', ['filename' => $filename, 'path' => $path]);
+                $imageUrl = '/storage/products/'.$filename;
+            } catch (\Exception $e) {
+                \Log::error('Image upload failed', ['error' => $e->getMessage()]);
+                return back()->with('error', 'Failed to upload image: '.$e->getMessage())->withInput();
+            }
+        } else {
+            \Log::info('No image file in request');
         }
 
         Product::create([
@@ -243,5 +259,89 @@ class TraderController extends Controller
         ]);
 
         return redirect()->route('trader.inventory.index')->with('success', 'Product created successfully!');
+    }
+
+    public function productEdit(Product $product): View|RedirectResponse
+    {
+        $user = auth()->user();
+        $trader = $user->trader;
+        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+
+        if (! in_array($product->shop_id, $shopIds)) {
+            abort(403, 'You do not have permission to edit this product.');
+        }
+
+        $categories = ProductCategory::where('is_active', 'Y')->get();
+
+        return view('trader.product-edit', [
+            'product' => $product,
+            'categories' => $categories,
+        ]);
+    }
+
+    public function productUpdate(Request $request, Product $product): RedirectResponse
+    {
+        $user = auth()->user();
+        $trader = $user->trader;
+        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+
+        if (! in_array($product->shop_id, $shopIds)) {
+            abort(403, 'You do not have permission to update this product.');
+        }
+
+        $validated = $request->validate([
+            'product_name' => 'required|string|max:255',
+            'product_category_id' => 'required|exists:product_category,product_category_id',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'min_order' => 'nullable|integer|min:1',
+            'max_order' => 'nullable|integer|min:1',
+            'description' => 'required|string|max:1000',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'allergens' => 'nullable|array',
+        ]);
+
+        $imageUrl = $product->image_url;
+        if ($request->hasFile('image')) {
+            try {
+                $image = $request->file('image');
+                $filename = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
+                $path = $image->storeAs('products', $filename, 'public');
+                $imageUrl = '/storage/products/'.$filename;
+            } catch (\Exception $e) {
+                \Log::error('Image upload failed', ['error' => $e->getMessage()]);
+                return back()->with('error', 'Failed to upload image: '.$e->getMessage())->withInput();
+            }
+        }
+
+        $product->update([
+            'product_category_id' => $validated['product_category_id'],
+            'product_name' => $validated['product_name'],
+            'description' => $validated['description'],
+            'price' => $validated['price'],
+            'stock' => $validated['stock'],
+            'image_url' => $imageUrl,
+        ]);
+
+        return redirect()->route('trader.inventory.index')->with('success', 'Product updated successfully!');
+    }
+
+    public function productDestroy(Product $product): RedirectResponse
+    {
+        $user = auth()->user();
+        $trader = $user->trader;
+        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+
+        if (! in_array($product->shop_id, $shopIds)) {
+            abort(403, 'You do not have permission to delete this product.');
+        }
+
+        // Soft delete by marking as inactive instead of hard deleting
+        // This preserves order history and doesn't violate foreign key constraints
+        $product->update([
+            'product_status' => 'INACTIVE',
+        ]);
+
+        return redirect()->route('trader.inventory.index')->with('success', 'Product deactivated successfully!');
     }
 }

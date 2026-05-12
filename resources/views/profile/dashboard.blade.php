@@ -3,8 +3,8 @@
 @section('profile-content')
 <!-- Section 1: Upcoming Collections -->
 @if($upcomingCollections->count() > 0)
-<div>
-    <div class="flex justify-between items-end mb-8">
+<section class="space-y-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <h3 class="font-headline text-3xl font-extrabold tracking-tight text-on-surface">
                 Upcoming Collections
@@ -19,12 +19,12 @@
         </a>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         @foreach($upcomingCollections as $order)
         <!-- Collection Card -->
-        <div class="bg-surface-container-low rounded-lg p-8 flex flex-col justify-between group relative overflow-hidden min-h-70">
+        <div class="bg-surface-container-low rounded-2xl p-7 sm:p-8 flex flex-col justify-between group relative overflow-hidden min-h-[260px] shadow-sm ring-1 ring-outline-variant/10">
             <div class="relative z-10">
-                <div class="flex justify-between items-start mb-6">
+                <div class="flex items-start justify-between gap-4 mb-6">
                     <!-- Status Badge -->
                     <span class="@if($order->order_status === 'READY') bg-primary/10 text-primary @else bg-secondary-container text-on-secondary-container @endif px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
                         @if($order->order_status === 'READY')
@@ -35,7 +35,7 @@
                             {{ ucfirst(strtolower($order->order_status)) }}
                         @endif
                     </span>
-                    <div class="bg-white p-3 rounded-2xl shadow-sm">
+                    <div class="bg-white p-3 rounded-2xl shadow-sm ring-1 ring-outline-variant/10">
                         <span class="material-symbols-outlined text-on-surface @if($order->order_status !== 'READY') text-zinc-300 @endif">
                             qr_code_2
                         </span>
@@ -43,7 +43,7 @@
                 </div>
 
                 <!-- Shop Name & Order Details -->
-                <h4 class="font-headline text-2xl font-bold mb-2">
+                <h4 class="font-headline text-2xl font-bold mb-2 text-on-surface">
                     {{ $order->collectionSlot->shop->shop_name ?? 'Unknown Shop' }}
                 </h4>
                 <p class="text-on-surface-variant text-sm mb-4">
@@ -51,7 +51,7 @@
                 </p>
 
                 <!-- Collection Time -->
-                <div class="flex items-center space-x-2 @if($order->order_status === 'READY') text-primary @else text-on-surface-variant @endif font-bold">
+                <div class="flex items-center gap-2 @if($order->order_status === 'READY') text-primary @else text-on-surface-variant @endif font-bold">
                     <span class="material-symbols-outlined text-lg">
                         @if($order->order_status === 'READY')
                             schedule
@@ -74,30 +74,30 @@
         </div>
         @endforeach
     </div>
-</div>
+</section>
 @endif
 
 <!-- Section 2: Order History -->
-<div class="mt-12">
-    <h3 class="font-headline text-3xl font-extrabold tracking-tight text-on-surface mb-8">
+<section class="space-y-6">
+    <h3 class="font-headline text-3xl font-extrabold tracking-tight text-on-surface">
         Recent History
     </h3>
 
     @if($recentOrders->count() > 0)
-    <div class="bg-surface-container overflow-hidden rounded-lg">
+    <div class="bg-surface-container overflow-hidden rounded-2xl shadow-sm ring-1 ring-outline-variant/10">
         <table class="w-full text-left border-collapse">
             <thead>
-                <tr class="text-on-surface-variant border-b border-outline-variant/10">
-                    <th class="px-8 py-6 text-[10px] uppercase tracking-[0.2em] font-bold">Order Details</th>
-                    <th class="px-8 py-6 text-[10px] uppercase tracking-[0.2em] font-bold">Status</th>
-                    <th class="px-8 py-6 text-[10px] uppercase tracking-[0.2em] font-bold text-right">Amount</th>
+                <tr class="text-on-surface-variant border-b border-outline-variant/10 bg-surface-container-low">
+                    <th class="px-8 py-5 text-[10px] uppercase tracking-[0.2em] font-bold">Order Details</th>
+                    <th class="px-8 py-5 text-[10px] uppercase tracking-[0.2em] font-bold">Status</th>
+                    <th class="px-8 py-5 text-[10px] uppercase tracking-[0.2em] font-bold text-right">Amount</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant/10">
                 @foreach($recentOrders as $order)
                 <tr class="bg-white hover:bg-surface-container-lowest transition-colors">
                     <td class="px-8 py-6">
-                        <div class="flex items-center space-x-4">
+                        <div class="flex items-center gap-4">
                             <!-- Shop Image -->
                             <div class="w-12 h-12 bg-surface-container overflow-hidden rounded-lg shrink-0">
                                 <img 
@@ -139,7 +139,7 @@
         @endif
     </div>
     @else
-    <div class="bg-surface-container p-12 text-center">
+    <div class="bg-surface-container p-12 text-center rounded-2xl shadow-sm ring-1 ring-outline-variant/10">
         <span class="material-symbols-outlined text-4xl text-on-surface-variant mb-4 block">shopping_bag</span>
         <p class="text-on-surface-variant">No orders yet. Start shopping!</p>
         <a href="{{ route('home') }}" class="mt-4 inline-block px-6 py-2 bg-primary text-on-primary font-bold text-sm hover:opacity-90 transition-opacity">
@@ -147,5 +147,5 @@
         </a>
     </div>
     @endif
-</div>
+</section>
 @endsection

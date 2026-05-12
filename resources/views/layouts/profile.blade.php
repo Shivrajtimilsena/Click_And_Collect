@@ -2,7 +2,7 @@
 
 @section('content')
 <main class="pt-32 pb-24 px-6 md:px-12 max-w-screen-2xl mx-auto">
-    <div class="flex flex-col lg:flex-row gap-12">
+    <div class="flex flex-col lg:flex-row gap-12 lg:items-start">
         <!-- Left Sidebar: Personal Info & Navigation (Persistent) -->
         <aside class="w-full lg:w-80 flex flex-col space-y-8">
             <!-- Profile Card -->
@@ -85,7 +85,7 @@
         </aside>
 
         <!-- Main Content Area -->
-        <section class="flex-1">
+        <section class="flex-1 space-y-12">
             @yield('profile-content')
         </section>
     </div>

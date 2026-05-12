@@ -1,8 +1,8 @@
 @extends('layouts.trader')
 
-@section('title', 'Create Artisan Listing | Trader Portal')
+@section('title', 'Edit Product | Trader Portal')
 
-@section('header-title', 'Create Artisan Listing')
+@section('header-title', 'Edit Product')
 
 @section('content')
 <div class="max-w-6xl">
@@ -10,13 +10,14 @@
         <div class="text-sm text-secondary uppercase tracking-widest font-bold">
             <a href="{{ route('trader.inventory.index') }}" class="hover:text-on-surface">Inventory</a>
             <span class="mx-2">&gt;</span>
-            <span class="text-primary">NEW PRODUCT LISTING</span>
+            <span class="text-primary">EDIT PRODUCT</span>
         </div>
-        <h1 class="text-4xl font-bold font-headline text-on-background mt-4">Create Artisan<br/>Listing</h1>
+        <h1 class="text-4xl font-bold font-headline text-on-background mt-4">Edit Artisan<br/>Listing</h1>
     </div>
 
-    <form id="product-form" action="{{ route('trader.product.store') }}" method="POST" enctype="multipart/form-data">
+    <form id="product-form" action="{{ route('trader.product.update', $product) }}" method="POST" enctype="multipart/form-data">
         @csrf
+        @method('PATCH')
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Left Column - Form Sections -->
             <div class="lg:col-span-2 space-y-8">
@@ -37,7 +38,7 @@
                             <input 
                                 type="text" 
                                 name="product_name"
-                                value="{{ old('product_name') }}"
+                                value="{{ old('product_name', $product->product_name) }}"
                                 class="w-full bg-surface-container-high border-0 rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/20 transition-all @error('product_name') ring-2 ring-error @enderror"
                                 placeholder="e.g. Traditional Sourdough Boule"
                                 required
@@ -58,7 +59,7 @@
                                 >
                                     <option value="">Select Category</option>
                                     @foreach($categories as $category)
-                                        <option value="{{ $category->product_category_id }}" {{ old('product_category_id') == $category->product_category_id ? 'selected' : '' }}>
+                                        <option value="{{ $category->product_category_id }}" {{ old('product_category_id', $product->product_category_id) == $category->product_category_id ? 'selected' : '' }}>
                                             {{ $category->category_name }}
                                         </option>
                                     @endforeach
@@ -72,7 +73,7 @@
                                 <input 
                                     type="number" 
                                     name="price"
-                                    value="{{ old('price') }}"
+                                    value="{{ old('price', $product->price) }}"
                                     step="0.01"
                                     min="0"
                                     class="w-full bg-surface-container-high border-0 rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/20 transition-all @error('price') ring-2 ring-error @enderror"
@@ -104,7 +105,7 @@
                             rows="5"
                             placeholder="Describe the heritage, ingredients, and the hands that crafted this item..."
                             required
-                        >{{ old('description') }}</textarea>
+                        >{{ old('description', $product->description) }}</textarea>
                         <p class="text-xs text-secondary mt-2">This will appear as the primary product copy on the customer storefront.</p>
                         @error('description')
                             <p class="text-xs text-error mt-1">{{ $message }}</p>
@@ -129,7 +130,7 @@
                                 <input 
                                     type="number" 
                                     name="stock"
-                                    value="{{ old('stock', 0) }}"
+                                    value="{{ old('stock', $product->stock) }}"
                                     min="0"
                                     class="w-full bg-surface-container-high border-0 rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/20 transition-all @error('stock') ring-2 ring-error @enderror"
                                     required
@@ -143,7 +144,7 @@
                                 <input 
                                     type="number" 
                                     name="min_order"
-                                    value="{{ old('min_order', 1) }}"
+                                    value="{{ old('min_order', $product->min_order) }}"
                                     min="1"
                                     class="w-full bg-surface-container-high border-0 rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/20 transition-all @error('min_order') ring-2 ring-error @enderror"
                                 />
@@ -156,7 +157,7 @@
                                 <input 
                                     type="number" 
                                     name="max_order"
-                                    value="{{ old('max_order', 99) }}"
+                                    value="{{ old('max_order', $product->max_order) }}"
                                     min="1"
                                     class="w-full bg-surface-container-high border-0 rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/20 transition-all @error('max_order') ring-2 ring-error @enderror"
                                 />
@@ -221,6 +222,13 @@
                         </div>
                     </div>
 
+                    @if($product->image_url)
+                        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="text-xs text-green-700 font-bold mb-2">Current Image</p>
+                            <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}" class="w-full h-24 object-cover rounded"/>
+                        </div>
+                    @endif
+
                     @error('image')
                         <p class="text-xs text-error mb-4">{{ $message }}</p>
                     @enderror
@@ -240,16 +248,16 @@
 
                 <!-- Ready to Publish Section -->
                 <div class="bg-primary text-on-primary rounded-xl p-8 space-y-4">
-                    <h4 class="text-lg font-bold">Ready to Publish?</h4>
-                    <p class="text-sm opacity-90">Double-check your craftsmanship description and allergy data before going live.</p>
+                    <h4 class="text-lg font-bold">Ready to Save Changes?</h4>
+                    <p class="text-sm opacity-90">Review your updated product details before saving.</p>
                     
                     <button type="submit" class="w-full bg-white text-primary font-bold py-3 px-4 rounded-full hover:opacity-90 transition-all uppercase tracking-widest text-sm">
-                        Publish Product
+                        Save Changes
                     </button>
                     
-                    <button type="button" class="w-full bg-primary-container text-on-primary font-bold py-3 px-4 rounded-full hover:opacity-90 transition-all">
-                        Save as Draft
-                    </button>
+                    <a href="{{ route('trader.inventory.index') }}" class="w-full bg-primary-container text-on-primary font-bold py-3 px-4 rounded-full hover:opacity-90 transition-all text-center block">
+                        Cancel
+                    </a>
                 </div>
 
                 <!-- Visibility Section -->
@@ -260,7 +268,7 @@
                             <span class="inline-block h-4 w-4 transform rounded-full bg-white ml-1 transition"></span>
                         </button>
                     </div>
-                    <p class="text-xs text-secondary">Currently in Public - customers will see this discoverables on the Click and Collect marketplace.</p>
+                    <p class="text-xs text-secondary">Currently in Public - customers will see this on the Click and Collect marketplace.</p>
                 </div>
             </div>
         </div>
@@ -322,7 +330,8 @@
         // Remove image button
         document.querySelectorAll('[type="button"]').forEach(btn => {
             if (btn.textContent.includes('Remove')) {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
                     imageInput.value = '';
                     uploadPrompt.classList.remove('hidden');
                     imagePreview.classList.add('hidden');

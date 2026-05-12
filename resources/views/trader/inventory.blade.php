@@ -89,9 +89,13 @@
                             </span>
                         </td>
                         <td class="px-8 py-6 text-right">
-                            <div class="flex gap-4 justify-end">
-                                <button class="text-primary text-sm font-bold hover:underline">Edit</button>
-                                <button class="text-error text-sm font-bold hover:underline">Delete</button>
+                            <div class="flex items-center gap-4 justify-end">
+                                <a href="{{ route('trader.product.edit', $product) }}" class="text-primary text-sm font-bold hover:underline whitespace-nowrap">Edit</a>
+                                <form action="{{ route('trader.product.destroy', $product) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-error text-sm font-bold hover:underline whitespace-nowrap">Delete</button>
+                                </form>
                             </div>
                         </td>
                     </tr>

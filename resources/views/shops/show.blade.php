@@ -5,8 +5,16 @@
 @section('content')
 <div class="space-y-8">
     <!-- Shop Header -->
-    <div class="bg-gradient-to-r from-primary to-primary-fixed rounded-lg p-12 text-white">
-        <div class="max-w-2xl">
+    <div class="bg-gradient-to-r from-primary to-primary-fixed rounded-lg p-12 text-white relative overflow-hidden">
+        @if ($shop->trader->user->avatar_url)
+            <img 
+                src="{{ $shop->trader->user->avatar_url }}" 
+                alt="{{ $shop->shop_name }}"
+                class="absolute inset-0 w-full h-full object-cover"
+            />
+            <div class="absolute inset-0 bg-black/50"></div>
+        @endif
+        <div class="max-w-2xl relative z-10">
             <p class="text-white/80 text-sm font-bold uppercase mb-2">Local Trader</p>
             <h1 class="text-5xl font-extrabold mb-4">{{ $shop->shop_name }}</h1>
             <p class="text-lg opacity-90 mb-6">{{ $shop->description ?? 'Quality local products' }}</p>

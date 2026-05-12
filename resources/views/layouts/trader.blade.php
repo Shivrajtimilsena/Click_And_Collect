@@ -114,10 +114,10 @@
                     </a>
                 </nav>
                 <div class="mt-auto px-2">
-                    <button class="w-full bg-primary text-on-primary font-bold py-4 px-6 flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all">
+                    <a href="{{ route('trader.product.create') }}" class="w-full bg-primary text-on-primary font-bold py-4 px-6 flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all hover:opacity-90 rounded-lg block">
                         <span class="material-symbols-outlined text-sm">add</span>
                         <span class="text-sm uppercase tracking-wider">Add Product</span>
-                    </button>
+                    </a>
                 </div>
             </aside>
 
@@ -141,7 +141,7 @@
                             <div class="relative group">
                                 <button class="hover:text-primary transition-colors active:scale-95 duration-200">
                                     @if(Auth::user()->avatar_url)
-                                        <img src="{{ Auth::user()->avatar_url }}" alt="Profile" class="w-8 h-8 rounded-none object-cover"/>
+                                        <img src="{{ Auth::user()->avatar_url }}" alt="Profile" class="w-8 h-8 rounded-full object-cover"/>
                                     @else
                                         <span class="material-symbols-outlined">account_circle</span>
                                     @endif

@@ -9,8 +9,16 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @forelse ($shops as $shop)
             <a href="{{ route('shops.show', $shop) }}" class="bg-surface-container-lowest rounded-lg overflow-hidden hover:shadow-lg transition-all group">
-                <div class="aspect-video bg-gradient-to-br from-primary to-primary-fixed flex items-center justify-center text-white text-center p-6">
-                    <h3 class="text-2xl font-bold">{{ $shop->shop_name }}</h3>
+                <div class="aspect-video bg-gradient-to-br from-primary to-primary-fixed flex items-center justify-center text-white text-center p-6 relative overflow-hidden">
+                    @if ($shop->trader->user->avatar_url)
+                        <img 
+                            src="{{ $shop->trader->user->avatar_url }}" 
+                            alt="{{ $shop->shop_name }}"
+                            class="absolute inset-0 w-full h-full object-cover"
+                        />
+                        <div class="absolute inset-0 bg-black/30"></div>
+                    @endif
+                    <h3 class="text-2xl font-bold relative z-10">{{ $shop->shop_name }}</h3>
                 </div>
                 <div class="p-6">
                     <p class="text-sm text-primary font-bold mb-2">{{ $shop->trader->shop_type ?? 'Shop' }}</p>

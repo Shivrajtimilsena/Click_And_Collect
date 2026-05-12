@@ -184,6 +184,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventory', [TraderController::class, 'inventory'])->name('inventory.index');
         Route::get('/product/create', [TraderController::class, 'productCreate'])->name('product.create');
         Route::post('/product', [TraderController::class, 'productStore'])->name('product.store');
+        Route::get('/product/{product}/edit', [TraderController::class, 'productEdit'])->name('product.edit');
+        Route::patch('/product/{product}', [TraderController::class, 'productUpdate'])->name('product.update');
+        Route::delete('/product/{product}', [TraderController::class, 'productDestroy'])->name('product.destroy');
         Route::get('/settings', [TraderController::class, 'settings'])->name('settings');
     });
 
