@@ -12,7 +12,7 @@
                         Village.
                     </h1>
                     <p class="text-lg text-gray-700 mb-4">We are a digital bridge between marketplace artisans in your neighborhood and your kitchen table. High-end curators and small-batch specialists thrive when bypassing the middle shop and selling directly.</p>
-                    <button class="bg-red-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-red-700">EXPLORE THE MARKET</button>
+                    <a href="{{ route('products.index') }}" class="bg-red-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-red-700 inline-block">EXPLORE THE MARKET</a>
                 </div>
                 <div class="bg-gray-400 overflow-hidden">
                     <div class="bg-gray-500 p-8 text-white">
