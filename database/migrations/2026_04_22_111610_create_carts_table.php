@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('carts', function (Blueprint $table) {
+        Schema::create('cart', function (Blueprint $table) {
             $table->bigIncrements('cart_id');
             $table->unsignedBigInteger('customer_id')->unique();
             $table->integer('item_numbers')->default(0);
@@ -19,13 +19,13 @@ return new class extends Migration
 
             $table->foreign('customer_id', 'fk_carts_customer')
                   ->references('customer_id')
-                  ->on('customers')
+                  ->on('customer')
                   ->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('carts');
+        Schema::dropIfExists('cart');
     }
 };

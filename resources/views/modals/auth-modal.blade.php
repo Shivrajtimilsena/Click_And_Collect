@@ -16,6 +16,45 @@
                     <h1 class="font-headline text-2xl font-black text-on-background tracking-tighter">Click and Collect.</h1>
                 </div>
                 
+                <!-- Trader Credentials Display -->
+                @if(session('trader_credentials'))
+                <div id="trader-credentials" class="space-y-6">
+                    <header class="mb-8">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="material-symbols-outlined text-primary text-3xl">check_circle</span>
+                            <h2 class="font-headline text-2xl font-bold text-green-600">Application Submitted!</h2>
+                        </div>
+                        <p class="text-on-surface-variant mt-2 text-sm">Your trader application has been submitted. Please save your login credentials below:</p>
+                    </header>
+                    
+                    <div class="bg-green-50 border border-green-200 p-6 space-y-4">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-widest text-secondary mb-1">Email</p>
+                            <p class="font-bold text-on-surface">{{ session('trader_credentials')['email'] }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-widest text-secondary mb-1">Password</p>
+                            <p class="font-bold text-on-surface" id="trader-password-display">{{ session('trader_credentials')['password'] }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-widest text-secondary mb-1">Shop Name</p>
+                            <p class="font-bold text-on-surface">{{ session('trader_credentials')['shop_name'] }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-amber-50 border border-amber-200 p-4">
+                        <p class="text-sm text-amber-800">
+                            <strong>Important:</strong> Your credentials will be activated once admin approves your application. You will be able to sign in after receiving approval.
+                        </p>
+                    </div>
+                    
+                    <button onclick="closeAuthModal()" class="w-full py-4 rounded-full bg-primary text-on-primary font-bold shadow-lg active:scale-95 transition-all">
+                        Close
+                    </button>
+                </div>
+                
+                <!-- Regular Auth Forms -->
+                @else
                 <!-- Tabs -->
                 <div class="flex gap-4 mb-8 border-b border-surface-container-high">
                     <button onclick="switchTab('login')" id="login-tab" class="pb-4 font-bold text-primary border-b-2 border-primary transition-colors">
@@ -195,6 +234,7 @@
                         </button>
                     </form>
                 </div>
+                @endif
             </div>
         </div>
     </div>
@@ -203,23 +243,25 @@
 <script>
 function openAuthModal(tab = 'login') {
     document.getElementById('auth-modal').style.display = 'flex';
-    switchTab(tab);
+    @if(!session('trader_credentials'))
+        switchTab(tab);
+    @endif
 }
 
 function closeAuthModal() {
     document.getElementById('auth-modal').style.display = 'none';
+    if (window.location.pathname === '/signin' || window.location.pathname === '/signup') {
+        window.history.back();
+    }
 }
 
 function switchTab(tab) {
-    // Hide all forms
     document.getElementById('login-form').classList.add('hidden');
     document.getElementById('signup-form').classList.add('hidden');
     
-    // Remove active state from tabs
     document.getElementById('login-tab').classList.remove('text-primary', 'border-primary');
     document.getElementById('signup-tab').classList.remove('text-primary', 'border-primary');
     
-    // Show selected form
     if (tab === 'login') {
         document.getElementById('login-form').classList.remove('hidden');
         document.getElementById('login-tab').classList.add('text-primary', 'border-primary');
@@ -229,14 +271,12 @@ function switchTab(tab) {
     }
 }
 
-// Auto-open modal on page load if flash message exists
-@if(session('openModal'))
+@if(session('openModal') || session('trader_credentials'))
 document.addEventListener('DOMContentLoaded', function() {
-    openAuthModal('{{ session('openModal') }}');
+    openAuthModal();
 });
 @endif
 
-// Close modal on Escape key
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeAuthModal();

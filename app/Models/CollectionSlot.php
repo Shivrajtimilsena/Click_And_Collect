@@ -9,7 +9,7 @@ class CollectionSlot extends Model
 {
     use HasFactory;
 
-    protected $table = 'collection_slots';
+    protected $table = 'collection_slot';
     protected $primaryKey = 'collection_slot_id';
     public $incrementing = true;
     protected $keyType = 'int';

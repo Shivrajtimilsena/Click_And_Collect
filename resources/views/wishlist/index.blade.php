@@ -12,11 +12,11 @@
                 <div class="bg-surface-container-lowest rounded-lg p-2 group hover:shadow-lg transition-all duration-300 relative">
                     <div class="aspect-square rounded-md overflow-hidden bg-surface-container mb-2 relative">
                         <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                             src="{{ $item->product->image ?? 'https://via.placeholder.com/300' }}" 
-                             alt="{{ $item->product->name }}"/>
-                        @if ($item->product->discount_percentage > 0)
+                             src="{{ $item->product->image_url ?? 'https://via.placeholder.com/300' }}" 
+                             alt="{{ $item->product->product_name }}"/>
+                        @if ($item->product->discount && $item->product->discount->discount_percentage > 0)
                             <span class="absolute top-2 left-2 bg-error text-white text-[10px] font-black px-2 py-1 rounded">
-                                -{{ $item->product->discount_percentage }}%
+                                -{{ $item->product->discount->discount_percentage }}%
                             </span>
                         @endif
                         <form action="{{ route('wishlist.remove', $item) }}" method="POST" class="absolute top-2 right-2">
@@ -28,14 +28,14 @@
                         </form>
                     </div>
 
-                    <p class="text-[10px] font-bold text-primary truncate">{{ $item->product->shop->name }}</p>
+                    <p class="text-[10px] font-bold text-primary truncate">{{ $item->product->shop->shop_name ?? 'Shop' }}</p>
                     <a href="{{ route('products.show', $item->product) }}" class="text-[12px] font-medium leading-tight h-8 line-clamp-2 hover:text-primary transition-colors">
-                        {{ $item->product->name }}
+                        {{ $item->product->product_name }}
                     </a>
 
                     <div class="flex items-center gap-1 mt-1 text-[10px] text-orange-500">
                         <span class="material-symbols-outlined text-[10px] fill-current" style="font-variation-settings: 'FILL' 1;">star</span>
-                        <span class="font-bold">{{ number_format($item->product->reviews->avg('rating') ?? 0, 1) }}</span>
+                        <span class="font-bold">{{ number_format($item->product->reviews->avg('review_rating') ?? 0, 1) }}</span>
                         <span class="text-on-surface-variant">({{ $item->product->reviews->count() }})</span>
                     </div>
 
@@ -45,7 +45,7 @@
 
                     <form action="{{ route('cart.add') }}" method="POST" class="mt-2">
                         @csrf
-                        <input type="hidden" name="product_id" value="{{ $item->product->id }}">
+                        <input type="hidden" name="product_id" value="{{ $item->product->product_id }}">
                         <input type="hidden" name="quantity" value="1">
                         <button type="submit" class="w-full bg-primary text-on-primary px-2 py-2 rounded text-xs font-bold hover:opacity-90 transition-opacity">
                             Add to Cart

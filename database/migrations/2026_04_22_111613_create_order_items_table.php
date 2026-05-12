@@ -8,29 +8,27 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('order_items', function (Blueprint $table) {
+        Schema::create('order_item', function (Blueprint $table) {
+            $table->bigIncrements('order_item_id');
             $table->unsignedBigInteger('order_id');
             $table->unsignedBigInteger('product_id');
             $table->integer('quantity')->default(1);
             $table->decimal('unit_price', 10, 2);
             $table->decimal('line_total', 10, 2);
 
-            $table->primary(['order_id', 'product_id'], 'pk_order_items');
-
             $table->foreign('order_id', 'fk_oi_order')
-                  ->references('order_id')
-                  ->on('orders')
-                  ->onDelete('cascade');
+                ->references('order_id')
+                ->on('order')
+                ->onDelete('cascade');
 
-            // No onDelete('restrict') here — Oracle default behavior is enough.
             $table->foreign('product_id', 'fk_oi_product')
-                  ->references('product_id')
-                  ->on('products');
+                ->references('product_id')
+                ->on('product');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('order_items');
+        Schema::dropIfExists('order_item');
     }
 };

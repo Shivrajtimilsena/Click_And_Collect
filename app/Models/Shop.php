@@ -4,16 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Shop extends Model
 {
     use HasFactory;
 
-    protected $table = 'shops';
+    protected $table = 'shop';
+
     protected $primaryKey = 'shop_id';
+
     public $incrementing = true;
+
     protected $keyType = 'int';
 
     protected $fillable = [
@@ -23,9 +26,15 @@ class Shop extends Model
         'is_active',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+    public function getIsActiveAttribute($value)
+    {
+        return $value === 'Y';
+    }
+
+    public function setIsActiveAttribute($value)
+    {
+        $this->attributes['is_active'] = $value ? 'Y' : 'N';
+    }
 
     public function products(): HasMany
     {

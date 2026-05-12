@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('customers', function (Blueprint $table) {
+        Schema::create('customer', function (Blueprint $table) {
             $table->bigIncrements('customer_id');
             $table->unsignedBigInteger('user_id')->unique();
             $table->integer('loyalty_points')->default(0);
@@ -18,13 +18,13 @@ return new class extends Migration
 
             $table->foreign('user_id', 'fk_customers_user')
                   ->references('user_id')
-                  ->on('users')
+                  ->on('user')
                   ->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('customers');
+        Schema::dropIfExists('customer');
     }
 };

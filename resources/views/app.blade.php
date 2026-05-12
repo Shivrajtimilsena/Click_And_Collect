@@ -93,7 +93,7 @@
 <body class="bg-surface text-on-background selection:bg-primary-container selection:text-on-primary-container">
     @include('components.navbar')
 
-    <main class="pt-24 pb-12 px-4 md:px-12 max-w-[1920px] mx-auto">
+    <main class="pt-24 pb-12 px-4 md:px-12 mx-auto @hasSection('trader-page') max-w-3xl @else max-w-480 @endif">
         @if ($errors->any())
             <div class="mb-4 p-4 bg-error/10 text-error rounded-lg">
                 <ul class="list-disc list-inside">
@@ -105,9 +105,18 @@
         @endif
 
         @if (session('success'))
-            <div id="successNotification" class="mb-4 p-4 bg-green-500/15 text-green-700 rounded-lg border border-green-500/30 flex justify-between items-center">
+            <div id="successNotification" class="mb-4 p-4 bg-green-500/15 text-green-700 border border-green-500/30 flex justify-between items-center">
                 <span>{{ session('success') }}</span>
                 <button onclick="document.getElementById('successNotification').style.display='none'" class="text-green-700 hover:text-green-800 font-bold text-xl leading-none">
+                    ×
+                </button>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div id="errorNotification" class="mb-4 p-4 bg-error/10 text-error border border-error/30 flex justify-between items-center">
+                <span>{{ session('error') }}</span>
+                <button onclick="document.getElementById('errorNotification').style.display='none'" class="text-error hover:text-error font-bold text-xl leading-none">
                     ×
                 </button>
             </div>

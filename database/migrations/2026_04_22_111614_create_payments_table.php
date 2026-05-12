@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('payment', function (Blueprint $table) {
             $table->bigIncrements('payment_id');
             $table->unsignedBigInteger('order_id')->unique();
             $table->timestamp('payment_date')->nullable();
@@ -21,13 +21,13 @@ return new class extends Migration
 
             $table->foreign('order_id', 'fk_payments_order')
                   ->references('order_id')
-                  ->on('orders')
+                  ->on('order')
                   ->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('payments');
+        Schema::dropIfExists('payment');
     }
 };

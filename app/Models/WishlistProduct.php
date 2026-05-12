@@ -9,9 +9,17 @@ class WishlistProduct extends Model
 {
     use HasFactory;
 
-    protected $table = 'wishlist_products';
+    protected $table = 'wishlist_product';
+
+    protected $primaryKey = 'wishlist_product_id';
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
+
     public $timestamps = true;
-    public $incrementing = false;
+
+    const UPDATED_AT = null;
 
     protected $fillable = [
         'wishlist_id',

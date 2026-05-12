@@ -9,7 +9,7 @@ class Customer extends Model
 {
     use HasFactory;
 
-    protected $table = 'customers';
+    protected $table = 'customer';
     protected $primaryKey = 'customer_id';
     public $incrementing = true;
     protected $keyType = 'int';

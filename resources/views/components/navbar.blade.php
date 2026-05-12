@@ -17,6 +17,9 @@
             <a href="{{ route('aboutus') }}" class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold {{ request()->routeIs('aboutus') ? 'text-orange-700 dark:text-orange-500 border-b-2 border-orange-700 pb-1' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-white transition-all' }}">
                 About Us
             </a>
+            <a href="{{ route('trader.apply') }}" class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-primary hover:underline underline-offset-4">
+                Become a Trader
+            </a>
         </div>
 
         <div class="flex items-center gap-6">
@@ -54,17 +57,20 @@
                                 <span class="material-symbols-outlined text-zinc-800">person</span>
                             @endif
                         </button>
-                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                            <a href="{{ route('profile.settings') }}" class="block px-4 py-2 hover:bg-surface-container">Profile</a>
-                            <a href="{{ route('profile.orders') }}" class="block px-4 py-2 hover:bg-surface-container">Orders</a>
+                        <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-surface-container-high opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                            @if(Auth::user()->role === 'TRADER')
+                                <a href="{{ route('trader.dashboard') }}" class="block px-4 py-2 hover:bg-surface-container-high font-medium text-sm">Trader Portal</a>
+                            @endif
+                            <a href="{{ route('profile.settings') }}" class="block px-4 py-2 hover:bg-surface-container-high font-medium text-sm">Profile</a>
+                            <a href="{{ route('profile.orders') }}" class="block px-4 py-2 hover:bg-surface-container-high font-medium text-sm">Orders</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" class="w-full text-left px-4 py-2 hover:bg-surface-container">Logout</button>
+                                <button type="submit" class="w-full text-left px-4 py-2 hover:bg-surface-container-high font-medium text-sm">Logout</button>
                             </form>
                         </div>
                     </div>
                 @else
-                    <button onclick="openAuthModal('login')" class="bg-primary text-on-primary px-6 py-2.5 rounded-full text-sm font-bold hover:opacity-90 active:scale-95 transition-all shadow-[0_4px_12px_rgba(177,34,9,0.2)]">
+                    <button onclick="openAuthModal('login')" class="bg-primary text-on-primary px-6 py-2.5 text-sm font-bold hover:opacity-90 active:scale-95 transition-all">
                         Sign In
                     </button>
                 @endif

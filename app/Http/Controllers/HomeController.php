@@ -5,23 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Shop;
-use App\Models\Discount;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
     public function index(): View
     {
-        $categories = ProductCategory::where('is_active', true)->get();
-        
+        $categories = ProductCategory::where('is_active', 'Y')->get();
+
         // Flash deals: products with active discounts
         $flashDeals = Product::query()
-            ->join('discounts', 'products.product_id', '=', 'discounts.product_id')
-            ->where('products.product_status', 'ACTIVE')
-            ->where('discounts.start_date', '<=', now())
-            ->where('discounts.end_date', '>=', now())
-            ->select('products.*')
-            ->orderBy('discounts.discount_percentage', 'desc')
+            ->join('discount', 'product.product_id', '=', 'discount.product_id')
+            ->where('product.product_status', 'ACTIVE')
+            ->where('discount.start_date', '<=', now())
+            ->where('discount.end_date', '>=', now())
+            ->select('product.*')
+            ->orderBy('discount.discount_percentage', 'desc')
             ->with('shop', 'discount', 'reviews')
             ->limit(10)
             ->get();

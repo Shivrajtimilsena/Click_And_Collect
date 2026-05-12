@@ -10,9 +10,12 @@ class ProductCategory extends Model
 {
     use HasFactory;
 
-    protected $table = 'product_categories';
+    protected $table = 'product_category';
+
     protected $primaryKey = 'product_category_id';
+
     public $incrementing = true;
+
     protected $keyType = 'int';
 
     protected $fillable = [
@@ -21,13 +24,18 @@ class ProductCategory extends Model
         'is_active',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+    public function getIsActiveAttribute($value)
+    {
+        return $value === 'Y';
+    }
+
+    public function setIsActiveAttribute($value)
+    {
+        $this->attributes['is_active'] = $value ? 'Y' : 'N';
+    }
 
     public function products(): HasMany
     {
         return $this->hasMany(Product::class, 'product_category_id', 'product_category_id');
     }
 }
-
