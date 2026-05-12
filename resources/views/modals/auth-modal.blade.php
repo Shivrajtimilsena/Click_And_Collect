@@ -1,5 +1,5 @@
 <!-- Auth Modal -->
-<div id="auth-modal" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4" style="display: none;">
+<div id="auth-modal" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4" style="display: none;" data-has-trader-credentials="{{ session('trader_credentials') ? 'true' : 'false' }}" data-should-open="{{ session('openModal') || session('trader_credentials') ? 'true' : 'false' }}">
     <!-- Backdrop -->
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAuthModal()"></div>
     
@@ -105,13 +105,15 @@
                                 </a>
                             </div>
                             <div class="relative">
-                                <input class="w-full px-6 py-4 bg-surface-container-high rounded-lg border-2 border-transparent focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest focus:border-primary transition-all duration-300 placeholder:text-outline/50 font-medium" 
+                                <input class="w-full pl-6 pr-12 py-4 bg-surface-container-high rounded-lg border-2 border-transparent focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest focus:border-primary transition-all duration-300 placeholder:text-outline/50 font-medium" 
                                        id="login-password" 
                                        name="password" 
                                        placeholder="••••••••" 
                                        type="password"
                                        required/>
-                                <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline/40">lock</span>
+                                <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-outline/60 hover:text-on-surface transition-colors" aria-label="Show password" aria-pressed="false" data-toggle-password="#login-password">
+                                    <span class="material-symbols-outlined">visibility</span>
+                                </button>
                             </div>
                             @error('password')
                             <p class="text-error text-sm ml-1">{{ $message }}</p>
@@ -189,12 +191,15 @@
                                 Password
                             </label>
                             <div class="relative">
-                                <input class="w-full px-6 py-4 bg-surface-container-high rounded-lg border-2 border-transparent focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest focus:border-primary transition-all duration-300 placeholder:text-outline/50 font-medium" 
+                                <input class="w-full pl-6 pr-12 py-4 bg-surface-container-high rounded-lg border-2 border-transparent focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest focus:border-primary transition-all duration-300 placeholder:text-outline/50 font-medium" 
+                                       id="signup-password"
                                        name="password" 
                                        placeholder="••••••••" 
                                        type="password"
                                        required/>
-                                <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline/40">lock</span>
+                                <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-outline/60 hover:text-on-surface transition-colors" aria-label="Show password" aria-pressed="false" data-toggle-password="#signup-password">
+                                    <span class="material-symbols-outlined">visibility</span>
+                                </button>
                             </div>
                             @error('password')
                             <p class="text-error text-sm ml-1">{{ $message }}</p>
@@ -207,12 +212,15 @@
                                 Confirm Password
                             </label>
                             <div class="relative">
-                                <input class="w-full px-6 py-4 bg-surface-container-high rounded-lg border-2 border-transparent focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest focus:border-primary transition-all duration-300 placeholder:text-outline/50 font-medium" 
+                                <input class="w-full pl-6 pr-12 py-4 bg-surface-container-high rounded-lg border-2 border-transparent focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest focus:border-primary transition-all duration-300 placeholder:text-outline/50 font-medium" 
+                                       id="signup-password-confirmation"
                                        name="password_confirmation" 
                                        placeholder="••••••••" 
                                        type="password"
                                        required/>
-                                <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline/40">lock</span>
+                                <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-outline/60 hover:text-on-surface transition-colors" aria-label="Show password" aria-pressed="false" data-toggle-password="#signup-password-confirmation">
+                                    <span class="material-symbols-outlined">visibility</span>
+                                </button>
                             </div>
                         </div>
                         
@@ -241,11 +249,15 @@
 </div>
 
 <script>
+const authModal = document.getElementById('auth-modal');
+const hasTraderCredentials = authModal ? authModal.dataset.hasTraderCredentials === 'true' : false;
+const shouldOpenAuthModal = authModal ? authModal.dataset.shouldOpen === 'true' : false;
+
 function openAuthModal(tab = 'login') {
     document.getElementById('auth-modal').style.display = 'flex';
-    @if(!session('trader_credentials'))
+    if (!hasTraderCredentials) {
         switchTab(tab);
-    @endif
+    }
 }
 
 function closeAuthModal() {
@@ -271,11 +283,36 @@ function switchTab(tab) {
     }
 }
 
-@if(session('openModal') || session('trader_credentials'))
-document.addEventListener('DOMContentLoaded', function() {
-    openAuthModal();
+function handlePasswordToggle(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const selector = button.getAttribute('data-toggle-password');
+    if (!selector) {
+        return;
+    }
+    const field = document.querySelector(selector);
+    if (!field) {
+        return;
+    }
+    const isHidden = field.getAttribute('type') === 'password';
+    field.setAttribute('type', isHidden ? 'text' : 'password');
+    button.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+    button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+    const icon = button.querySelector('.material-symbols-outlined');
+    if (icon) {
+        icon.textContent = isHidden ? 'visibility_off' : 'visibility';
+    }
+}
+
+document.querySelectorAll('[data-toggle-password]').forEach((button) => {
+    button.addEventListener('click', handlePasswordToggle);
 });
-@endif
+
+if (shouldOpenAuthModal) {
+    document.addEventListener('DOMContentLoaded', function() {
+        openAuthModal();
+    });
+}
 
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
