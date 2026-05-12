@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OrderConfirmationMail;
 use App\Models\CollectionSlot;
 use App\Models\Order;
 use App\Services\PayPalService;
@@ -10,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -159,6 +161,34 @@ class PayPalController extends Controller
             });
 
             $cart->products()->delete();
+
+            $ordersForEmail = Order::where('group_id', $group_id)
+                ->with('items.product', 'collectionSlot.shop', 'payment')
+                ->get();
+
+            if ($ordersForEmail->isNotEmpty()) {
+                $combinedTotal = $ordersForEmail->sum('total_amount');
+                $firstOrder = $ordersForEmail->first();
+                $paypalTxnIdForEmail = $firstOrder->payment?->paypal_txn_id ?? $paypalTxnId;
+                $slotForEmail = $firstOrder->collectionSlot;
+
+                try {
+                    Mail::to($user->email)->send(new OrderConfirmationMail(
+                        $user,
+                        $ordersForEmail,
+                        $combinedTotal,
+                        $slotForEmail,
+                        $paypalTxnIdForEmail,
+                        config('paypal.currency')
+                    ));
+                } catch (\Throwable $e) {
+                    \Log::warning('Order confirmation email failed', [
+                        'group_id' => $group_id,
+                        'customer_id' => $customer->customer_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
 
             return response()->json([
                 'success' => true,
