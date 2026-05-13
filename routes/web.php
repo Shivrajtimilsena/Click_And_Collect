@@ -24,6 +24,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/aboutus', function () {
     return view('aboutus');
 })->name('aboutus');
+Route::get('/privacy-policy', function () {
+    return view('privacy-policy');
+})->name('privacy-policy');
 
 // Authentication routes (Modal-based)
 Route::middleware('guest')->group(function () {
