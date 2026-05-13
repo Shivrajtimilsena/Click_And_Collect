@@ -10,7 +10,7 @@
         <div class="space-y-4">
             <h4 class="font-bold text-sm uppercase tracking-wider">Support</h4>
             <div class="flex flex-col gap-3">
-                <a href="#" class="text-zinc-500 hover:text-orange-700 transition-colors hover:underline decoration-orange-700 underline-offset-4 text-sm">Contact</a>
+                <a href="{{ route('contact') }}" class="text-zinc-500 hover:text-orange-700 transition-colors hover:underline decoration-orange-700 underline-offset-4 text-sm">Contact</a>
                 <a href="{{ route('privacy-policy') }}" class="text-zinc-500 hover:text-orange-700 transition-colors hover:underline decoration-orange-700 underline-offset-4 text-sm">Privacy Policy</a>
                 <a href="mailto:support@clickandcollect@gmail.com" class="text-zinc-500 hover:text-orange-700 transition-colors hover:underline decoration-orange-700 underline-offset-4 text-sm">support@clickandcollect@gmail.com</a>
             </div>
