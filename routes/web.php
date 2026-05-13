@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PayPalController;
@@ -24,6 +25,8 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/aboutus', function () {
     return view('aboutus');
 })->name('aboutus');
+Route::get('/contact', [ContactController::class, 'show'])->name('contact');
+Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 Route::get('/privacy-policy', function () {
     return view('privacy-policy');
 })->name('privacy-policy');
