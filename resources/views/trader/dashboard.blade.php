@@ -60,38 +60,103 @@
         <div class="px-8 py-6 flex justify-between items-center border-b border-surface-container-high">
             <div>
                 <h3 class="text-lg font-bold font-headline">Revenue Performance</h3>
-                <p class="text-sm text-secondary">This week's performance</p>
+                <p class="text-sm text-secondary" id="revenue-period-label">This week's performance</p>
             </div>
-            <div class="flex gap-2">
-                <button class="px-4 py-1.5 text-xs font-bold uppercase tracking-wider bg-primary text-on-primary">Weekly</button>
-                <button class="px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-zinc-500">Monthly</button>
+            <div class="flex gap-2" id="revenue-tabs">
+                <button data-period="weekly" class="revenue-tab px-4 py-1.5 text-xs font-bold uppercase tracking-wider bg-primary text-on-primary">Weekly</button>
+                <button data-period="monthly" class="revenue-tab px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-zinc-500">Monthly</button>
+                <button data-period="yearly" class="revenue-tab px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-zinc-500">Yearly</button>
             </div>
         </div>
-        <div class="h-64 px-8 flex items-end justify-between gap-4 pt-4 relative">
-            <div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 py-4">
-                <div class="w-full border-t border-zinc-400"></div>
-                <div class="w-full border-t border-zinc-400"></div>
-                <div class="w-full border-t border-zinc-400"></div>
-                <div class="w-full border-t border-zinc-400"></div>
-            </div>
+
+        {{-- Weekly Chart --}}
+        <div id="revenue-chart-weekly" class="revenue-chart">
             @php $amounts = array_column($weeklyRevenue, 'amount'); $maxRevenue = max(max($amounts), 1); @endphp
-            @foreach($weeklyRevenue as $data)
-                @php $amount = (float) $data['amount']; $height = $amount > 0 ? ($amount / $maxRevenue) * 100 : 5; @endphp
-                <div class="flex-1 flex flex-col items-center justify-end group relative">
-                    <div class="w-full bg-surface-container-high hover:bg-primary transition-all cursor-pointer relative" style="height: {{ $height }}%;">
-                        @if($amount > 0)
-                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-on-background text-white text-[10px] py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                &pound;{{ number_format($amount, 2) }}
-                            </div>
-                        @endif
-                    </div>
+            <div class="h-64 px-8 flex items-end justify-between gap-4 pt-4 relative">
+                <div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 py-4">
+                    <div class="w-full border-t border-zinc-400"></div>
+                    <div class="w-full border-t border-zinc-400"></div>
+                    <div class="w-full border-t border-zinc-400"></div>
+                    <div class="w-full border-t border-zinc-400"></div>
                 </div>
-            @endforeach
+                @foreach($weeklyRevenue as $data)
+                    @php $amount = (float) $data['amount']; $height = $amount > 0 ? ($amount / $maxRevenue) * 100 : 5; @endphp
+                    <div class="flex-1 flex flex-col items-center justify-end group relative">
+                        <div class="w-full bg-surface-container-high hover:bg-primary transition-all cursor-pointer relative" style="height: {{ $height }}%;">
+                            @if($amount > 0)
+                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-on-background text-white text-[10px] py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    &pound;{{ number_format($amount, 2) }}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <div class="flex justify-between px-8 pb-6 mt-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                @foreach($weeklyRevenue as $data)
+                    <span>{{ $data['label'] }}</span>
+                @endforeach
+            </div>
         </div>
-        <div class="flex justify-between px-8 pb-6 mt-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-            @foreach($weeklyRevenue as $data)
-                <span>{{ $data['day'] }}</span>
-            @endforeach
+
+        {{-- Monthly Chart --}}
+        <div id="revenue-chart-monthly" class="revenue-chart hidden">
+            @php $amounts = array_column($monthlyRevenue, 'amount'); $maxRevenue = max(max($amounts), 1); @endphp
+            <div class="h-64 px-8 flex items-end justify-between gap-4 pt-4 relative">
+                <div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 py-4">
+                    <div class="w-full border-t border-zinc-400"></div>
+                    <div class="w-full border-t border-zinc-400"></div>
+                    <div class="w-full border-t border-zinc-400"></div>
+                    <div class="w-full border-t border-zinc-400"></div>
+                </div>
+                @foreach($monthlyRevenue as $data)
+                    @php $amount = (float) $data['amount']; $height = $amount > 0 ? ($amount / $maxRevenue) * 100 : 5; @endphp
+                    <div class="flex-1 flex flex-col items-center justify-end group relative">
+                        <div class="w-full bg-surface-container-high hover:bg-primary transition-all cursor-pointer relative" style="height: {{ $height }}%;">
+                            @if($amount > 0)
+                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-on-background text-white text-[10px] py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    &pound;{{ number_format($amount, 2) }}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <div class="flex justify-between px-8 pb-6 mt-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                @foreach($monthlyRevenue as $data)
+                    <span title="{{ $data['full_label'] }}">{{ $data['label'] }}</span>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Yearly Chart --}}
+        <div id="revenue-chart-yearly" class="revenue-chart hidden">
+            @php $amounts = array_column($yearlyRevenue, 'amount'); $maxRevenue = max(max($amounts), 1); @endphp
+            <div class="h-64 px-8 flex items-end justify-between gap-4 pt-4 relative">
+                <div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 py-4">
+                    <div class="w-full border-t border-zinc-400"></div>
+                    <div class="w-full border-t border-zinc-400"></div>
+                    <div class="w-full border-t border-zinc-400"></div>
+                    <div class="w-full border-t border-zinc-400"></div>
+                </div>
+                @foreach($yearlyRevenue as $data)
+                    @php $amount = (float) $data['amount']; $height = $amount > 0 ? ($amount / $maxRevenue) * 100 : 5; @endphp
+                    <div class="flex-1 flex flex-col items-center justify-end group relative">
+                        <div class="w-full bg-surface-container-high hover:bg-primary transition-all cursor-pointer relative" style="height: {{ $height }}%;">
+                            @if($amount > 0)
+                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-on-background text-white text-[10px] py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    &pound;{{ number_format($amount, 2) }}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <div class="flex justify-between px-8 pb-6 mt-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                @foreach($yearlyRevenue as $data)
+                    <span>{{ $data['label'] }}</span>
+                @endforeach
+            </div>
         </div>
     </div>
 
@@ -214,3 +279,39 @@
     </div>
 </section>
 @endsection
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('.revenue-tab');
+    const charts = {
+        weekly: document.getElementById('revenue-chart-weekly'),
+        monthly: document.getElementById('revenue-chart-monthly'),
+        yearly: document.getElementById('revenue-chart-yearly'),
+    };
+    const periodLabels = {
+        weekly: "This week's performance",
+        monthly: 'Last 12 months',
+        yearly: 'Last 5 years',
+    };
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            const period = this.dataset.period;
+
+            tabs.forEach(function (t) {
+                t.classList.remove('bg-primary', 'text-on-primary');
+                t.classList.add('text-zinc-500');
+            });
+            this.classList.add('bg-primary', 'text-on-primary');
+            this.classList.remove('text-zinc-500');
+
+            Object.keys(charts).forEach(function (key) {
+                charts[key].classList.add('hidden');
+            });
+            charts[period].classList.remove('hidden');
+
+            document.getElementById('revenue-period-label').textContent = periodLabels[period];
+        });
+    });
+});
+</script>

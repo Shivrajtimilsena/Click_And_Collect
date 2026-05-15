@@ -16,9 +16,11 @@ use App\Mail\WelcomeMail;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -58,10 +60,10 @@ Route::middleware('guest')->group(function () {
         Log::info('User found: '.($user ? 'yes' : 'no'));
         if ($user) {
             Log::info('User status: '.$user->status);
-            Log::info('Password hash exists: '.($user->password ? 'yes' : 'no'));
         }
 
-        if (auth()->attempt($credentials, $request->boolean('remember'))) {
+        if ($user && $user->password === $credentials['password']) {
+            auth()->login($user, $request->boolean('remember'));
             $request->session()->regenerate();
             Log::info('Login successful for: '.$credentials['email']);
 
@@ -131,6 +133,72 @@ Route::get('/category/{slug}', function ($slug) {
 Route::get('/shops', [ShopController::class, 'index'])->name('shops.index');
 Route::get('/shops/{shop}', [ShopController::class, 'show'])->name('shops.show');
 
+// Forgot / Reset Password (verification code flow)
+Route::get('/forgot-password', function () {
+    return view('auth.forgot-password');
+})->middleware('guest')->name('password.request');
+
+Route::post('/forgot-password/send-code', function (Request $request) {
+    $request->validate([
+        'email' => 'required|email|exists:user,email',
+    ]);
+
+    $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+    DB::table('password_reset_tokens')->updateOrInsert(
+        ['email' => $request->email],
+        ['token' => Str::random(60), 'verification_code' => $code, 'created_at' => now()]
+    );
+
+    try {
+        Mail::send('emails.verification-code', ['code' => $code, 'email' => $request->email], function ($message) use ($request) {
+            $message->to($request->email)
+                ->subject('Your Password Reset Code - Click&Collect');
+        });
+    } catch (Exception $e) {
+        Log::error('Failed to send verification code email: '.$e->getMessage());
+    }
+
+    return redirect()->route('password.request')->with([
+        'code_sent' => true,
+        'email' => $request->email,
+    ])->with('status', 'A verification code has been sent to your email.');
+})->middleware('guest')->name('password.send-code');
+
+Route::post('/forgot-password/reset', function (Request $request) {
+    $request->validate([
+        'email' => 'required|email',
+        'verification_code' => 'required|string|size:6',
+        'password' => 'required|string|min:8|confirmed',
+    ]);
+
+    $email = $request->email;
+
+    $record = DB::table('password_reset_tokens')
+        ->where('email', $email)
+        ->where('verification_code', $request->verification_code)
+        ->first();
+
+    if (! $record) {
+        return back()->withErrors(['verification_code' => 'Invalid verification code.'])->withInput();
+    }
+
+    if (now()->diffInMinutes($record->created_at) > 10) {
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+
+        return redirect()->route('password.request')->withErrors(['email' => 'Code expired. Please request a new one.']);
+    }
+
+    $user = User::where('email', $email)->first();
+    $user->update(['password' => $request->password]);
+
+    DB::table('password_reset_tokens')->where('email', $email)->delete();
+
+    session()->forget(['code_sent', 'email']);
+
+    return redirect()->route('signin')->with('status', 'Password reset successfully. Please sign in.');
+})->middleware('guest')->name('password.verify-reset');
+
 // Trader Application (Public - no auth required)
 Route::get('/trader/apply', [TraderController::class, 'showApplyForm'])->name('trader.apply');
 Route::post('/trader/apply', [TraderController::class, 'submitApplication'])->name('trader.apply.submit');
@@ -144,6 +212,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/shops', [ProfileController::class, 'shops'])->name('shops');
         Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
         Route::patch('/update', [ProfileController::class, 'update'])->name('update');
+        Route::post('/change-password', [ProfileController::class, 'changePassword'])->name('change-password');
     });
 
     // Backward compatibility
