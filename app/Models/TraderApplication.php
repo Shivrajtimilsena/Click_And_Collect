@@ -16,6 +16,7 @@ class TraderApplication extends Model
         'location',
         'speciality',
         'description',
+        'password',
         'status',
         'admin_notes',
         'reviewed_at',

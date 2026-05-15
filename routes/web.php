@@ -84,7 +84,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', function (Request $request) {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'unique:user'],
+            'email' => ['required', 'string', 'email', 'unique:CC_USER'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -140,7 +140,7 @@ Route::get('/forgot-password', function () {
 
 Route::post('/forgot-password/send-code', function (Request $request) {
     $request->validate([
-        'email' => 'required|email|exists:user,email',
+        'email' => 'required|email|exists:CC_USER,email',
     ]);
 
     $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -274,3 +274,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/applications/{application}/reject', [AdminController::class, 'reject'])->name('application.reject');
     });
 });
+
+// API endpoint for APEX to call when approving trader applications (no auth - uses API key)
+Route::post('/api/trader-application/{application}/approve', [AdminController::class, 'approveFromApex'])->name('apex.trader.approve');

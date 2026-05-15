@@ -13,7 +13,7 @@ class PilotUsersAndRolesSeeder extends Seeder
         $now = Carbon::now();
 
         // SYSTEM ADMIN
-        DB::table('user')->updateOrInsert(
+        DB::table('CC_USER')->updateOrInsert(
             ['email' => 'admin@clickcollect.local'],
             [
                 'full_name' => 'System Admin',
@@ -30,7 +30,7 @@ class PilotUsersAndRolesSeeder extends Seeder
             ]
         );
 
-        $adminUserId = DB::table('user')->where('email', 'admin@clickcollect.local')->value('user_id');
+        $adminUserId = DB::table('CC_USER')->where('email', 'admin@clickcollect.local')->value('user_id');
 
         DB::table('admin')->updateOrInsert(
             ['user_id' => $adminUserId],
@@ -77,7 +77,7 @@ class PilotUsersAndRolesSeeder extends Seeder
         ];
 
         foreach ($traders as $index => $trader) {
-            DB::table('user')->updateOrInsert(
+            DB::table('CC_USER')->updateOrInsert(
                 ['email' => $trader['email']],
                 [
                     'full_name' => $trader['full_name'],
@@ -94,7 +94,7 @@ class PilotUsersAndRolesSeeder extends Seeder
                 ]
             );
 
-            $userId = DB::table('user')->where('email', $trader['email'])->value('user_id');
+            $userId = DB::table('CC_USER')->where('email', $trader['email'])->value('user_id');
 
             DB::table('trader')->updateOrInsert(
                 ['user_id' => $userId],
@@ -123,7 +123,7 @@ class PilotUsersAndRolesSeeder extends Seeder
         ];
 
         foreach ($customers as $customer) {
-            DB::table('user')->updateOrInsert(
+            DB::table('CC_USER')->updateOrInsert(
                 ['email' => $customer['email']],
                 [
                     'full_name' => $customer['full_name'],
@@ -140,7 +140,7 @@ class PilotUsersAndRolesSeeder extends Seeder
                 ]
             );
 
-            $userId = DB::table('user')->where('email', $customer['email'])->value('user_id');
+            $userId = DB::table('CC_USER')->where('email', $customer['email'])->value('user_id');
 
             DB::table('customer')->updateOrInsert(
                 ['user_id' => $userId],

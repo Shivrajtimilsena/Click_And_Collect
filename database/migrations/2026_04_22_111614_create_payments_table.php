@@ -20,9 +20,9 @@ return new class extends Migration
             $table->timestamp('updated_at')->nullable();
 
             $table->foreign('order_id', 'fk_payments_order')
-                  ->references('order_id')
-                  ->on('order')
-                  ->onDelete('cascade');
+                ->references('order_id')
+                ->on('APP_ORDER')
+                ->onDelete('cascade');
         });
     }
 

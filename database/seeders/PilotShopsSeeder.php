@@ -41,7 +41,7 @@ class PilotShopsSeeder extends Seeder
         ];
 
         foreach ($shops as $shop) {
-            $userId = DB::table('user')->where('email', $shop['email'])->value('user_id');
+            $userId = DB::table('CC_USER')->where('email', $shop['email'])->value('user_id');
             $traderId = DB::table('trader')->where('user_id', $userId)->value('trader_id');
 
             DB::table('shop')->updateOrInsert(

@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('CC_USER', function (Blueprint $table) {
-            $table->string('avatar_url', 255)->nullable()->after('postal_code');
+        Schema::table('trader_application', function (Blueprint $table) {
+            $table->string('password', 255)->nullable()->after('description');
         });
     }
 
     public function down(): void
     {
-        Schema::table('CC_USER', function (Blueprint $table) {
-            $table->dropColumn('avatar_url');
+        Schema::table('trader_application', function (Blueprint $table) {
+            $table->dropColumn('password');
         });
     }
 };

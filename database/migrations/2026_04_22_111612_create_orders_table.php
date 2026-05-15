@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('order', function (Blueprint $table) {
+        Schema::create('APP_ORDER', function (Blueprint $table) {
             $table->bigIncrements('order_id');
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('shop_id');
@@ -26,29 +26,29 @@ return new class extends Migration
             $table->timestamp('updated_at')->nullable();
 
             $table->foreign('customer_id', 'fk_orders_customer')
-                  ->references('customer_id')
-                  ->on('customer')
-                  ->onDelete('cascade');
+                ->references('customer_id')
+                ->on('customer')
+                ->onDelete('cascade');
 
             // No onDelete('restrict') here — Oracle default behavior is enough.
             $table->foreign('shop_id', 'fk_orders_shop')
-                  ->references('shop_id')
-                  ->on('shop');
+                ->references('shop_id')
+                ->on('shop');
 
             $table->foreign('collection_slot_id', 'fk_orders_slot')
-                  ->references('collection_slot_id')
-                  ->on('collection_slot')
-                  ->onDelete('set null');
+                ->references('collection_slot_id')
+                ->on('collection_slot')
+                ->onDelete('set null');
 
             $table->foreign('cart_id', 'fk_orders_cart')
-                  ->references('cart_id')
-                  ->on('cart')
-                  ->onDelete('set null');
+                ->references('cart_id')
+                ->on('cart')
+                ->onDelete('set null');
 
             $table->foreign('coupon_id', 'fk_orders_coupon')
-                  ->references('coupon_id')
-                  ->on('coupon')
-                  ->onDelete('set null');
+                ->references('coupon_id')
+                ->on('coupon')
+                ->onDelete('set null');
         });
     }
 
