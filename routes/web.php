@@ -8,6 +8,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RfidController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\TraderController;
@@ -30,6 +31,11 @@ Route::post('/contact', [ContactController::class, 'submit'])->name('contact.sub
 Route::get('/privacy-policy', function () {
     return view('privacy-policy');
 })->name('privacy-policy');
+
+// IoT / RFID test bench
+Route::get('/iot/rfid-scan', [RfidController::class, 'show'])->name('iot.rfid.show');
+Route::post('/iot/rfid-assign', [RfidController::class, 'assign'])->name('iot.rfid.assign');
+Route::post('/iot/rfid-scan', [RfidController::class, 'scan'])->name('iot.rfid.scan');
 
 // Authentication routes (Modal-based)
 Route::middleware('guest')->group(function () {

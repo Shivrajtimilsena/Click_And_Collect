@@ -27,6 +27,9 @@ class Order extends Model
         'total_amount',
         'order_status',
         'payment_status',
+        'rfid_uid',
+        'rfid_assigned_at',
+        'collected_at',
         'notes',
     ];
 
@@ -34,6 +37,8 @@ class Order extends Model
         'order_amount' => 'float',
         'discount_amount' => 'float',
         'total_amount' => 'float',
+        'rfid_assigned_at' => 'datetime',
+        'collected_at' => 'datetime',
     ];
 
     public function customer()
