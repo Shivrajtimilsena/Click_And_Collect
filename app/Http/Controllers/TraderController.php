@@ -101,6 +101,8 @@ class TraderController extends Controller
         $avgRating = $this->getTraderAverageRating($shopIds);
 
         $weeklyRevenue = $this->getWeeklyRevenue($shopIds);
+        $monthlyRevenue = $this->getMonthlyRevenue($shopIds);
+        $yearlyRevenue = $this->getYearlyRevenue($shopIds);
 
         return view('trader.dashboard', [
             'trader' => $trader,
@@ -111,6 +113,8 @@ class TraderController extends Controller
             'avgRating' => $avgRating,
             'recentOrders' => $recentOrders,
             'weeklyRevenue' => $weeklyRevenue,
+            'monthlyRevenue' => $monthlyRevenue,
+            'yearlyRevenue' => $yearlyRevenue,
         ]);
     }
 
@@ -187,7 +191,53 @@ class TraderController extends Controller
                 })
                 ->sum('line_total');
             $revenue[] = [
-                'day' => $days[$i],
+                'label' => $days[$i],
+                'amount' => $amount,
+            ];
+        }
+
+        return $revenue;
+    }
+
+    private function getMonthlyRevenue(array $shopIds): array
+    {
+        $revenue = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->startOfMonth()->subMonths($i);
+            $amount = OrderItem::whereHas('product.shop', function ($query) use ($shopIds) {
+                $query->whereIn('shop_id', $shopIds);
+            })
+                ->whereHas('order', function ($query) use ($date) {
+                    $query->whereYear('created_at', $date->year)
+                        ->whereMonth('created_at', $date->month)
+                        ->where('order_status', '!=', 'CANCELLED');
+                })
+                ->sum('line_total');
+            $revenue[] = [
+                'label' => $date->format('M'),
+                'full_label' => $date->format('M Y'),
+                'amount' => $amount,
+            ];
+        }
+
+        return $revenue;
+    }
+
+    private function getYearlyRevenue(array $shopIds): array
+    {
+        $revenue = [];
+        $currentYear = now()->year;
+        for ($year = $currentYear - 4; $year <= $currentYear; $year++) {
+            $amount = OrderItem::whereHas('product.shop', function ($query) use ($shopIds) {
+                $query->whereIn('shop_id', $shopIds);
+            })
+                ->whereHas('order', function ($query) use ($year) {
+                    $query->whereYear('created_at', $year)
+                        ->where('order_status', '!=', 'CANCELLED');
+                })
+                ->sum('line_total');
+            $revenue[] = [
+                'label' => (string) $year,
                 'amount' => $amount,
             ];
         }
@@ -241,6 +291,7 @@ class TraderController extends Controller
                 $imageUrl = '/storage/products/'.$filename;
             } catch (\Exception $e) {
                 \Log::error('Image upload failed', ['error' => $e->getMessage()]);
+
                 return back()->with('error', 'Failed to upload image: '.$e->getMessage())->withInput();
             }
         } else {
@@ -310,6 +361,7 @@ class TraderController extends Controller
                 $imageUrl = '/storage/products/'.$filename;
             } catch (\Exception $e) {
                 \Log::error('Image upload failed', ['error' => $e->getMessage()]);
+
                 return back()->with('error', 'Failed to upload image: '.$e->getMessage())->withInput();
             }
         }

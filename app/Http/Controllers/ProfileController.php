@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -128,7 +129,7 @@ class ProfileController extends Controller
                 $query->where('slot_date', '>=', now()->toDateString());
             })
             ->get()
-            ->map(fn($order) => $order->collectionSlot)
+            ->map(fn ($order) => $order->collectionSlot)
             ->filter();
 
         return view('profile.settings', [
@@ -175,5 +176,23 @@ class ProfileController extends Controller
         $user->update($validated);
 
         return redirect()->route('profile.settings')->with('success', 'Profile updated successfully!');
+    }
+
+    public function changePassword(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        if ($user->password !== $request->current_password) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+        }
+
+        $user->update(['password' => $request->new_password]);
+
+        return redirect()->route('profile.settings')->with('success', 'Password changed successfully!');
     }
 }

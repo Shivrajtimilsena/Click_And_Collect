@@ -157,6 +157,49 @@
         </div>
     </div>
 
+    <!-- Change Password Section -->
+    <div class="mt-12 max-w-lg">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-extrabold tracking-tight">Change Password</h2>
+            <span class="material-symbols-outlined text-on-surface-variant">lock</span>
+        </div>
+
+        <div class="bg-surface-container-lowest rounded-lg p-8 shadow-[0_10px_30px_rgba(45,47,47,0.02)]">
+            <form method="POST" action="{{ route('profile.change-password') }}" class="space-y-6">
+                @csrf
+
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant ml-1">Current Password</label>
+                    <input type="password" name="current_password" placeholder="Enter current password"
+                           class="w-full px-6 py-4 bg-surface-container-high rounded-lg border-2 border-transparent focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest focus:border-primary transition-all duration-300 placeholder:text-outline/50 font-medium" required/>
+                    @error('current_password')
+                        <p class="text-error text-sm ml-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant ml-1">New Password</label>
+                    <input type="password" name="new_password" placeholder="Enter new password"
+                           class="w-full px-6 py-4 bg-surface-container-high rounded-lg border-2 border-transparent focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest focus:border-primary transition-all duration-300 placeholder:text-outline/50 font-medium" required/>
+                    @error('new_password')
+                        <p class="text-error text-sm ml-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant ml-1">Confirm New Password</label>
+                    <input type="password" name="new_password_confirmation" placeholder="Confirm new password"
+                           class="w-full px-6 py-4 bg-surface-container-high rounded-lg border-2 border-transparent focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest focus:border-primary transition-all duration-300 placeholder:text-outline/50 font-medium" required/>
+                </div>
+
+                <button type="submit" class="w-full py-5 rounded-full bg-gradient-to-r from-primary to-primary-fixed text-on-primary font-bold text-lg shadow-[0_10px_30px_rgba(177,34,9,0.15)] hover:shadow-[0_15px_35px_rgba(177,34,9,0.25)] active:scale-[0.98] transition-all duration-300 flex items-center justify-center group">
+                    Update Password
+                    <span class="material-symbols-outlined ml-2 group-hover:translate-x-1 transition-transform">lock_reset</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
 </div>
 @endsection
 
