@@ -100,7 +100,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant" for="login-password">
                                     Password
                                 </label>
-                                <a class="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary-dim transition-colors" href="#">
+                                <a class="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary-dim transition-colors" href="{{ route('password.request') }}">
                                     Forgot Password?
                                 </a>
                             </div>

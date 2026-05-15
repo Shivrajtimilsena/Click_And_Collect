@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 class PilotUsersAndRolesSeeder extends Seeder
 {
@@ -20,7 +19,7 @@ class PilotUsersAndRolesSeeder extends Seeder
                 'full_name' => 'System Admin',
                 'phone_no' => '9800000001',
                 'age' => 30,
-                'password' => Hash::make('Admin123@'),
+                'password' => 'Admin123@',
                 'dob' => '1995-01-01',
                 'verification_code' => 'ADMIN-VERIFIED',
                 'status' => 'ACTIVE',
@@ -84,7 +83,7 @@ class PilotUsersAndRolesSeeder extends Seeder
                     'full_name' => $trader['full_name'],
                     'phone_no' => $trader['phone_no'],
                     'age' => 28 + $index,
-                    'password' => Hash::make('trader@123'),
+                    'password' => 'trader@123',
                     'dob' => '1996-01-01',
                     'verification_code' => strtoupper($trader['shop_type']).'-VERIFIED',
                     'status' => 'ACTIVE',
@@ -130,7 +129,7 @@ class PilotUsersAndRolesSeeder extends Seeder
                     'full_name' => $customer['full_name'],
                     'phone_no' => $customer['phone_no'],
                     'age' => 24,
-                    'password' => Hash::make('customer@123'),
+                    'password' => 'customer@123',
                     'dob' => '2001-01-01',
                     'verification_code' => 'CUSTOMER-VERIFIED',
                     'status' => 'ACTIVE',
