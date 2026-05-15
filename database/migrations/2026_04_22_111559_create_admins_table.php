@@ -17,9 +17,9 @@ return new class extends Migration
             $table->timestamp('updated_at')->nullable();
 
             $table->foreign('user_id', 'fk_admins_user')
-                  ->references('user_id')
-                  ->on('user')
-                  ->onDelete('cascade');
+                ->references('user_id')
+                ->on('CC_USER')
+                ->onDelete('cascade');
         });
     }
 

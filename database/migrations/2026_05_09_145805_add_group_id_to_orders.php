@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('order', function (Blueprint $table) {
+        Schema::table('APP_ORDER', function (Blueprint $table) {
             $table->string('group_id', 36)->nullable()->after('order_id');
             $table->index('group_id');
         });
@@ -16,7 +16,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('order', function (Blueprint $table) {
+        Schema::table('APP_ORDER', function (Blueprint $table) {
             $table->dropIndex(['group_id']);
             $table->dropColumn('group_id');
         });
