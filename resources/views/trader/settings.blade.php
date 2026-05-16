@@ -121,5 +121,71 @@
             </div>
         </div>
     </form>
+
+    <!-- Change Password -->
+    <div class="bg-surface-container-lowest border border-surface-container-high rounded-lg overflow-hidden">
+        <div class="px-8 py-6 border-b border-surface-container-high">
+            <h3 class="text-lg font-bold font-headline">Change Password</h3>
+            <p class="text-sm text-secondary">Update your trader portal login password</p>
+        </div>
+        <form method="POST" action="{{ route('trader.settings.change-password') }}" class="p-8 space-y-6">
+            @csrf
+            <div>
+                <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Current Password</label>
+                <div class="relative">
+                    <input type="password" name="current_password" id="cp_current"
+                           class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20 pr-14 @error('current_password') ring-2 ring-error @enderror"/>
+                    <button type="button" onclick="togglePassword('cp_current', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-xl">visibility</span>
+                    </button>
+                </div>
+                @error('current_password')
+                    <p class="text-error text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">New Password</label>
+                    <div class="relative">
+                        <input type="password" name="new_password" id="cp_new"
+                               class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20 pr-14 @error('new_password') ring-2 ring-error @enderror"/>
+                        <button type="button" onclick="togglePassword('cp_new', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-xl">visibility</span>
+                        </button>
+                    </div>
+                    @error('new_password')
+                        <p class="text-error text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Confirm New Password</label>
+                    <div class="relative">
+                        <input type="password" name="new_password_confirmation" id="cp_confirm"
+                               class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20 pr-14"/>
+                        <button type="button" onclick="togglePassword('cp_confirm', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-xl">visibility</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="bg-primary text-on-primary px-8 py-3 font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all">
+                Update Password
+            </button>
+        </form>
+    </div>
 </div>
+
+<script>
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('.material-symbols-outlined');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'visibility_off';
+    } else {
+        input.type = 'password';
+        icon.textContent = 'visibility';
+    }
+}
+</script>
 @endsection

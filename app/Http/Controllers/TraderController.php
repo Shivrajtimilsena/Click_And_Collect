@@ -210,6 +210,24 @@ class TraderController extends Controller
         return redirect()->route('trader.settings')->with('success', 'Settings updated successfully!');
     }
 
+    public function changePassword(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        if ($user->password !== $validated['current_password']) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+        }
+
+        $user->update(['password' => $validated['new_password']]);
+
+        return redirect()->route('trader.settings')->with('success', 'Password changed successfully!');
+    }
+
     private function getTraderAverageRating(array $shopIds): float
     {
         return Review::whereHas('product.shop', function ($query) use ($shopIds) {

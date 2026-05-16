@@ -264,6 +264,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/product/{product}', [TraderController::class, 'productDestroy'])->name('product.destroy');
         Route::get('/settings', [TraderController::class, 'settings'])->name('settings');
         Route::patch('/settings', [TraderController::class, 'updateSettings'])->name('settings.update');
+        Route::post('/settings/change-password', [TraderController::class, 'changePassword'])->name('settings.change-password');
     });
 
     // Admin Panel
