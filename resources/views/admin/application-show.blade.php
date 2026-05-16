@@ -33,7 +33,7 @@
             </div>
             <div>
                 <p class="text-xs uppercase tracking-wider text-secondary font-bold">Applied</p>
-                <p class="text-on-surface">{{ $application->created_at->format('M d, Y g:i A') }}</p>
+                <p class="text-on-surface">{{ $application->created_at?->format('M d, Y g:i A') ?? 'N/A' }}</p>
             </div>
         </div>
     </div>

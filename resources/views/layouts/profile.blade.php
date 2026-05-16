@@ -24,7 +24,7 @@
                         {{ Auth::user()->full_name }}
                     </h2>
                     <p class="text-on-surface-variant text-sm mb-6">
-                        {{ Auth::user()->role === 'CUSTOMER' ? 'CUSTOMER' : Auth::user()->role }} since {{ Auth::user()->created_at->format('Y') }}
+                        {{ Auth::user()->role === 'CUSTOMER' ? 'CUSTOMER' : Auth::user()->role }} since {{ Auth::user()->created_at?->format('Y') ?? 'N/A' }}
                     </p>
 
                     <!-- Contact Info -->

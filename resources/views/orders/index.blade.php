@@ -33,7 +33,7 @@
                         </div>
                         <div class="text-right">
                             <p class="text-2xl font-headline font-extrabold text-on-surface">&pound;{{ number_format($combinedTotal, 2) }}</p>
-                            <p class="text-xs text-secondary">{{ $firstOrder->created_at->format('M d, Y') }}</p>
+                            <p class="text-xs text-secondary">{{ $firstOrder->created_at?->format('M d, Y') ?? 'N/A' }}</p>
                         </div>
                     </div>
 

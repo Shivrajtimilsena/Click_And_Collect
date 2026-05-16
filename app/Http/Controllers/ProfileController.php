@@ -13,9 +13,13 @@ class ProfileController extends Controller
     /**
      * Display the profile dashboard
      */
-    public function dashboard(): View
+    public function dashboard(): View|RedirectResponse
     {
         $user = Auth::user();
+
+        if ($user->isTrader()) {
+            return redirect()->route('trader.dashboard');
+        }
 
         // Ensure customer record exists
         $customer = $user->customer;
@@ -53,9 +57,14 @@ class ProfileController extends Controller
     /**
      * Display all orders
      */
-    public function orders(): View
+    public function orders(): View|RedirectResponse
     {
         $user = Auth::user();
+
+        if ($user->isTrader()) {
+            return redirect()->route('trader.dashboard');
+        }
+
         $customer = $user->customer;
 
         if (! $customer) {
@@ -80,9 +89,14 @@ class ProfileController extends Controller
     /**
      * Display saved shops (wishlists)
      */
-    public function shops(): View
+    public function shops(): View|RedirectResponse
     {
         $user = Auth::user();
+
+        if ($user->isTrader()) {
+            return redirect()->route('trader.dashboard');
+        }
+
         $customer = $user->customer;
 
         if (! $customer) {
@@ -102,9 +116,14 @@ class ProfileController extends Controller
     /**
      * Display settings page
      */
-    public function settings(): View
+    public function settings(): View|RedirectResponse
     {
         $user = Auth::user();
+
+        if ($user->isTrader()) {
+            return redirect()->route('trader.dashboard');
+        }
+
         $customer = $user->customer;
 
         if (! $customer) {

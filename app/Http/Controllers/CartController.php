@@ -12,8 +12,12 @@ use Illuminate\View\View;
 
 class CartController extends Controller
 {
-    public function index(): View
+    public function index(): View|\Illuminate\Http\RedirectResponse
     {
+        if (auth()->user()->isTrader()) {
+            return redirect()->route('trader.dashboard')->with('error', 'Traders cannot purchase products.');
+        }
+
         $cart = auth()->user()->getCustomerRecord()->getOrCreateCart();
         $cart->load('products.product');
 
@@ -22,6 +26,10 @@ class CartController extends Controller
 
     public function add(AddToCartRequest $request, AddToCartAction $action): RedirectResponse
     {
+        if (auth()->user()->isTrader()) {
+            return redirect()->route('trader.dashboard')->with('error', 'Traders cannot purchase products.');
+        }
+
         $validated = $request->validated();
         $product = Product::findOrFail($validated['product_id']);
 

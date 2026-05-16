@@ -56,6 +56,10 @@ class OrderController extends Controller
                 return redirect()->route('signin')->with('error', 'Please log in to view your cart.');
             }
 
+            if ($user->isTrader()) {
+                return redirect()->route('trader.dashboard')->with('error', 'Traders cannot purchase products.');
+            }
+
             $customer = $user->customer;
             if (! $customer) {
                 return redirect('/')->with('error', 'Customer record not found.');
@@ -123,6 +127,10 @@ class OrderController extends Controller
             $user = request()->user();
             if (! $user) {
                 return redirect()->route('home')->with('error', 'You must be logged in to place an order.');
+            }
+
+            if ($user->isTrader()) {
+                return redirect()->route('trader.dashboard')->with('error', 'Traders cannot purchase products.');
             }
 
             $customer = $user->customer;

@@ -26,7 +26,7 @@
                         {{ Auth::user()->full_name }}
                     </h2>
                     <p class="text-on-surface-variant text-sm mb-6">
-                        {{ Auth::user()->role === 'customer' ? 'Valued Customer' : Auth::user()->role }} since {{ Auth::user()->created_at->format('Y') }}
+                        {{ Auth::user()->role === 'customer' ? 'Valued Customer' : Auth::user()->role }} since {{ Auth::user()->created_at?->format('Y') ?? 'N/A' }}
                     </p>
 
                     <!-- Contact Info -->
@@ -147,7 +147,7 @@
                                     @endif
                                 </span>
                                 <span class="text-sm">
-                                    {{ $order->collectionSlot->slot_date->format('l') }}, {{ $order->collectionSlot->start_time }} - {{ $order->collectionSlot->end_time }}
+                                    {{ $order->collectionSlot->slot_date?->format('l') ?? 'N/A' }}, {{ $order->collectionSlot->start_time }} - {{ $order->collectionSlot->end_time }}
                                 </span>
                             </div>
                         </div>

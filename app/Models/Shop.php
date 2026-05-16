@@ -23,6 +23,8 @@ class Shop extends Model
         'trader_id',
         'shop_name',
         'description',
+        'shop_address',
+        'shop_image',
         'is_active',
     ];
 
