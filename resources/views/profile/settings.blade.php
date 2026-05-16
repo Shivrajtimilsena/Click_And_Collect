@@ -19,7 +19,7 @@
             </div>
             <div class="flex-1 text-center md:text-left">
                 <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-on-background mb-2">{{ Auth::user()->full_name ?? 'Customer' }}</h1>
-                <p class="text-on-surface-variant font-medium mb-6">Member since {{ Auth::user()->created_at->format('M Y') }}</p>
+                <p class="text-on-surface-variant font-medium mb-6">Member since {{ Auth::user()->created_at?->format('M Y') ?? 'Recently' }}</p>
                 <div class="flex flex-wrap gap-3 justify-center md:justify-start">
                     <button onclick="openEditProfileModal()" class="px-8 py-3 rounded-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold text-sm tracking-wide active:scale-95 transition-all shadow-lg shadow-primary/20 cursor-pointer">Edit Profile</button>
                 </div>

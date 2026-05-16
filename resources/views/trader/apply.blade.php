@@ -131,6 +131,45 @@
                 @enderror
             </div>
 
+            <!-- Password Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label for="password" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Password</label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="password"
+                            class="w-full bg-surface-container-high border-0 rounded-md px-6 py-4 pr-14 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline-variant @error('password') ring-2 ring-error @enderror" 
+                            placeholder="Minimum 8 characters"
+                            required
+                        />
+                        <button type="button" onclick="togglePassword('password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-xl">visibility</span>
+                        </button>
+                    </div>
+                    @error('password')
+                        <p class="text-xs text-error ml-4">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div class="space-y-2">
+                    <label for="password_confirmation" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Confirm Password</label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            name="password_confirmation" 
+                            id="password_confirmation"
+                            class="w-full bg-surface-container-high border-0 rounded-md px-6 py-4 pr-14 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline-variant" 
+                            placeholder="Repeat password"
+                            required
+                        />
+                        <button type="button" onclick="togglePassword('password_confirmation', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-xl">visibility</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Verification Checkbox -->
             <div class="flex items-start space-x-4 p-4 rounded-xl bg-surface">
                 <input type="checkbox" required class="mt-1 rounded border-outline text-primary focus:ring-primary" />
@@ -181,3 +220,17 @@
     </div>
 </section>
 @endsection
+
+<script>
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('.material-symbols-outlined');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'visibility_off';
+    } else {
+        input.type = 'password';
+        icon.textContent = 'visibility';
+    }
+}
+</script>

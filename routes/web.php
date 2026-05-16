@@ -263,6 +263,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/product/{product}', [TraderController::class, 'productUpdate'])->name('product.update');
         Route::delete('/product/{product}', [TraderController::class, 'productDestroy'])->name('product.destroy');
         Route::get('/settings', [TraderController::class, 'settings'])->name('settings');
+        Route::patch('/settings', [TraderController::class, 'updateSettings'])->name('settings.update');
     });
 
     // Admin Panel
