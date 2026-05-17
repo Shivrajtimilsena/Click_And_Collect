@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Mail\TraderApprovedMail;
+use App\Mail\TraderRejectedMail;
 use App\Models\Shop;
 use App\Models\Trader;
 use App\Models\TraderApplication;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -85,6 +87,12 @@ class AdminController extends Controller
 
     public function reject(Request $request, TraderApplication $application): RedirectResponse
     {
+        Log::debug('Reject method called', [
+            'app_id' => $application->application_id,
+            'shop_name' => $application->shop_name,
+            'email' => $application->email,
+        ]);
+
         $request->validate([
             'admin_notes' => 'required|string|max:1000',
         ]);
@@ -100,7 +108,24 @@ class AdminController extends Controller
             'reviewed_at' => now(),
         ]);
 
-        return redirect()->route('admin.applications')->with('success', 'Application rejected.');
+        try {
+            Log::debug('Attempting rejection email', [
+                'email' => $application->email,
+                'app_id' => $application->application_id,
+                'shop' => $application->shop_name,
+            ]);
+            Mail::to($application->email)->send(new TraderRejectedMail($application));
+            Log::info('Rejection email sent successfully', ['email' => $application->email, 'app_id' => $application->application_id]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send rejection email', [
+                'email' => $application->email,
+                'app_id' => $application->application_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+
+        return redirect()->route('admin.applications')->with('success', 'Application rejected. A notification email has been sent to the applicant.');
     }
 
     public function approveFromApex(Request $request, TraderApplication $application): \Illuminate\Http\JsonResponse
@@ -157,5 +182,29 @@ class AdminController extends Controller
             'user_id' => $user->user_id,
             'email' => $user->email,
         ]);
+    }
+
+    public function rejectFromApex(Request $request, TraderApplication $application): JsonResponse
+    {
+        $apiKey = $request->header('X-API-Key') ?: $request->input('api_key');
+        if (! $apiKey || $apiKey !== config('app.apex_api_key')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if ($application->status !== 'REJECTED') {
+            return response()->json(['error' => 'Application is not rejected'], 409);
+        }
+
+        try {
+            Mail::to($application->email)->send(new TraderRejectedMail($application));
+            Log::info('Rejection email sent from APEX', ['app_id' => $application->application_id, 'email' => $application->email]);
+            return response()->json(['success' => true, 'message' => 'Rejection email sent']);
+        } catch (\Exception $e) {
+            Log::error('Failed to send rejection email from APEX', [
+                'app_id' => $application->application_id,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'Failed to send email: '.$e->getMessage()], 500);
+        }
     }
 }

@@ -1,7 +1,7 @@
 <nav class="fixed top-0 w-full z-50 h-20 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl shadow-[0_10px_30px_rgba(45,47,47,0.04)]">
     <div class="flex justify-between items-center px-12 w-full max-w-[1920px] mx-auto h-full">
-        <a href="{{ route('home') }}" class="text-2xl font-black text-zinc-800 dark:text-zinc-100 tracking-tighter">
-            Click&Collect
+        <a href="{{ route('home') }}" class="flex items-center ml-8">
+            <img src="{{ asset('images/logo.png') }}" alt="Click&Collect" class="h-12 w-auto" />
         </a>
 
         <div class="hidden md:flex items-center gap-8">

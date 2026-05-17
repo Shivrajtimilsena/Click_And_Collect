@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->validateCsrfTokens(except: [
             'api/trader-application/*/approve',
+            'api/trader-application/*/reject',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

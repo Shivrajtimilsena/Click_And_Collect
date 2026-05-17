@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('shop_name');
             $table->string('email');
             $table->string('location');
-            $table->string('speciality');
+            $table->text('speciality');
             $table->text('description');
             $table->string('status', 20)->default('PENDING');
             $table->text('admin_notes')->nullable();
