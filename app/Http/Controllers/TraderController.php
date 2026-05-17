@@ -137,6 +137,33 @@ class TraderController extends Controller
         ]);
     }
 
+    public function updateOrderStatus(Request $request, Order $order): RedirectResponse
+    {
+        $validated = $request->validate([
+            'order_status' => 'required|in:PENDING,IN_PROGRESS,READY,COMPLETED,CANCELLED',
+        ]);
+
+        $user = Auth::user();
+        $trader = $user->trader;
+        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+
+        if (! in_array($order->shop_id, $shopIds)) {
+            abort(403, 'You do not have permission to update this order.');
+        }
+
+        $updates = [
+            'order_status' => $validated['order_status'],
+        ];
+
+        if ($validated['order_status'] === 'COMPLETED' && ! $order->collected_at) {
+            $updates['collected_at'] = now();
+        }
+
+        $order->update($updates);
+
+        return back()->with('success', "Order #ORD-{$order->order_id} status updated.");
+    }
+
     public function inventory(): View
     {
         $user = Auth::user();

@@ -33,11 +33,9 @@ Route::post('/contact', [ContactController::class, 'submit'])->name('contact.sub
 Route::get('/privacy-policy', function () {
     return view('privacy-policy');
 })->name('privacy-policy');
-
-// IoT / RFID test bench
-Route::get('/iot/rfid-scan', [RfidController::class, 'show'])->name('iot.rfid.show');
-Route::post('/iot/rfid-assign', [RfidController::class, 'assign'])->name('iot.rfid.assign');
-Route::post('/iot/rfid-scan', [RfidController::class, 'scan'])->name('iot.rfid.scan');
+Route::get('/iot/rfid-scan', function () {
+    return redirect()->route('trader.orders.index');
+})->name('iot.rfid.redirect');
 
 // Authentication routes (Modal-based)
 Route::middleware('guest')->group(function () {
@@ -262,6 +260,9 @@ Route::middleware('auth')->group(function () {
             return app(TraderController::class)->dashboard();
         })->name('dashboard');
         Route::get('/orders', [TraderController::class, 'orders'])->name('orders.index');
+        Route::patch('/orders/{order}/status', [TraderController::class, 'updateOrderStatus'])->name('orders.status.update');
+        Route::post('/orders/{order}/rfid', [RfidController::class, 'assignToOrder'])->name('orders.rfid.assign');
+        Route::post('/rfid-scan', [RfidController::class, 'scanForTrader'])->name('rfid.scan');
         Route::get('/inventory', [TraderController::class, 'inventory'])->name('inventory.index');
         Route::get('/product/create', [TraderController::class, 'productCreate'])->name('product.create');
         Route::post('/product', [TraderController::class, 'productStore'])->name('product.store');

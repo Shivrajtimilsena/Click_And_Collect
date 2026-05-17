@@ -6,56 +6,40 @@ use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 
 class RfidController extends Controller
 {
-    public function show(): View
+    public function assignToOrder(Request $request, Order $order): RedirectResponse
     {
-        $orders = Order::with(['customer.user', 'collectionSlot.shop'])
-            ->whereIn('order_status', ['PENDING', 'IN_PROGRESS', 'READY'])
-            ->latest()
-            ->limit(12)
-            ->get();
+        $this->authorizeTraderOrder($order);
 
-        return view('iot.rfid-scan', [
-            'orders' => $orders,
-            'apiUrl' => url('/api/iot/rfid-scan'),
-        ]);
-    }
-
-    public function assign(Request $request): JsonResponse|RedirectResponse
-    {
         $validated = $request->validate([
-            'order_id' => ['required', 'integer', 'exists:order,order_id'],
             'rfid_uid' => ['required', 'string', 'max:64'],
         ]);
 
         $uid = $this->normaliseUid($validated['rfid_uid']);
 
         if (strlen($uid) < 4) {
-            return $this->failure($request, 'RFID UID is too short. Scan the card again.', 422);
+            return back()->withErrors(['rfid_uid' => 'RFID UID is too short. Scan the card again.']);
         }
 
         $existingOrder = Order::where('rfid_uid', $uid)
-            ->where('order_id', '!=', $validated['order_id'])
+            ->where('order_id', '!=', $order->order_id)
             ->first();
 
         if ($existingOrder) {
-            return $this->failure($request, "This RFID tag is already assigned to order #ORD-{$existingOrder->order_id}.", 422);
+            return back()->withErrors([
+                'rfid_uid' => "This RFID tag is already assigned to order #ORD-{$existingOrder->order_id}.",
+            ]);
         }
 
-        $order = Order::findOrFail($validated['order_id']);
         $order->update([
             'rfid_uid' => $uid,
             'rfid_assigned_at' => now(),
         ]);
 
-        return $this->success($request, [
-            'message' => "RFID tag {$uid} assigned to order #ORD-{$order->order_id}.",
-            'order_id' => $order->order_id,
-            'rfid_uid' => $uid,
-        ]);
+        return back()->with('success', "RFID tag {$uid} assigned to order #ORD-{$order->order_id}.");
     }
 
     public function scan(Request $request): JsonResponse|RedirectResponse
@@ -98,6 +82,40 @@ class RfidController extends Controller
         ]);
     }
 
+    public function scanForTrader(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'rfid_uid' => ['required', 'string', 'max:64'],
+        ]);
+
+        $uid = $this->normaliseUid($validated['rfid_uid']);
+
+        if (strlen($uid) < 4) {
+            return back()->withErrors(['rfid_uid' => 'RFID UID is too short. Scan the card again.']);
+        }
+
+        $order = Order::where('rfid_uid', $uid)->first();
+
+        if (! $order) {
+            return back()->withErrors(['rfid_uid' => "No order is assigned to RFID tag {$uid}."]);
+        }
+
+        $this->authorizeTraderOrder($order);
+
+        if ($order->order_status !== 'READY') {
+            return back()->withErrors([
+                'rfid_uid' => "Order #ORD-{$order->order_id} is {$order->order_status}. Mark it READY before collection.",
+            ]);
+        }
+
+        $order->update([
+            'order_status' => 'COMPLETED',
+            'collected_at' => now(),
+        ]);
+
+        return back()->with('success', "Order #ORD-{$order->order_id} collected successfully with RFID tag {$uid}.");
+    }
+
     private function normaliseUid(string $uid): string
     {
         return strtoupper(preg_replace('/[^A-Fa-f0-9]/', '', $uid));
@@ -137,5 +155,26 @@ class RfidController extends Controller
             'shop_name' => $order->collectionSlot?->shop?->shop_name,
             'collected_at' => $order->collected_at?->toDateTimeString(),
         ];
+    }
+
+    private function authorizeTraderOrder(Order $order): void
+    {
+        $user = Auth::user();
+
+        if (! $user || $user->role !== 'TRADER' || $user->status !== 'ACTIVE') {
+            abort(403);
+        }
+
+        $trader = $user->trader;
+
+        if (! $trader) {
+            abort(403);
+        }
+
+        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+
+        if (! in_array($order->shop_id, $shopIds)) {
+            abort(403);
+        }
     }
 }

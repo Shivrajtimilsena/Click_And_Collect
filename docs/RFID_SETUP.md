@@ -16,19 +16,25 @@ This adds these fields to the `order` table:
 - `rfid_assigned_at`
 - `collected_at`
 
-## 2. Open the test page
+## 2. Where RFID appears in the site
 
-Start the Laravel app, then open:
+Customers can see RFID pickup details on:
 
 ```text
-http://127.0.0.1:8000/iot/rfid-scan
+https://click_and_collect.test/profile/orders
 ```
 
-Use the page to:
+Traders manage RFID assignment and collection scanning on:
+
+```text
+https://click_and_collect.test/trader/orders
+```
+
+Use the trader RFID Collection panel and RFID column to:
 
 1. Assign an RFID UID to an order.
-2. Mark that order `READY` in the trader order screen.
-3. Scan/test the RFID UID.
+2. Mark that order `READY`.
+3. Scan/test the RFID UID from the collection panel.
 4. Confirm the order becomes `COMPLETED`.
 
 ## 3. Wire the MFRC522 reader
