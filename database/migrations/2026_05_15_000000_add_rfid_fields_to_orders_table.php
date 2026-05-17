@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('order', function (Blueprint $table) {
+        Schema::table('APP_ORDER', function (Blueprint $table) {
             $table->string('rfid_uid', 64)->nullable()->unique();
             $table->timestamp('rfid_assigned_at')->nullable();
             $table->timestamp('collected_at')->nullable();
@@ -17,7 +17,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('order', function (Blueprint $table) {
+        Schema::table('APP_ORDER', function (Blueprint $table) {
             $table->dropColumn(['rfid_uid', 'rfid_assigned_at', 'collected_at']);
         });
     }
