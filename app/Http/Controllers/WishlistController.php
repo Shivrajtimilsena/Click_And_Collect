@@ -9,8 +9,12 @@ use Illuminate\View\View;
 
 class WishlistController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|\Illuminate\Http\RedirectResponse
     {
+        if ($request->user()?->isTrader()) {
+            return redirect()->route('trader.dashboard')->with('error', 'Traders cannot use wishlists.');
+        }
+
         $customer = $request->user()?->customer;
         abort_unless($customer, 403);
 
@@ -23,6 +27,10 @@ class WishlistController extends Controller
 
     public function add(Request $request): RedirectResponse
     {
+        if ($request->user()?->isTrader()) {
+            return redirect()->route('trader.dashboard')->with('error', 'Traders cannot use wishlists.');
+        }
+
         $request->validate([
             'product_id' => 'required|exists:product,product_id',
         ]);

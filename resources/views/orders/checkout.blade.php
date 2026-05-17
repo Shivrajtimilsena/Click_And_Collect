@@ -73,7 +73,7 @@
                             $available = $slot->capacity - $slot->total_order;
                         @endphp
                         <option value="{{ $slot->collection_slot_id }}" data-day="{{ $day }}" data-time="{{ $time }}" data-available="{{ $available }}">
-                            {{ $day }}, {{ $slot->slot_date->format('M d') }} - {{ $slot->slot_label }} ({{ $available }} left)
+                            {{ $day }}, {{ $slot->slot_date?->format('M d') ?? 'N/A' }} - {{ $slot->slot_label }} ({{ $available }} left)
                         </option>
                     @endforeach
                 @endforeach

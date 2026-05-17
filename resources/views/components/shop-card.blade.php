@@ -12,5 +12,5 @@
             </div>
         @endif
     </a>
-    <span class="text-[11px] font-bold text-center">{{ $shop->trader->shop_type ?? 'Shop' }}</span>
+    <span class="text-[11px] font-bold text-center">{{ $shop->shop_name }}</span>
 </div>

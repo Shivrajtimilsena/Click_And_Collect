@@ -42,16 +42,16 @@ return [
             'synchronous' => null,
         ],
         'oracle' => [
-            'driver'        => 'oracle',
-            'tns'           => env('DB_TNS', ''),
-            'host'          => env('DB_HOST', ''),
-            'port'          => env('DB_PORT', '1521'),
-            'database'      => env('DB_DATABASE', ''),
-            'service_name'  => env('DB_SERVICE_NAME', ''),
-            'username'      => env('DB_USERNAME', 'ECOM_APP'),
-            'password'      => env('DB_PASSWORD', 'Store_1234AB'),
-            'charset'       => env('DB_CHARSET', 'AL32UTF8'),
-            'prefix'        => env('DB_PREFIX', ''),
+            'driver' => 'oracle',
+            'tns' => env('DB_TNS', ''),
+            'host' => env('DB_HOST', ''),
+            'port' => env('DB_PORT', '1521'),
+            'database' => env('DB_DATABASE', ''),
+            'service_name' => env('DB_SERVICE_NAME', ''),
+            'username' => env('DB_USERNAME', 'ECOM_APP'),
+            'password' => env('DB_PASSWORD', 'Store_1234AB'),
+            'charset' => env('DB_CHARSET', 'AL32UTF8'),
+            'prefix' => env('DB_PREFIX', ''),
             'prefix_schema' => env('DB_SCHEMA_PREFIX', ''),
         ],
 
@@ -139,7 +139,7 @@ return [
     */
 
     'migrations' => [
-        'table' => 'migrations',
+        'table' => 'MIGRATION',
         'update_date_on_publish' => true,
     ],
 

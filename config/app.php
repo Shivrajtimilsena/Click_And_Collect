@@ -123,4 +123,15 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | APEX API Key
+    |--------------------------------------------------------------------------
+    |
+    | Shared secret key used by Oracle APEX to authenticate API calls.
+    |
+    */
+
+    'apex_api_key' => env('APEX_API_KEY'),
+
 ];

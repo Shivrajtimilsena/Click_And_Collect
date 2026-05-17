@@ -31,20 +31,22 @@
 
             <div class="flex gap-4">
                 @if (auth()->check())
-                    <a href="{{ route('wishlist.index') }}" class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform">
-                        <span class="material-symbols-outlined text-zinc-800">favorite</span>
-                    </a>
-                    <a href="{{ route('cart.index') }}" class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform relative">
-                        <span class="material-symbols-outlined text-zinc-800">shopping_bag</span>
-                        @php
-                            $cartCount = auth()->user()->customer?->getOrCreateCart()?->products()->count() ?? 0;
-                        @endphp
-                        @if ($cartCount > 0)
-                            <span class="absolute -top-2 -right-2 bg-primary text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                                {{ $cartCount }}
-                            </span>
-                        @endif
-                    </a>
+                    @if(Auth::user()->role !== 'TRADER')
+                        <a href="{{ route('wishlist.index') }}" class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform">
+                            <span class="material-symbols-outlined text-zinc-800">favorite</span>
+                        </a>
+                        <a href="{{ route('cart.index') }}" class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform relative">
+                            <span class="material-symbols-outlined text-zinc-800">shopping_bag</span>
+                            @php
+                                $cartCount = auth()->user()->customer?->getOrCreateCart()?->products()->count() ?? 0;
+                            @endphp
+                            @if ($cartCount > 0)
+                                <span class="absolute -top-2 -right-2 bg-primary text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                    {{ $cartCount }}
+                                </span>
+                            @endif
+                        </a>
+                    @endif
                     <div class="relative group">
                         <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform">
                             @if (auth()->user()->avatar_url)
@@ -59,10 +61,12 @@
                         </button>
                         <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-surface-container-high opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                             @if(Auth::user()->role === 'TRADER')
+                                <a href="{{ route('trader.settings') }}" class="block px-4 py-2 hover:bg-surface-container-high font-medium text-sm">Profile</a>
                                 <a href="{{ route('trader.dashboard') }}" class="block px-4 py-2 hover:bg-surface-container-high font-medium text-sm">Trader Portal</a>
+                            @else
+                                <a href="{{ route('profile.settings') }}" class="block px-4 py-2 hover:bg-surface-container-high font-medium text-sm">Profile</a>
+                                <a href="{{ route('profile.orders') }}" class="block px-4 py-2 hover:bg-surface-container-high font-medium text-sm">Orders</a>
                             @endif
-                            <a href="{{ route('profile.settings') }}" class="block px-4 py-2 hover:bg-surface-container-high font-medium text-sm">Profile</a>
-                            <a href="{{ route('profile.orders') }}" class="block px-4 py-2 hover:bg-surface-container-high font-medium text-sm">Orders</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="w-full text-left px-4 py-2 hover:bg-surface-container-high font-medium text-sm">Logout</button>

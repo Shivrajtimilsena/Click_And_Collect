@@ -34,6 +34,7 @@ class TraderController extends Controller
             'email' => 'required|string|email|max:255',
             'speciality' => 'required|string|max:300',
             'description' => 'required|string|max:600',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         TraderApplication::create([
@@ -42,6 +43,7 @@ class TraderController extends Controller
             'location' => $validated['location'],
             'speciality' => $validated['speciality'],
             'description' => $validated['description'],
+            'password' => $validated['password'],
             'status' => 'PENDING',
         ]);
 
@@ -191,7 +193,66 @@ class TraderController extends Controller
 
         return view('trader.settings', [
             'trader' => $trader,
+            'shop' => $trader->shops()->first(),
         ]);
+    }
+
+    public function updateSettings(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        $trader = $user->trader;
+        $shop = $trader->shops()->first();
+
+        $validated = $request->validate([
+            'shop_type' => 'required|string|max:50',
+            'logo_url' => 'nullable|string|max:500',
+            'shop_name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:600',
+            'shop_address' => 'nullable|string|max:500',
+            'shop_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $trader->update([
+            'shop_type' => $validated['shop_type'],
+            'logo_url' => $validated['logo_url'],
+        ]);
+
+        $shopData = [
+            'shop_name' => $validated['shop_name'],
+            'description' => $validated['description'],
+            'shop_address' => $validated['shop_address'],
+            'is_active' => $request->has('is_active'),
+        ];
+
+        if ($request->hasFile('shop_image')) {
+            $file = $request->file('shop_image');
+            $filename = 'shop_'.$shop->shop_id.'_'.time().'.'.$file->getClientOriginalExtension();
+            $path = $file->storeAs('shops', $filename, 'public');
+            $shopData['shop_image'] = '/storage/'.$path;
+        }
+
+        $shop->update($shopData);
+
+        return redirect()->route('trader.settings')->with('success', 'Settings updated successfully!');
+    }
+
+    public function changePassword(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        if ($user->password !== $validated['current_password']) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+        }
+
+        $user->update(['password' => $validated['new_password']]);
+
+        return redirect()->route('trader.settings')->with('success', 'Password changed successfully!');
     }
 
     private function getTraderAverageRating(array $shopIds): float

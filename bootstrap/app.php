@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => AdminMiddleware::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'api/trader-application/*/approve',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

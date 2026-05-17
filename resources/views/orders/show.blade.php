@@ -52,7 +52,7 @@
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between">
                             <span class="text-secondary">Order Date</span>
-                            <span class="font-bold">{{ $groupOrder->created_at->format('M d, Y h:i A') }}</span>
+                            <span class="font-bold">{{ $groupOrder->created_at?->format('M d, Y h:i A') ?? 'N/A' }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-secondary">Subtotal</span>

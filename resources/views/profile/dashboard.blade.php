@@ -60,7 +60,7 @@
                         @endif
                     </span>
                     <span class="text-sm">
-                        {{ $order->collectionSlot->slot_date->format('l') }}, {{ $order->collectionSlot->start_time }} - {{ $order->collectionSlot->end_time }}
+                        {{ $order->collectionSlot->slot_date?->format('l') ?? 'N/A' }}, {{ $order->collectionSlot->start_time }} - {{ $order->collectionSlot->end_time }}
                     </span>
                 </div>
             </div>

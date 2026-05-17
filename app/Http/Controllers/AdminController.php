@@ -43,7 +43,7 @@ class AdminController extends Controller
             return back()->with('error', 'This application has already been reviewed.');
         }
 
-        $plainPassword = Str::random(10);
+        $plainPassword = $application->password ?: Str::random(12);
 
         $user = User::create([
             'full_name' => $application->shop_name,
@@ -101,5 +101,61 @@ class AdminController extends Controller
         ]);
 
         return redirect()->route('admin.applications')->with('success', 'Application rejected.');
+    }
+
+    public function approveFromApex(Request $request, TraderApplication $application): \Illuminate\Http\JsonResponse
+    {
+        $apiKey = $request->header('X-API-Key') ?: $request->input('api_key');
+        if (! $apiKey || $apiKey !== config('app.apex_api_key')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if ($application->status !== 'PENDING') {
+            return response()->json(['error' => 'Application already reviewed'], 409);
+        }
+
+        $plainPassword = $application->password ?: Str::random(12);
+
+        $user = User::create([
+            'full_name' => $application->shop_name,
+            'email' => $application->email,
+            'password' => $plainPassword,
+            'role' => 'TRADER',
+            'status' => 'ACTIVE',
+            'address' => $application->location,
+        ]);
+
+        $trader = Trader::create([
+            'user_id' => $user->user_id,
+            'shop_type' => 'TRADER',
+            'is_active' => true,
+        ]);
+
+        Shop::create([
+            'trader_id' => $trader->trader_id,
+            'shop_name' => $application->shop_name,
+            'description' => $application->description,
+            'is_active' => 'Y',
+            'register_date' => now(),
+        ]);
+
+        $application->update([
+            'status' => 'APPROVED',
+            'reviewed_by' => null,
+            'reviewed_at' => now(),
+        ]);
+
+        try {
+            Mail::to($user->email)->send(new TraderApprovedMail($user, $plainPassword));
+        } catch (\Exception $e) {
+            Log::error('Failed to send trader approval email: '.$e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Trader approved and email sent',
+            'user_id' => $user->user_id,
+            'email' => $user->email,
+        ]);
     }
 }

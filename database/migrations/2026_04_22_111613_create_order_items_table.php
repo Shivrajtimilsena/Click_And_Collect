@@ -18,7 +18,7 @@ return new class extends Migration
 
             $table->foreign('order_id', 'fk_oi_order')
                 ->references('order_id')
-                ->on('order')
+                ->on('APP_ORDER')
                 ->onDelete('cascade');
 
             $table->foreign('product_id', 'fk_oi_product')
