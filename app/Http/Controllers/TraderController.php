@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Discount;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -483,5 +484,54 @@ class TraderController extends Controller
         ]);
 
         return redirect()->route('trader.inventory.index')->with('success', 'Product deactivated successfully!');
+    }
+
+    public function setFlashDeal(Request $request, Product $product): RedirectResponse
+    {
+        $user = auth()->user();
+        $trader = $user->trader;
+        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+
+        if (! in_array($product->shop_id, $shopIds)) {
+            abort(403, 'You do not have permission to modify this product.');
+        }
+
+        $validated = $request->validate([
+            'discount_price' => 'required|numeric|min:0.01|lt:' . $product->price,
+            'end_date' => 'required|date|after:now',
+        ]);
+
+        $discountPercentage = round((1 - $validated['discount_price'] / $product->price) * 100, 2);
+
+        if ($discountPercentage <= 0 || $discountPercentage >= 100) {
+            return back()->with('error', 'Invalid discount price.');
+        }
+
+        Discount::updateOrCreate(
+            ['product_id' => $product->product_id],
+            [
+                'discount_percentage' => $discountPercentage,
+                'start_date' => now(),
+                'end_date' => $validated['end_date'],
+                'is_active' => 'Y',
+            ]
+        );
+
+        return redirect()->route('trader.inventory.index')->with('success', 'Flash deal created successfully!');
+    }
+
+    public function removeFlashDeal(Product $product): RedirectResponse
+    {
+        $user = auth()->user();
+        $trader = $user->trader;
+        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+
+        if (! in_array($product->shop_id, $shopIds)) {
+            abort(403, 'You do not have permission to modify this product.');
+        }
+
+        $product->discount()->delete();
+
+        return redirect()->route('trader.inventory.index')->with('success', 'Flash deal removed.');
     }
 }

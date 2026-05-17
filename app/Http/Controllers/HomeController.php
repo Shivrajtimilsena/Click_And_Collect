@@ -22,7 +22,7 @@ class HomeController extends Controller
             ->select('product.*')
             ->orderBy('discount.discount_percentage', 'desc')
             ->with('shop', 'discount', 'reviews')
-            ->limit(10)
+            ->limit(14)
             ->get();
 
         // Featured products (ordered by most recent or by stock)

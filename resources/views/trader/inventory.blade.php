@@ -90,6 +90,17 @@
                         </td>
                         <td class="px-8 py-6 text-right">
                             <div class="flex items-center gap-4 justify-end">
+                                @if($product->discount)
+                                    <form action="{{ route('trader.product.flash-deal.remove', $product) }}" method="POST" class="inline" onsubmit="return confirm('Remove flash deal?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-green-600 text-sm font-bold hover:underline whitespace-nowrap">Remove Flash Deal</button>
+                                    </form>
+                                @else
+                                    <button onclick="openFlashDealModal({{ $product->product_id }}, '{{ $product->product_name }}', {{ $product->price }})" class="text-green-600 text-sm font-bold hover:underline whitespace-nowrap">
+                                        Add to Flash Deal
+                                    </button>
+                                @endif
                                 <a href="{{ route('trader.product.edit', $product) }}" class="text-primary text-sm font-bold hover:underline whitespace-nowrap">Edit</a>
                                 <form action="{{ route('trader.product.destroy', $product) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
                                     @csrf
@@ -115,4 +126,93 @@
     </div>
     @endif
 </div>
+
+<!-- Flash Deal Modal -->
+<div id="flashDealModal" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold">Set Flash Deal</h3>
+            <button onclick="closeFlashDealModal()" class="text-zinc-400 hover:text-zinc-600">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="mb-4">
+            <p class="text-sm text-zinc-600">Product: <strong id="modalProductName"></strong></p>
+            <p class="text-sm text-zinc-600">Original Price: <strong>&pound;<span id="modalOriginalPrice"></span></strong></p>
+        </div>
+        <form id="flashDealForm" method="POST">
+            @csrf
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold mb-1">Discounted Price (&pound;)</label>
+                    <input type="number" name="discount_price" id="discountPrice" step="0.01" min="0.01" required
+                        class="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 text-sm focus:ring-2 focus:ring-primary/20"
+                        placeholder="Enter discounted price">
+                    <p class="text-xs text-zinc-500 mt-1">Must be lower than original price</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-1">End Date</label>
+                    <input type="date" name="end_date" id="endDate" required
+                        class="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 text-sm focus:ring-2 focus:ring-primary/20"
+                        value="{{ date('Y-m-d', strtotime('+7 days')) }}">
+                </div>
+                <div id="pricePreview" class="hidden bg-zinc-50 p-4">
+                    <div class="flex items-baseline gap-3">
+                        <span class="text-lg font-bold text-green-600" id="previewNewPrice"></span>
+                        <span class="text-sm text-zinc-400 line-through" id="previewOldPrice"></span>
+                        <span class="text-xs font-bold text-red-600" id="previewDiscountPercent"></span>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-primary text-on-primary py-3 font-bold hover:opacity-90 transition-all">
+                    Set Flash Deal
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openFlashDealModal(productId, productName, originalPrice) {
+    document.getElementById('flashDealForm').action = '/trader/product/' + productId + '/flash-deal';
+    document.getElementById('modalProductName').textContent = productName;
+    document.getElementById('modalOriginalPrice').textContent = originalPrice.toFixed(2);
+    document.getElementById('flashDealModal').classList.remove('hidden');
+    document.getElementById('pricePreview').classList.add('hidden');
+}
+
+function closeFlashDealModal() {
+    document.getElementById('flashDealModal').classList.add('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('discountPrice');
+    if (input) {
+        input.addEventListener('input', function() {
+            var original = parseFloat(document.getElementById('modalOriginalPrice').textContent);
+            var discounted = parseFloat(this.value);
+            var preview = document.getElementById('pricePreview');
+            var previewNew = document.getElementById('previewNewPrice');
+            var previewOld = document.getElementById('previewOldPrice');
+            var previewPct = document.getElementById('previewDiscountPercent');
+
+            if (discounted > 0 && discounted < original) {
+                var pct = ((original - discounted) / original * 100).toFixed(1);
+                previewNew.textContent = '\u00a3' + discounted.toFixed(2);
+                previewOld.textContent = '\u00a3' + original.toFixed(2);
+                previewPct.textContent = '-' + pct + '%';
+                preview.classList.remove('hidden');
+            } else {
+                preview.classList.add('hidden');
+            }
+        });
+    }
+
+    var modal = document.getElementById('flashDealModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) closeFlashDealModal();
+        });
+    }
+});
+</script>
 @endsection
