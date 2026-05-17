@@ -32,7 +32,7 @@
                 <h2 class="text-xl font-extrabold tracking-tight">Flash Deals</h2>
                 <a href="{{ route('products.index', ['sort' => 'flash']) }}" class="text-primary text-sm font-bold hover:underline">View All</a>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
                 @forelse ($flashDeals as $product)
                     @include('components.flash-deal-card', ['product' => $product])
                 @empty
