@@ -32,8 +32,8 @@ class TraderController extends Controller
             'shop_name' => 'required|string|max:255',
             'location' => 'required|string|max:500',
             'email' => 'required|string|email|max:255',
-            'speciality' => 'required|string|max:300',
-            'description' => 'required|string|max:600',
+            'speciality' => 'required|string|max:100',
+            'description' => 'required|string|max:100',
             'password' => 'required|string|min:8|confirmed',
         ]);
 

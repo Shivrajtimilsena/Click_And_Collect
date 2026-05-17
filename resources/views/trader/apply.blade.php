@@ -109,6 +109,7 @@
                     class="w-full bg-surface-container-high border-0 rounded-md px-6 py-4 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline-variant resize-none @error('speciality') ring-2 ring-error @enderror" 
                     placeholder="Tell us about the craftsmanship behind your products..." 
                     rows="3"
+                    maxlength="100"
                     required
                 >{{ old('speciality') }}</textarea>
                 @error('speciality')
@@ -124,6 +125,7 @@
                     class="w-full bg-surface-container-high border-0 rounded-md px-6 py-4 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline-variant resize-none @error('description') ring-2 ring-error @enderror" 
                     placeholder="Tell customers about your shop, your story, and what customers can expect..." 
                     rows="4"
+                    maxlength="100"
                     required
                 >{{ old('description') }}</textarea>
                 @error('description')
