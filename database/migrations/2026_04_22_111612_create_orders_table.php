@@ -25,7 +25,7 @@ return new class extends Migration
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
 
-            $table->foreign('customer_id', 'fk_orders_customer')
+            $table->foreign('customer_id', 'fk_orders_customer')    
                 ->references('customer_id')
                 ->on('customer')
                 ->onDelete('cascade');

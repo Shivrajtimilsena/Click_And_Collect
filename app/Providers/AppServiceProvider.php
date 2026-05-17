@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Overrides\CustomOracleGrammar;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->app->booted(function () {
+            $connection = DB::connection('oracle');
+            $connection->setSchemaGrammar(new CustomOracleGrammar($connection));
+        });
     }
 }
