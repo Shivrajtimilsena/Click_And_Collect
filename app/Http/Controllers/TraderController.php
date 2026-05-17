@@ -29,11 +29,11 @@ class TraderController extends Controller
     public function submitApplication(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'shop_name' => 'required|string|max:255',
+            'shop_name' => 'required|string|max:100',
             'location' => 'required|string|max:500',
             'email' => 'required|string|email|max:255',
-            'speciality' => 'required|string|max:100',
-            'description' => 'required|string|max:100',
+            'speciality' => 'required|string|max:500',
+            'description' => 'required|string|max:1000',
             'password' => 'required|string|min:8|confirmed',
         ]);
 

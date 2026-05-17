@@ -46,22 +46,25 @@
             @csrf
             
             <!-- Shop Details Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-2">
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
                     <label for="shop_name" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Shop Name</label>
-                    <input 
-                        type="text" 
-                        name="shop_name" 
-                        id="shop_name"
-                        value="{{ old('shop_name') }}"
-                        class="w-full bg-surface-container-high border-0 rounded-md px-6 py-4 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline-variant @error('shop_name') ring-2 ring-error @enderror" 
-                        placeholder="e.g. The Golden Crust"
-                        required
-                    />
-                    @error('shop_name')
-                        <p class="text-xs text-error ml-4">{{ $message }}</p>
-                    @enderror
+                    <span class="text-[10px] text-secondary" id="count-shop_name">0/100</span>
                 </div>
+                <input 
+                    type="text" 
+                    name="shop_name" 
+                    id="shop_name"
+                    value="{{ old('shop_name') }}"
+                    oninput="updateCount('shop_name', 'count-shop_name')"
+                    class="w-full bg-surface-container-high border-0 rounded-md px-6 py-4 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline-variant @error('shop_name') ring-2 ring-error @enderror" 
+                    placeholder="e.g. The Golden Crust"
+                    maxlength="100"
+                    required
+                />
+                @error('shop_name')
+                    <p class="text-xs text-error ml-4">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- Address Section -->
@@ -82,30 +85,32 @@
             </div>
 
             <!-- Contact Info -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-2">
-                    <label for="email" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Contact Email</label>
-                    <input 
-                        type="email" 
-                        name="email" 
-                        id="email"
-                        value="{{ old('email') }}"
-                        class="w-full bg-surface-container-high border-0 rounded-md px-6 py-4 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline-variant @error('email') ring-2 ring-error @enderror" 
-                        placeholder="artisan@localcurator.com"
-                        required
-                    />
-                    @error('email')
-                        <p class="text-xs text-error ml-4">{{ $message }}</p>
-                    @enderror
-                </div>
+            <div class="space-y-2">
+                <label for="email" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Contact Email</label>
+                <input 
+                    type="email" 
+                    name="email" 
+                    id="email"
+                    value="{{ old('email') }}"
+                    class="w-full bg-surface-container-high border-0 rounded-md px-6 py-4 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline-variant @error('email') ring-2 ring-error @enderror" 
+                    placeholder="artisan@localcurator.com"
+                    required
+                />
+                @error('email')
+                    <p class="text-xs text-error ml-4">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- Description -->
             <div class="space-y-2">
-                <label for="speciality" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">What Makes Your Shop Special</label>
+                <div class="flex justify-between items-center">
+                    <label for="speciality" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">What Makes Your Shop Special</label>
+                    <span class="text-[10px] text-secondary" id="count-speciality">0/100</span>
+                </div>
                 <textarea 
                     name="speciality" 
                     id="speciality"
+                    oninput="updateCount('speciality', 'count-speciality')"
                     class="w-full bg-surface-container-high border-0 rounded-md px-6 py-4 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline-variant resize-none @error('speciality') ring-2 ring-error @enderror" 
                     placeholder="Tell us about the craftsmanship behind your products..." 
                     rows="3"
@@ -118,10 +123,14 @@
             </div>
 
             <div class="space-y-2">
-                <label for="description" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">About Your Goods</label>
+                <div class="flex justify-between items-center">
+                    <label for="description" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">About Your Goods</label>
+                    <span class="text-[10px] text-secondary" id="count-description">0/100</span>
+                </div>
                 <textarea 
                     name="description" 
                     id="description"
+                    oninput="updateCount('description', 'count-description')"
                     class="w-full bg-surface-container-high border-0 rounded-md px-6 py-4 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline-variant resize-none @error('description') ring-2 ring-error @enderror" 
                     placeholder="Tell customers about your shop, your story, and what customers can expect..." 
                     rows="4"
@@ -234,5 +243,10 @@ function togglePassword(inputId, btn) {
         input.type = 'password';
         icon.textContent = 'visibility';
     }
+}
+
+function updateCount(inputId, countId) {
+    const input = document.getElementById(inputId);
+    document.getElementById(countId).textContent = input.value.length + '/100';
 }
 </script>

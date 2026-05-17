@@ -283,5 +283,6 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-// API endpoint for APEX to call when approving trader applications (no auth - uses API key)
+// API endpoints for APEX to call (no auth - uses API key)
 Route::post('/api/trader-application/{application}/approve', [AdminController::class, 'approveFromApex'])->name('apex.trader.approve');
+Route::post('/api/trader-application/{application}/reject', [AdminController::class, 'rejectFromApex'])->name('apex.trader.reject');
