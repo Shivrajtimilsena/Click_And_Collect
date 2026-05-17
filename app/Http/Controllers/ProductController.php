@@ -63,13 +63,6 @@ class ProductController extends Controller
             'newest' => $query->latest(),
             'price_low' => $query->orderBy('price'),
             'price_high' => $query->orderByDesc('price'),
-            'rating' => $query->orderByDesc(
-                function ($q) {
-                    return $q->from('review')
-                        ->selectRaw('avg(review_rating)')
-                        ->whereColumn('product_id', 'product.product_id');
-                }
-            ),
             default => $query->leftJoin('discount', 'product.product_id', '=', 'discount.product_id')
                 ->select('product.*')
                 ->orderByRaw('nvl(discount.discount_percentage, 0) desc'),

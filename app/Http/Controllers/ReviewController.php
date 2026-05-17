@@ -12,7 +12,6 @@ class ReviewController extends Controller
     public function store(Request $request, Product $product): RedirectResponse
     {
         $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:500',
         ]);
 
@@ -20,7 +19,6 @@ class ReviewController extends Controller
 
         $product->reviews()->create([
             'customer_id' => $customer->customer_id,
-            'review_rating' => $request->rating,
             'review' => $request->comment,
         ]);
 

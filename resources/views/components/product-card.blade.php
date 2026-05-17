@@ -26,12 +26,6 @@
         {{ $product->product_name }}
     </a>
 
-    <div class="flex items-center gap-1 mt-1 text-[10px] text-orange-500">
-        <span class="material-symbols-outlined text-[10px] fill-current" style="font-variation-settings: 'FILL' 1;">star</span>
-        <span class="font-bold">{{ $product->reviews && $product->reviews->count() > 0 ? number_format($product->reviews->avg('rating'), 1) : '0.0' }}</span>
-        <span class="text-on-surface-variant">({{ $product->reviews ? $product->reviews->count() : 0 }})</span>
-    </div>
-
     <div class="flex items-center justify-between mt-2">
         <span class="text-sm font-black">${{ number_format($product->discounted_price, 2) }}</span>
         @if ($product->discount && $product->discount->discount_percentage > 0)

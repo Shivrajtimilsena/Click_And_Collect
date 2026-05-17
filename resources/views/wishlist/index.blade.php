@@ -33,12 +33,6 @@
                         {{ $item->product->product_name }}
                     </a>
 
-                    <div class="flex items-center gap-1 mt-1 text-[10px] text-orange-500">
-                        <span class="material-symbols-outlined text-[10px] fill-current" style="font-variation-settings: 'FILL' 1;">star</span>
-                        <span class="font-bold">{{ number_format($item->product->reviews->avg('review_rating') ?? 0, 1) }}</span>
-                        <span class="text-on-surface-variant">({{ $item->product->reviews->count() }})</span>
-                    </div>
-
                     <div class="flex items-center justify-between mt-2">
                         <span class="text-sm font-black">${{ number_format($item->product->discounted_price, 2) }}</span>
                     </div>

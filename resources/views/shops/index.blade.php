@@ -24,13 +24,7 @@
                     <p class="text-sm text-primary font-bold mb-2">{{ $shop->trader->shop_type ?? 'Shop' }}</p>
                     <p class="text-on-surface-variant text-sm mb-4">{{ $shop->description ?? 'Quality local products' }}</p>
                     
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-1">
-                            <span class="material-symbols-outlined text-orange-500 fill-current">star</span>
-                            <span class="font-bold">{{ number_format($shop->rating ?? 0, 1) }}</span>
-                        </div>
-                        <span class="text-sm text-on-surface-variant">{{ $shop->products->count() }} Products</span>
-                    </div>
+                    <span class="text-sm text-on-surface-variant">{{ $shop->products->count() }} Products</span>
                 </div>
             </a>
         @empty

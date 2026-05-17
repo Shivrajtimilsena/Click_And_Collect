@@ -21,7 +21,6 @@
                     <option value="newest" {{ request('sort') === 'newest' ? 'selected' : '' }}>Newest</option>
                     <option value="price_low" {{ request('sort') === 'price_low' ? 'selected' : '' }}>Price: Low to High</option>
                     <option value="price_high" {{ request('sort') === 'price_high' ? 'selected' : '' }}>Price: High to Low</option>
-                    <option value="rating" {{ request('sort') === 'rating' ? 'selected' : '' }}>Rating</option>
                 </select>
             </form>
         </div>

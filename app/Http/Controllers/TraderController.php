@@ -7,7 +7,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Models\Review;
 use App\Models\Trader;
 use App\Models\TraderApplication;
 use Illuminate\Http\RedirectResponse;
@@ -101,8 +100,6 @@ class TraderController extends Controller
             ->limit(10)
             ->get();
 
-        $avgRating = $this->getTraderAverageRating($shopIds);
-
         $weeklyRevenue = $this->getWeeklyRevenue($shopIds);
         $monthlyRevenue = $this->getMonthlyRevenue($shopIds);
         $yearlyRevenue = $this->getYearlyRevenue($shopIds);
@@ -113,7 +110,6 @@ class TraderController extends Controller
             'activeOrders' => $activeOrders,
             'totalRevenue' => $totalRevenue,
             'lowStockItems' => $lowStockItems,
-            'avgRating' => $avgRating,
             'recentOrders' => $recentOrders,
             'weeklyRevenue' => $weeklyRevenue,
             'monthlyRevenue' => $monthlyRevenue,
@@ -227,14 +223,6 @@ class TraderController extends Controller
         $user->update(['password' => $validated['new_password']]);
 
         return redirect()->route('trader.settings')->with('success', 'Password changed successfully!');
-    }
-
-    private function getTraderAverageRating(array $shopIds): float
-    {
-        return Review::whereHas('product.shop', function ($query) use ($shopIds) {
-            $query->whereIn('shop_id', $shopIds);
-        })
-            ->avg('review_rating') ?? 0;
     }
 
     private function getWeeklyRevenue(array $shopIds): array

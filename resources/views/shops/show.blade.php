@@ -21,10 +21,6 @@
             
             <div class="flex items-center gap-6">
                 <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="font-bold">{{ number_format($shop->rating ?? 0, 1) }} Rating</span>
-                </div>
-                <div class="flex items-center gap-2">
                     <span class="material-symbols-outlined">shopping_bag</span>
                     <span class="font-bold">{{ $shop->products->count() }} Products</span>
                 </div>

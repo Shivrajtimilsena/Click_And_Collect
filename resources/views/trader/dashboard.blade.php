@@ -5,7 +5,7 @@
 @section('header-title', 'Overview / Dashboard')
 
 @section('content')
-<section class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <div class="bg-surface-container-lowest p-8 border border-surface-container-high relative overflow-hidden group">
         <div class="flex flex-col gap-2 relative z-10">
             <span class="text-xs font-bold text-secondary uppercase tracking-widest">Active Orders</span>
@@ -40,18 +40,6 @@
             </span>
         </div>
         <span class="material-symbols-outlined absolute -right-4 -bottom-4 text-8xl text-surface-container-high opacity-30 group-hover:opacity-50 transition-opacity">inventory_2</span>
-    </div>
-
-    <div class="bg-on-background p-8 border border-inverse-surface relative overflow-hidden group">
-        <div class="flex flex-col gap-2 relative z-10">
-            <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Customer Satisfaction</span>
-            <span class="text-4xl font-headline font-extrabold text-white">{{ number_format($avgRating, 1) }}<span class="text-lg text-zinc-500">/5</span></span>
-            <div class="flex gap-1">
-                @for($i = 1; $i <= 5; $i++)
-                    <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' {{ $i <= round($avgRating) ? 1 : 0 }}, 'wght' 400, 'GRAD' 0, 'opsz' 24;">star</span>
-                @endfor
-            </div>
-        </div>
     </div>
 </section>
 
