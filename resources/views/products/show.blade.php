@@ -18,14 +18,6 @@
             <p class="text-primary font-bold text-sm mb-2">{{ $product->shop->shop_name ?? 'Shop' }}</p>
             <h1 class="text-4xl font-extrabold mb-4">{{ $product->product_name }}</h1>
             
-            <div class="flex items-center gap-4 mb-4">
-                <div class="flex items-center gap-1">
-                    <span class="material-symbols-outlined text-orange-500 fill-current">star</span>
-                    <span class="font-bold">{{ number_format($product->reviews->avg('review_rating') ?? 0, 1) }}</span>
-                    <span class="text-on-surface-variant">({{ $product->reviews->count() }} reviews)</span>
-                </div>
-            </div>
-
             <div class="space-y-2">
                 <div class="text-sm text-on-surface-variant">
                     <strong>Availability:</strong> 
@@ -119,17 +111,6 @@
             <form action="{{ route('reviews.store', $product) }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-sm font-bold mb-2">Rating</label>
-                    <div class="flex gap-2">
-                        @for ($i = 1; $i <= 5; $i++)
-                            <label class="cursor-pointer">
-                                <input type="radio" name="rating" value="{{ $i }}" class="sr-only" required>
-                                <span class="material-symbols-outlined text-3xl fill-current hover:text-orange-500" style="color: var(--star-color);">star</span>
-                            </label>
-                        @endfor
-                    </div>
-                </div>
-                <div>
                     <label class="block text-sm font-bold mb-2">Comment</label>
                     <textarea name="comment" class="w-full px-4 py-3 border border-surface-container rounded-lg" rows="4" placeholder="Share your experience..."></textarea>
                 </div>
@@ -144,17 +125,10 @@
         @forelse ($product->reviews()->latest()->paginate(5) as $review)
             <div class="bg-surface-container-lowest rounded-lg p-6">
                 <div class="flex items-start justify-between mb-2">
-                    <div>
-                        <p class="font-bold">{{ $review->customer->user->name }}</p>
-                        <div class="flex items-center gap-1">
-                            @for ($i = 0; $i < $review->review_rating; $i++)
-                                <span class="material-symbols-outlined text-orange-500 fill-current text-sm">star</span>
-                            @endfor
-                        </div>
-                    </div>
+                    <p class="font-bold">{{ $review->customer->user->full_name }}</p>
                     <p class="text-sm text-on-surface-variant">{{ $review->created_at->diffForHumans() }}</p>
                 </div>
-                <p class="text-on-surface-variant">{{ $review->comment }}</p>
+                <p class="text-on-surface-variant">{{ $review->review }}</p>
             </div>
         @empty
             <p class="text-center text-on-surface-variant py-8">No reviews yet</p>

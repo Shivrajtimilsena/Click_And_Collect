@@ -6,9 +6,9 @@
 <div class="space-y-8">
     <!-- Shop Header -->
     <div class="bg-gradient-to-r from-primary to-primary-fixed rounded-lg p-12 text-white relative overflow-hidden">
-        @if ($shop->trader->user->avatar_url)
+        @if ($shop->shop_image)
             <img 
-                src="{{ $shop->trader->user->avatar_url }}" 
+                src="{{ $shop->shop_image }}" 
                 alt="{{ $shop->shop_name }}"
                 class="absolute inset-0 w-full h-full object-cover"
             />
@@ -20,10 +20,6 @@
             <p class="text-lg opacity-90 mb-6">{{ $shop->description ?? 'Quality local products' }}</p>
             
             <div class="flex items-center gap-6">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="font-bold">{{ number_format($shop->rating ?? 0, 1) }} Rating</span>
-                </div>
                 <div class="flex items-center gap-2">
                     <span class="material-symbols-outlined">shopping_bag</span>
                     <span class="font-bold">{{ $shop->products->count() }} Products</span>

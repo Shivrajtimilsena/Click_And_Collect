@@ -208,5 +208,7 @@
             </div>
         </div>
     @endauth
+
+    @yield('scripts')
 </body>
 </html>

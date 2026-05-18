@@ -47,7 +47,7 @@
             @foreach($orders as $order)
             <div class="order">
                 <div class="order-header">
-                    {{ $order->collectionSlot?->shop->shop_name ?? 'Shop' }}
+                    {{ $order->shop->shop_name ?? 'Shop' }}
                     <span style="float: right;">#ORD-{{ $order->order_id }}</span>
                 </div>
                 <table class="items">

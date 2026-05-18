@@ -48,8 +48,4 @@ class Shop extends Model
         return $this->belongsTo(Trader::class, 'trader_id', 'trader_id');
     }
 
-    public function collectionSlots(): HasMany
-    {
-        return $this->hasMany(CollectionSlot::class, 'shop_id', 'shop_id');
-    }
 }

@@ -15,6 +15,17 @@ class ProductController extends Controller
         $categories = ProductCategory::all();
         $query = Product::with('shop', 'reviews');
 
+        // Filter by search query
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('product_name', 'like', '%'.$search.'%')
+                  ->orWhere('description', 'like', '%'.$search.'%')
+                  ->orWhereHas('shop', function ($sq) use ($search) {
+                      $sq->where('shop_name', 'like', '%'.$search.'%');
+                  });
+            });
+        }
+
         // Filter by category - try to match slug, name, or ID
         if ($request->filled('category')) {
             $catInput = trim($request->category);
@@ -63,24 +74,18 @@ class ProductController extends Controller
             'newest' => $query->latest(),
             'price_low' => $query->orderBy('price'),
             'price_high' => $query->orderByDesc('price'),
-            'rating' => $query->orderByDesc(
-                function ($q) {
-                    return $q->from('review')
-                        ->selectRaw('avg(review_rating)')
-                        ->whereColumn('product_id', 'product.product_id');
-                }
-            ),
             default => $query->leftJoin('discount', 'product.product_id', '=', 'discount.product_id')
                 ->select('product.*')
                 ->orderByRaw('nvl(discount.discount_percentage, 0) desc'),
         };
 
-        $products = $query->paginate(24);
+        $products = $query->paginate(24)->appends(request()->query());
 
         return view('products.index', [
             'products' => $products,
             'categories' => $categories,
             'sort' => $sort,
+            'search' => $request->get('search'),
         ]);
     }
 

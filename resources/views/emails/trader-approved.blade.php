@@ -26,9 +26,8 @@
             <p><strong>Your login credentials:</strong></p>
             <div class="credentials">
                 <p><strong>Email:</strong> {{ $user->email }}</p>
-                <p><strong>Temporary Password:</strong> {{ $plainPassword }}</p>
+                <p><strong>Password:</strong> {{ $plainPassword }}</p>
             </div>
-            <p><strong>Important:</strong> This is a one-time password. Please change it after your first login for security.</p>
             <p style="text-align: center; margin-top: 24px;">
                 <a href="{{ url('/trader/dashboard') }}" class="btn">Go to Trader Dashboard</a>
             </p>

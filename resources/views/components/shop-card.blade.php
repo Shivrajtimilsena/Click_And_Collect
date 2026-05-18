@@ -1,8 +1,8 @@
 <div class="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
     <a href="{{ route('shops.show', $shop) }}" class="w-20 h-20 rounded-full border-4 border-transparent group-hover:border-primary transition-all overflow-hidden bg-white shadow-sm p-1">
-        @if ($shop->trader->user->avatar_url)
+        @if ($shop->shop_image)
             <img 
-                src="{{ $shop->trader->user->avatar_url }}" 
+                src="{{ $shop->shop_image }}" 
                 alt="{{ $shop->shop_name }}"
                 class="w-full h-full rounded-full object-cover"
             />

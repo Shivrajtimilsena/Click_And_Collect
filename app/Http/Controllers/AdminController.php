@@ -13,7 +13,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -45,12 +44,12 @@ class AdminController extends Controller
             return back()->with('error', 'This application has already been reviewed.');
         }
 
-        $plainPassword = $application->password ?: Str::random(12);
+        $password = $application->password;
 
         $user = User::create([
             'full_name' => $application->shop_name,
             'email' => $application->email,
-            'password' => $plainPassword,
+            'password' => $password,
             'role' => 'TRADER',
             'status' => 'ACTIVE',
             'address' => $application->location,
@@ -77,7 +76,7 @@ class AdminController extends Controller
         ]);
 
         try {
-            Mail::to($user->email)->send(new TraderApprovedMail($user, $plainPassword));
+            Mail::to($user->email)->send(new TraderApprovedMail($user, $password));
         } catch (\Exception $e) {
             Log::error('Failed to send trader approval email: '.$e->getMessage());
         }
@@ -139,12 +138,12 @@ class AdminController extends Controller
             return response()->json(['error' => 'Application already reviewed'], 409);
         }
 
-        $plainPassword = $application->password ?: Str::random(12);
+        $password = $application->password;
 
         $user = User::create([
             'full_name' => $application->shop_name,
             'email' => $application->email,
-            'password' => $plainPassword,
+            'password' => $password,
             'role' => 'TRADER',
             'status' => 'ACTIVE',
             'address' => $application->location,
@@ -171,7 +170,7 @@ class AdminController extends Controller
         ]);
 
         try {
-            Mail::to($user->email)->send(new TraderApprovedMail($user, $plainPassword));
+            Mail::to($user->email)->send(new TraderApprovedMail($user, $password));
         } catch (\Exception $e) {
             Log::error('Failed to send trader approval email: '.$e->getMessage());
         }
