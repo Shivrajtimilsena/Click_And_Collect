@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CollectionSlot;
+use App\Models\Coupon;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -157,17 +158,36 @@ class OrderController extends Controller
 
             $group_id = (string) Str::uuid();
 
-            DB::transaction(function () use ($shopGroups, $customer, $slot, $group_id) {
+            $combinedTotal = $cartItems->sum(fn ($item) => $item->product->discounted_price * $item->quantity);
+
+            $couponCode = $request->get('coupon_code');
+            $couponId = null;
+            $totalCouponDiscount = 0;
+            if ($couponCode) {
+                $coupon = Coupon::where('coupon_code', $couponCode)->first();
+                if ($coupon && $coupon->isValid()) {
+                    $couponId = $coupon->coupon_id;
+                    $totalCouponDiscount = CouponController::calculateDiscount($coupon, $combinedTotal);
+                }
+            }
+
+            DB::transaction(function () use ($shopGroups, $customer, $slot, $group_id, $combinedTotal, $couponId, $totalCouponDiscount) {
                 foreach ($shopGroups as $shopId => $items) {
                     $orderAmount = $items->sum(fn ($item) => $item->product->discounted_price * $item->quantity);
-                    $totalAmount = max(0, $orderAmount);
+                    $ratio = $combinedTotal > 0 ? $orderAmount / $combinedTotal : 0;
+                    $shopDiscount = round($totalCouponDiscount * $ratio, 2);
+                    if ($ratio > 0 && $shopDiscount == 0) {
+                        $shopDiscount = 0.01;
+                    }
+                    $totalAmount = max(0, $orderAmount - $shopDiscount);
 
                     $order = $customer->orders()->create([
                         'shop_id' => $shopId,
+                        'coupon_id' => $couponId,
                         'collection_slot_id' => $slot->collection_slot_id,
                         'group_id' => $group_id,
                         'order_amount' => $orderAmount,
-                        'discount_amount' => 0,
+                        'discount_amount' => $shopDiscount,
                         'total_amount' => $totalAmount,
                         'order_status' => 'PENDING',
                         'payment_status' => 'UNPAID',

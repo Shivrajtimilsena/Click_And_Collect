@@ -137,6 +137,9 @@ Route::get('/category/{slug}', function ($slug) {
 Route::get('/shops', [ShopController::class, 'index'])->name('shops.index');
 Route::get('/shops/{shop}', [ShopController::class, 'show'])->name('shops.show');
 
+// Coupon validation
+Route::post('/coupon/validate', [App\Http\Controllers\CouponController::class, 'validate'])->name('coupon.validate');
+
 // Forgot / Reset Password (verification code flow)
 Route::get('/forgot-password', function () {
     return view('auth.forgot-password');

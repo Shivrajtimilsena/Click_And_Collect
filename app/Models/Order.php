@@ -20,6 +20,7 @@ class Order extends Model
     protected $fillable = [
         'customer_id',
         'shop_id',
+        'coupon_id',
         'collection_slot_id',
         'group_id',
         'order_amount',
@@ -59,6 +60,11 @@ class Order extends Model
     public function shop()
     {
         return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
+    }
+
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class, 'coupon_id', 'coupon_id');
     }
 
     public function payment()
