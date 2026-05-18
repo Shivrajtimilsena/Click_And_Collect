@@ -4,7 +4,7 @@
 
 @section('content')
     <section class="relative overflow-hidden bg-white">
-        <div class="absolute inset-x-0 top-0 h-72 bg-gradient-to-br from-primary/10 via-tertiary-fixed/10 to-surface-container-low"></div>
+        <div class="absolute inset-x-0 top-0 h-72 bg-linear-to-br from-primary/10 via-tertiary-fixed/10 to-surface-container-low"></div>
         <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
             <div class="grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-8 lg:gap-12 items-start">
                 <div class="space-y-8">

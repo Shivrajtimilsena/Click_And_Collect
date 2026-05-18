@@ -77,6 +77,26 @@
                                     <span class="font-bold text-on-surface">&pound;{{ number_format($order->total_amount, 2) }}</span>
                                 </div>
                             </div>
+                            <div class="mb-4 grid gap-3 md:grid-cols-3">
+                                <div class="bg-surface-container-low px-4 py-3">
+                                    <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">RFID Pickup Tag</p>
+                                    <p class="mt-1 font-mono text-sm font-bold text-on-surface">
+                                        {{ $order->rfid_uid ?? 'Not assigned yet' }}
+                                    </p>
+                                </div>
+                                <div class="bg-surface-container-low px-4 py-3">
+                                    <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">Collection Method</p>
+                                    <p class="mt-1 text-sm font-bold text-on-surface">
+                                        RFID counter scan
+                                    </p>
+                                </div>
+                                <div class="bg-surface-container-low px-4 py-3">
+                                    <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">Collected At</p>
+                                    <p class="mt-1 text-sm font-bold text-on-surface">
+                                        {{ $order->collected_at ? $order->collected_at->format('M d, Y H:i') : 'Awaiting collection' }}
+                                    </p>
+                                </div>
+                            </div>
                             <div class="flex flex-wrap gap-2">
                                 @foreach($order->items as $item)
                                     <span class="text-xs text-on-surface-variant bg-surface-container-low px-2 py-1">

@@ -5,6 +5,49 @@
 @section('header-title', 'Orders')
 
 @section('content')
+<div class="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_360px]">
+    <div class="bg-surface-container-lowest border border-surface-container-high p-6">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <h3 class="text-lg font-bold font-headline">RFID Collection</h3>
+                <p class="text-sm text-secondary mt-1">Scan an assigned RFID tag to complete an order that is marked ready.</p>
+            </div>
+            <span class="material-symbols-outlined text-primary">contactless</span>
+        </div>
+        <form method="POST" action="{{ route('trader.rfid.scan') }}" class="mt-5 flex flex-col gap-3 sm:flex-row">
+            @csrf
+            <input
+                list="known-rfid-tags"
+                name="rfid_uid"
+                required
+                class="min-w-0 flex-1 border border-surface-container-high bg-white px-4 py-3 text-sm font-bold uppercase tracking-wider focus:border-primary focus:outline-none"
+                placeholder="Scan or enter RFID UID"
+            >
+            <button class="bg-primary text-on-primary px-5 py-3 text-xs font-bold uppercase tracking-widest hover:opacity-90">
+                Complete Collection
+            </button>
+        </form>
+        <datalist id="known-rfid-tags">
+            <option value="53687F13"></option>
+            <option value="7369771A"></option>
+        </datalist>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-surface-container-high p-6">
+        <h3 class="text-lg font-bold font-headline">Registered Test Tags</h3>
+        <div class="mt-4 space-y-3">
+            <div class="flex items-center justify-between border border-surface-container-high bg-surface-container-low px-4 py-3">
+                <span class="text-sm text-secondary">Tag 1</span>
+                <span class="font-mono text-sm font-bold">53687F13</span>
+            </div>
+            <div class="flex items-center justify-between border border-surface-container-high bg-surface-container-low px-4 py-3">
+                <span class="text-sm text-secondary">Tag 2</span>
+                <span class="font-mono text-sm font-bold">7369771A</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="bg-surface-container-lowest border border-surface-container-high overflow-hidden">
     <div class="px-8 py-6 flex justify-between items-center border-b border-surface-container-high">
         <div>
@@ -29,6 +72,7 @@
                     <th class="px-8 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest">Customer</th>
                     <th class="px-8 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest">Collection Slot</th>
                     <th class="px-8 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest">Items</th>
+                    <th class="px-8 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest">RFID</th>
                     <th class="px-8 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest">Status</th>
                     <th class="px-8 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest text-right">Total</th>
                     <th class="px-8 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest text-right">Actions</th>
@@ -71,6 +115,28 @@
                                 @endif
                             </div>
                         </td>
+                        <td class="px-8 py-6 min-w-64">
+                            <form method="POST" action="{{ route('trader.orders.rfid.assign', $order) }}" class="space-y-2">
+                                @csrf
+                                <div class="flex">
+                                    <input
+                                        list="known-rfid-tags"
+                                        name="rfid_uid"
+                                        value="{{ $order->rfid_uid }}"
+                                        placeholder="RFID UID"
+                                        class="w-36 border border-surface-container-high bg-white px-3 py-2 font-mono text-xs uppercase focus:border-primary focus:outline-none"
+                                    >
+                                    <button class="border border-l-0 border-surface-container-high bg-surface-container-low px-3 text-[10px] font-bold uppercase tracking-wider hover:bg-surface-container-high">
+                                        Save
+                                    </button>
+                                </div>
+                                @if($order->rfid_assigned_at)
+                                    <p class="text-[10px] uppercase tracking-wider text-secondary">Assigned {{ $order->rfid_assigned_at->format('M d, H:i') }}</p>
+                                @else
+                                    <p class="text-[10px] uppercase tracking-wider text-secondary">No tag assigned</p>
+                                @endif
+                            </form>
+                        </td>
                         <td class="px-8 py-6">
                             @php
                                 $statusColors = [
@@ -97,7 +163,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-8 py-12 text-center text-secondary">
+                        <td colspan="8" class="px-8 py-12 text-center text-secondary">
                             No orders found
                         </td>
                     </tr>

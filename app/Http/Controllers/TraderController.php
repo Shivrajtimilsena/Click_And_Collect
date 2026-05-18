@@ -156,7 +156,13 @@ class TraderController extends Controller
             return response()->json(['error' => 'You do not have permission to update this order.'], 403);
         }
 
-        $order->update(['order_status' => $validated['status']]);
+        $updates = ['order_status' => $validated['status']];
+
+        if ($validated['status'] === 'COMPLETED' && ! $order->collected_at) {
+            $updates['collected_at'] = now();
+        }
+
+        $order->update($updates);
 
         return response()->json([
             'success' => true,
