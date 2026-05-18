@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\OrderConfirmationMail;
 use App\Models\CollectionSlot;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Services\PayPalService;
 use Carbon\Carbon;
@@ -56,6 +57,16 @@ class PayPalController extends Controller
             ];
         }
 
+        $couponDiscount = 0;
+        if ($couponCode = $request->get('coupon_code')) {
+            $coupon = Coupon::where('coupon_code', $couponCode)->first();
+            if ($coupon && $coupon->isValid()) {
+                $couponDiscount = CouponController::calculateDiscount($coupon, $total);
+            }
+        }
+
+        $total = max(0, $total - $couponDiscount);
+
         try {
             $paypalOrder = $this->paypalService->createOrder($total, config('paypal.currency'), $paypalItems);
 
@@ -72,6 +83,7 @@ class PayPalController extends Controller
         $request->validate([
             'paypal_order_id' => 'required|string',
             'collection_slot_id' => 'required|exists:collection_slot,collection_slot_id',
+            'coupon_code' => 'nullable|string|max:100',
         ]);
 
         $user = Auth::user();
@@ -107,19 +119,38 @@ class PayPalController extends Controller
             $shopGroups = $cartItems->groupBy(fn ($item) => $item->product->shop_id);
             $group_id = (string) Str::uuid();
 
+            $combinedTotal = $cartItems->sum(fn ($item) => $item->product->discounted_price * $item->quantity);
+
+            $couponCode = $request->get('coupon_code');
+            $couponId = null;
+            $totalCouponDiscount = 0;
+            if ($couponCode) {
+                $coupon = Coupon::where('coupon_code', $couponCode)->first();
+                if ($coupon && $coupon->isValid()) {
+                    $couponId = $coupon->coupon_id;
+                    $totalCouponDiscount = CouponController::calculateDiscount($coupon, $combinedTotal);
+                }
+            }
+
             $orders = [];
 
-            DB::transaction(function () use ($shopGroups, $customer, $slot, $group_id, $paypalTxnId, &$orders) {
+            DB::transaction(function () use ($shopGroups, $customer, $slot, $group_id, $paypalTxnId, $combinedTotal, $couponId, $totalCouponDiscount, &$orders) {
                 foreach ($shopGroups as $shopId => $items) {
                     $orderAmount = $items->sum(fn ($item) => $item->product->discounted_price * $item->quantity);
-                    $totalAmount = max(0, $orderAmount);
+                    $ratio = $combinedTotal > 0 ? $orderAmount / $combinedTotal : 0;
+                    $shopDiscount = round($totalCouponDiscount * $ratio, 2);
+                    if ($ratio > 0 && $shopDiscount == 0) {
+                        $shopDiscount = 0.01;
+                    }
+                    $totalAmount = max(0, $orderAmount - $shopDiscount);
 
                     $order = $customer->orders()->create([
                         'shop_id' => $shopId,
                         'collection_slot_id' => $slot->collection_slot_id,
                         'group_id' => $group_id,
+                        'coupon_id' => $couponId,
                         'order_amount' => $orderAmount,
-                        'discount_amount' => 0,
+                        'discount_amount' => $shopDiscount,
                         'total_amount' => $totalAmount,
                         'order_status' => 'PENDING',
                         'payment_status' => 'PAID',

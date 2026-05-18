@@ -123,6 +123,41 @@
         </div>
     </div>
 
+    <!-- Coupon Code -->
+    <div class="bg-surface-container-lowest border border-surface-container-high p-8 mb-6">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="material-symbols-outlined text-primary text-2xl">confirmation_number</span>
+            <div>
+                <h2 class="text-xl font-headline font-bold text-on-surface">Coupon Code</h2>
+                <p class="text-sm text-secondary">Enter a discount code if you have one</p>
+            </div>
+        </div>
+        <div class="flex gap-3 items-start">
+            <div class="flex-1">
+                <input type="text" id="coupon_input" placeholder="Enter coupon code"
+                       class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20 uppercase tracking-wider"
+                       maxlength="100">
+                <p id="coupon-message" class="text-sm mt-1 hidden"></p>
+            </div>
+            <button id="apply-coupon" type="button"
+                    class="bg-primary text-on-primary px-6 py-3 font-bold text-sm hover:opacity-90 active:scale-95 transition-all">
+                Apply
+            </button>
+        </div>
+        <input type="hidden" id="applied_coupon_code" value="">
+        <div id="coupon-applied" class="hidden mt-4 p-4 bg-green-50 border border-green-200 flex items-center justify-between">
+            <div>
+                <span class="font-bold text-green-700" id="coupon-applied-code"></span>
+                <span class="text-green-600 text-sm ml-2" id="coupon-applied-desc"></span>
+            </div>
+            <button id="remove-coupon" type="button" class="text-green-700 text-sm font-bold hover:underline">Remove</button>
+        </div>
+        <div id="coupon-discount-row" class="hidden flex justify-between items-center pt-4 mt-4 border-t border-surface-container-high">
+            <span class="font-bold text-green-700">Discount</span>
+            <span class="font-bold text-green-700" id="coupon-discount-amount">&pound;0.00</span>
+        </div>
+    </div>
+
     <!-- PayPal Button -->
     <div class="bg-surface-container-lowest border border-surface-container-high p-8 mb-6">
         <div id="paypal-button-container" class="min-h-[50px]"></div>
@@ -150,6 +185,92 @@
     var paypalContainer = document.getElementById('paypal-button-container');
     var loading = document.getElementById('paypal-loading');
     var fallback = document.getElementById('paypal-fallback');
+
+    var couponInput = document.getElementById('coupon_input');
+    var applyBtn = document.getElementById('apply-coupon');
+    var couponMessage = document.getElementById('coupon-message');
+    var couponApplied = document.getElementById('coupon-applied');
+    var couponDiscountRow = document.getElementById('coupon-discount-row');
+    var couponDiscountAmount = document.getElementById('coupon-discount-amount');
+    var appliedCouponCode = document.getElementById('applied_coupon_code');
+    var couponAppliedCode = document.getElementById('coupon-applied-code');
+    var couponAppliedDesc = document.getElementById('coupon-applied-desc');
+    var removeCouponBtn = document.getElementById('remove-coupon');
+    var checkoutTotal = document.getElementById('checkout-total');
+    var originalTotal = {{ $combinedTotal }};
+    var currentCouponDiscount = 0;
+
+    applyBtn.addEventListener('click', function() {
+        var code = couponInput.value.trim();
+        if (!code) {
+            couponMessage.textContent = 'Please enter a coupon code.';
+            couponMessage.className = 'text-sm mt-1 text-error';
+            couponMessage.classList.remove('hidden');
+            return;
+        }
+
+        fetch('{{ route('coupon.validate') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            },
+            body: JSON.stringify({ coupon_code: code, total: originalTotal }),
+        })
+        .then(function(res) {
+            if (!res.ok) {
+                return res.json().then(function(data) {
+                    throw new Error(data.message || 'Invalid coupon code');
+                });
+            }
+            return res.json();
+        })
+        .then(function(data) {
+            currentCouponDiscount = data.calculated_discount;
+            appliedCouponCode.value = data.coupon_code;
+            couponAppliedCode.textContent = data.coupon_code;
+            couponAppliedDesc.textContent = data.description || '';
+            couponApplied.classList.remove('hidden');
+
+            if (currentCouponDiscount > 0) {
+                couponDiscountAmount.textContent = '-\u00a3' + currentCouponDiscount.toFixed(2);
+                couponDiscountRow.classList.remove('hidden');
+                var newTotal = originalTotal - currentCouponDiscount;
+                checkoutTotal.textContent = '\u00a3' + newTotal.toFixed(2);
+            } else {
+                couponDiscountRow.classList.add('hidden');
+                checkoutTotal.textContent = '\u00a3' + originalTotal.toFixed(2);
+            }
+
+            couponInput.disabled = true;
+            applyBtn.disabled = true;
+            applyBtn.classList.add('opacity-50');
+            couponMessage.classList.add('hidden');
+        })
+        .catch(function(err) {
+            couponMessage.textContent = err.message;
+            couponMessage.className = 'text-sm mt-1 text-error';
+            couponMessage.classList.remove('hidden');
+            couponApplied.classList.add('hidden');
+            couponDiscountRow.classList.add('hidden');
+            checkoutTotal.textContent = '\u00a3' + originalTotal.toFixed(2);
+            currentCouponDiscount = 0;
+            appliedCouponCode.value = '';
+        });
+    });
+
+    removeCouponBtn.addEventListener('click', function() {
+        couponInput.disabled = false;
+        applyBtn.disabled = false;
+        applyBtn.classList.remove('opacity-50');
+        couponInput.value = '';
+        couponApplied.classList.add('hidden');
+        couponDiscountRow.classList.add('hidden');
+        couponMessage.classList.add('hidden');
+        checkoutTotal.textContent = '\u00a3' + originalTotal.toFixed(2);
+        currentCouponDiscount = 0;
+        appliedCouponCode.value = '';
+    });
 
     var selectedDay = null;
     var selectedTime = null;
@@ -229,12 +350,19 @@
                     return Promise.reject('No slot selected');
                 }
 
+                var body = {};
+                var couponCode = appliedCouponCode.value;
+                if (couponCode) {
+                    body.coupon_code = couponCode;
+                }
+
                 return fetch('{{ route('paypal.create') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     },
+                    body: JSON.stringify(body),
                 }).then(function(res) {
                     if (!res.ok) {
                         return res.json().then(function(data) {
@@ -250,16 +378,22 @@
                 loading.classList.remove('hidden');
                 paypalContainer.classList.add('hidden');
 
+                var captureBody = {
+                    paypal_order_id: data.orderID,
+                    collection_slot_id: selectElement.value,
+                };
+                var couponCode = appliedCouponCode.value;
+                if (couponCode) {
+                    captureBody.coupon_code = couponCode;
+                }
+
                 fetch('{{ route('paypal.capture') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     },
-                    body: JSON.stringify({
-                        paypal_order_id: data.orderID,
-                        collection_slot_id: selectElement.value,
-                    }),
+                    body: JSON.stringify(captureBody),
                 }).then(function(res) {
                     return res.json();
                 }).then(function(result) {

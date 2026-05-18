@@ -37,7 +37,7 @@
 
         <div class="bg-surface-container-lowest rounded-lg p-6">
             <h3 class="font-bold text-lg mb-4">Collection Slots Available</h3>
-            <p class="text-on-surface-variant">{{ $shop->collectionSlots->count() }} slots</p>
+            <p class="text-on-surface-variant">{{ $collectionSlotCount }} slots available</p>
         </div>
 
         <div class="bg-surface-container-lowest rounded-lg p-6">
