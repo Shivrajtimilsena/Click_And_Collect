@@ -6,9 +6,9 @@
 <div class="space-y-8">
     <!-- Shop Header -->
     <div class="bg-gradient-to-r from-primary to-primary-fixed rounded-lg p-12 text-white relative overflow-hidden">
-        @if ($shop->trader->user->avatar_url)
+        @if ($shop->shop_image)
             <img 
-                src="{{ $shop->trader->user->avatar_url }}" 
+                src="{{ $shop->shop_image }}" 
                 alt="{{ $shop->shop_name }}"
                 class="absolute inset-0 w-full h-full object-cover"
             />

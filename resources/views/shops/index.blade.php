@@ -10,9 +10,9 @@
         @forelse ($shops as $shop)
             <a href="{{ route('shops.show', $shop) }}" class="bg-surface-container-lowest rounded-lg overflow-hidden hover:shadow-lg transition-all group">
                 <div class="aspect-video bg-gradient-to-br from-primary to-primary-fixed flex items-center justify-center text-white text-center p-6 relative overflow-hidden">
-                    @if ($shop->trader->user->avatar_url)
+                    @if ($shop->shop_image)
                         <img 
-                            src="{{ $shop->trader->user->avatar_url }}" 
+                            src="{{ $shop->shop_image }}" 
                             alt="{{ $shop->shop_name }}"
                             class="absolute inset-0 w-full h-full object-cover"
                         />

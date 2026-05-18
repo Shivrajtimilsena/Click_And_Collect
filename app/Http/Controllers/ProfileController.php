@@ -32,7 +32,7 @@ class ProfileController extends Controller
 
         // Get upcoming collections
         $upcomingCollections = $customer->orders()
-            ->with('collectionSlot.shop', 'items.product')
+            ->with('collectionSlot', 'shop', 'items.product')
             ->whereIn('order_status', ['READY', 'PENDING'])
             ->whereHas('collectionSlot', function ($query) {
                 $query->where('slot_date', '>=', now()->toDateString());
@@ -43,7 +43,7 @@ class ProfileController extends Controller
 
         // Get recent order history
         $recentOrders = $customer->orders()
-            ->with('collectionSlot.shop', 'items')
+            ->with('collectionSlot', 'shop', 'items')
             ->orderBy('order_date', 'desc')
             ->paginate(10);
 
@@ -75,7 +75,7 @@ class ProfileController extends Controller
         }
 
         $orders = $customer->orders()
-            ->with('items.product.shop', 'collectionSlot.shop')
+            ->with('items.product.shop', 'collectionSlot', 'shop')
             ->orderBy('order_date', 'desc')
             ->get();
 

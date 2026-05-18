@@ -6,9 +6,13 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-8">
-    @if(session('success'))
-        <div class="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-lg">
-            {{ session('success') }}
+    @if ($errors->any())
+        <div class="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg">
+            <ul class="list-disc list-inside">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
 
@@ -16,37 +20,40 @@
         @csrf
         @method('PATCH')
 
-        <!-- Shop Profile Image -->
+        <!-- Profile Section -->
         <div class="bg-surface-container-lowest border border-surface-container-high rounded-lg overflow-hidden">
             <div class="px-8 py-6 border-b border-surface-container-high">
-                <h3 class="text-lg font-bold font-headline">Shop Profile</h3>
-                <p class="text-sm text-secondary">Your shop's public image and basic info</p>
+                <h3 class="text-lg font-bold font-headline">Profile</h3>
+                <p class="text-sm text-secondary">Your shop name, photo, and details shown to customers</p>
             </div>
-            <div class="p-8">
-                <div class="flex items-center gap-8 mb-8">
-                    <div class="relative">
+            <div class="p-8 space-y-6">
+                <div class="flex items-center gap-6">
+                    <div class="relative shrink-0">
                         @if($shop->shop_image)
-                            <img src="{{ $shop->shop_image }}" alt="{{ $shop->shop_name }}" class="w-28 h-28 rounded-xl object-cover ring-4 ring-surface-container-high">
+                            <img src="{{ $shop->shop_image }}" alt="{{ $shop->shop_name }}" class="w-24 h-24 rounded-xl object-cover ring-4 ring-surface-container-high">
                         @else
-                            <div class="w-28 h-28 rounded-xl bg-surface-container-high flex items-center justify-center ring-4 ring-surface-container-high">
-                                <span class="material-symbols-outlined text-4xl text-secondary">store</span>
+                            <div class="w-24 h-24 rounded-xl bg-surface-container-high flex items-center justify-center ring-4 ring-surface-container-high">
+                                <span class="material-symbols-outlined text-3xl text-secondary">store</span>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Shop Image</label>
-                        <input type="file" name="shop_image" accept="image/jpeg,image/png,image/gif,image/webp"
+                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Shop Photo</label>
+                        <input type="file" name="shop_image" id="shop_image" accept="image/jpeg,image/png,image/gif,image/webp"
                                class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-on-primary file:font-bold file:text-sm"/>
                         @error('shop_image')
                             <p class="text-error text-sm mt-1">{{ $message }}</p>
                         @enderror
-                        <p class="text-xs text-secondary mt-2">Upload a new image (max 5MB, jpg/png/gif/webp)</p>
+                        <p class="text-xs text-secondary mt-2" id="shop_image_hint">Upload a photo (max 5MB, jpg/png/gif/webp)</p>
+                        <p class="text-error text-sm mt-1 hidden" id="shop_image_error">File size exceeds the 5MB limit. Please choose a smaller file.</p>
                     </div>
                 </div>
 
+                <hr class="border-surface-container-high">
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Shop Name</label>
+                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Name</label>
                         <input type="text" name="shop_name" value="{{ old('shop_name', $shop->shop_name) }}"
                                class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20 @error('shop_name') ring-2 ring-error @enderror"/>
                         @error('shop_name')
@@ -65,13 +72,19 @@
                     </div>
                 </div>
 
-                <div class="mt-6">
-                    <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Short Description</label>
+                <div>
+                    <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Description</label>
                     <textarea name="description" rows="3"
                               class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20">{{ old('description', $shop->description) }}</textarea>
                     @error('description')
                         <p class="text-error text-sm mt-1">{{ $message }}</p>
                     @enderror
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="bg-primary text-on-primary px-10 py-3 font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all">
+                        Save Changes
+                    </button>
                 </div>
             </div>
         </div>
@@ -176,6 +189,26 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    var fileInput = document.getElementById('shop_image');
+    if (fileInput) {
+        var maxSize = 5 * 1024 * 1024;
+        var errorEl = document.getElementById('shop_image_error');
+        var hintEl = document.getElementById('shop_image_hint');
+
+        fileInput.addEventListener('change', function () {
+            if (this.files && this.files[0] && this.files[0].size > maxSize) {
+                errorEl.classList.remove('hidden');
+                hintEl.classList.add('hidden');
+                this.value = '';
+            } else {
+                errorEl.classList.add('hidden');
+                hintEl.classList.remove('hidden');
+            }
+        });
+    }
+});
+
 function togglePassword(inputId, btn) {
     const input = document.getElementById(inputId);
     const icon = btn.querySelector('.material-symbols-outlined');

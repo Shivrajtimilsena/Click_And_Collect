@@ -33,7 +33,7 @@
                         <span class="material-symbols-outlined text-secondary">store</span>
                     </div>
                     <div>
-                        <p class="font-bold text-on-surface">{{ $order->collectionSlot?->shop->shop_name ?? 'Shop' }}</p>
+                        <p class="font-bold text-on-surface">{{ $order->shop->shop_name ?? 'Shop' }}</p>
                         <p class="text-xs text-secondary">#ORD-{{ $order->order_id }}</p>
                     </div>
                 </div>

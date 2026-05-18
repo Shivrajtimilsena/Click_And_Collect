@@ -19,7 +19,7 @@ class OrderController extends Controller
     public function index(): View
     {
         $orders = request()->user()->customer->orders()
-            ->with('items.product.shop', 'collectionSlot.shop')
+            ->with('items.product.shop', 'collectionSlot', 'shop')
             ->latest()
             ->get();
 
@@ -34,11 +34,11 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
 
-        $order->load('items.product.shop', 'collectionSlot.shop', 'payment');
+        $order->load('items.product.shop', 'collectionSlot', 'shop', 'payment');
 
         $groupOrders = $order->group_id
             ? Order::where('group_id', $order->group_id)
-                ->with('items.product.shop', 'collectionSlot.shop')
+                ->with('items.product.shop', 'collectionSlot', 'shop')
                 ->get()
             : collect([$order]);
 
@@ -82,7 +82,6 @@ class OrderController extends Controller
 
             $collectionSlots = CollectionSlot::where('is_active', 'Y')
                 ->where('total_order', '<', \DB::raw('capacity'))
-                ->with('shop')
                 ->get()
                 ->filter(function ($slot) use ($minDateTime) {
                     $slotDateTime = Carbon::createFromFormat(
@@ -91,11 +90,10 @@ class OrderController extends Controller
                     );
 
                     return $slotDateTime->gte($minDateTime);
-                })
-                ->groupBy('shop_id');
+                });
 
-            $availableDays = $collectionSlots->flatten()->pluck('slot_day')->unique()->values()->toArray();
-            $availableDates = $collectionSlots->flatten()->pluck('slot_date')->unique()->map(function ($date) {
+            $availableDays = $collectionSlots->pluck('slot_day')->unique()->values()->toArray();
+            $availableDates = $collectionSlots->pluck('slot_date')->unique()->map(function ($date) {
                 return Carbon::parse($date)->format('Y-m-d');
             })->values()->toArray();
 
@@ -150,26 +148,17 @@ class OrderController extends Controller
 
             $cartItems = $cart->products()->with('product.discount', 'product.shop')->get();
 
-            $selectedSlot = CollectionSlot::findOrFail($request->collection_slot_id);
+            $slot = CollectionSlot::where('collection_slot_id', $request->collection_slot_id)
+                ->where('is_active', 'Y')
+                ->where('total_order', '<', DB::raw('capacity'))
+                ->firstOrFail();
 
             $shopGroups = $cartItems->groupBy(fn ($item) => $item->product->shop_id);
 
             $group_id = (string) Str::uuid();
 
-            DB::transaction(function () use ($shopGroups, $customer, $selectedSlot, $group_id) {
+            DB::transaction(function () use ($shopGroups, $customer, $slot, $group_id) {
                 foreach ($shopGroups as $shopId => $items) {
-                    $slot = CollectionSlot::where('shop_id', $shopId)
-                        ->where('slot_date', $selectedSlot->slot_date)
-                        ->where('start_time', $selectedSlot->start_time)
-                        ->where('is_active', 'Y')
-                        ->where('total_order', '<', DB::raw('capacity'))
-                        ->first();
-
-                    if (! $slot) {
-                        $shopName = $items->first()->product->shop->shop_name ?? 'Shop #'.$shopId;
-                        throw new \Exception("The selected time slot is not available for {$shopName}. Please choose a different slot.");
-                    }
-
                     $orderAmount = $items->sum(fn ($item) => $item->product->discounted_price * $item->quantity);
                     $totalAmount = max(0, $orderAmount);
 

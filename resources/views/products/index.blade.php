@@ -16,6 +16,9 @@
                 @if (request('price_range'))
                     <input type="hidden" name="price_range" value="{{ request('price_range') }}">
                 @endif
+                @if (request('search'))
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                @endif
                 <select name="sort" onchange="this.form.submit()" class="px-4 py-2 rounded-full border-none bg-surface-container text-on-surface">
                     <option value="trending" {{ request('sort') === 'trending' ? 'selected' : '' }}>Trending</option>
                     <option value="newest" {{ request('sort') === 'newest' ? 'selected' : '' }}>Newest</option>

@@ -23,7 +23,7 @@
                     </div>
                     <div>
                         <h2 class="text-xl font-headline font-bold text-on-surface">
-                            {{ $groupOrder->collectionSlot?->shop->shop_name ?? 'Shop' }}
+                            {{ $groupOrder->shop->shop_name ?? 'Shop' }}
                         </h2>
                         <p class="text-sm text-secondary">Order #{{ $groupOrder->order_id }}</p>
                     </div>
@@ -77,7 +77,7 @@
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between">
                             <span class="text-secondary">Shop</span>
-                            <span class="font-bold">{{ $groupOrder->collectionSlot->shop->shop_name }}</span>
+                            <span class="font-bold">{{ $groupOrder->shop->shop_name }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-secondary">Day</span>
@@ -137,7 +137,7 @@
             <div class="space-y-2">
                 @foreach($groupOrders as $groupOrder)
                     <div class="flex justify-between text-sm">
-                        <span>{{ $groupOrder->collectionSlot?->shop->shop_name ?? 'Shop #'.$groupOrder->shop_id }}</span>
+                        <span>{{ $groupOrder->shop->shop_name ?? 'Shop #'.$groupOrder->shop_id }}</span>
                         <span class="font-bold">&pound;{{ number_format($groupOrder->total_amount, 2) }}</span>
                     </div>
                 @endforeach

@@ -99,27 +99,18 @@ class PayPalController extends Controller
                 $paypalTxnId = $captureResult['id'];
             }
 
-            $selectedSlot = CollectionSlot::findOrFail($request->collection_slot_id);
+            $slot = CollectionSlot::where('collection_slot_id', $request->collection_slot_id)
+                ->where('is_active', 'Y')
+                ->where('total_order', '<', DB::raw('capacity'))
+                ->firstOrFail();
 
             $shopGroups = $cartItems->groupBy(fn ($item) => $item->product->shop_id);
             $group_id = (string) Str::uuid();
 
             $orders = [];
 
-            DB::transaction(function () use ($shopGroups, $customer, $selectedSlot, $group_id, $paypalTxnId, &$orders) {
+            DB::transaction(function () use ($shopGroups, $customer, $slot, $group_id, $paypalTxnId, &$orders) {
                 foreach ($shopGroups as $shopId => $items) {
-                    $slot = CollectionSlot::where('shop_id', $shopId)
-                        ->where('slot_date', $selectedSlot->slot_date)
-                        ->where('start_time', $selectedSlot->start_time)
-                        ->where('is_active', 'Y')
-                        ->where('total_order', '<', DB::raw('capacity'))
-                        ->first();
-
-                    if (! $slot) {
-                        $shopName = $items->first()->product->shop->shop_name ?? 'Shop #'.$shopId;
-                        throw new \Exception("The selected time slot is not available for {$shopName}. Please choose a different slot.");
-                    }
-
                     $orderAmount = $items->sum(fn ($item) => $item->product->discounted_price * $item->quantity);
                     $totalAmount = max(0, $orderAmount);
 
@@ -163,7 +154,7 @@ class PayPalController extends Controller
             $cart->products()->delete();
 
             $ordersForEmail = Order::where('group_id', $group_id)
-                ->with('items.product', 'collectionSlot.shop', 'payment')
+                ->with('items.product', 'collectionSlot', 'shop', 'payment')
                 ->get();
 
             if ($ordersForEmail->isNotEmpty()) {
@@ -206,7 +197,7 @@ class PayPalController extends Controller
     public function confirmation(string $groupId): View
     {
         $orders = Order::where('group_id', $groupId)
-            ->with('items.product.shop', 'collectionSlot.shop', 'payment')
+            ->with('items.product.shop', 'collectionSlot', 'shop', 'payment')
             ->get();
 
         if ($orders->isEmpty()) {

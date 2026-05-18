@@ -136,6 +136,35 @@ class TraderController extends Controller
         ]);
     }
 
+    public function updateStatus(Request $request, Order $order): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:PENDING,IN_PROGRESS,READY,COMPLETED,CANCELLED',
+        ]);
+
+        $user = Auth::user();
+        $trader = $user->trader;
+        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+
+        $orderBelongsToTrader = Order::where('order_id', $order->order_id)
+            ->whereHas('items.product.shop', function ($query) use ($shopIds) {
+                $query->whereIn('shop_id', $shopIds);
+            })
+            ->exists();
+
+        if (! $orderBelongsToTrader) {
+            return response()->json(['error' => 'You do not have permission to update this order.'], 403);
+        }
+
+        $order->update(['order_status' => $validated['status']]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order status updated successfully.',
+            'order_status' => $validated['status'],
+        ]);
+    }
+
     public function inventory(): View
     {
         $user = Auth::user();
@@ -175,7 +204,6 @@ class TraderController extends Controller
 
         $validated = $request->validate([
             'shop_type' => 'required|string|max:50',
-            'logo_url' => 'nullable|string|max:500',
             'shop_name' => 'required|string|max:255',
             'description' => 'nullable|string|max:600',
             'shop_address' => 'nullable|string|max:500',
@@ -185,7 +213,6 @@ class TraderController extends Controller
 
         $trader->update([
             'shop_type' => $validated['shop_type'],
-            'logo_url' => $validated['logo_url'],
         ]);
 
         $shopData = [
@@ -197,12 +224,17 @@ class TraderController extends Controller
 
         if ($request->hasFile('shop_image')) {
             $file = $request->file('shop_image');
-            $filename = 'shop_'.$shop->shop_id.'_'.time().'.'.$file->getClientOriginalExtension();
-            $path = $file->storeAs('shops', $filename, 'public');
+            $ext = $file->getClientOriginalExtension();
+            $path = $file->storeAs('shops', 'shop_'.$shop->shop_id.'_'.time().'.'.$ext, 'public');
             $shopData['shop_image'] = '/storage/'.$path;
         }
 
         $shop->update($shopData);
+
+        $user->update([
+            'full_name' => $validated['shop_name'],
+            'avatar_url' => $shopData['shop_image'] ?? $user->avatar_url,
+        ]);
 
         return redirect()->route('trader.settings')->with('success', 'Settings updated successfully!');
     }

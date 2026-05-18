@@ -12,7 +12,7 @@ class RfidController extends Controller
 {
     public function show(): View
     {
-        $orders = Order::with(['customer.user', 'collectionSlot.shop'])
+        $orders = Order::with(['customer.user', 'collectionSlot', 'shop'])
             ->whereIn('order_status', ['PENDING', 'IN_PROGRESS', 'READY'])
             ->latest()
             ->limit(12)
@@ -70,7 +70,7 @@ class RfidController extends Controller
             return $this->failure($request, 'RFID UID is too short. Scan the card again.', 422);
         }
 
-        $order = Order::with(['customer.user', 'collectionSlot.shop'])
+        $order = Order::with(['customer.user', 'collectionSlot', 'shop'])
             ->where('rfid_uid', $uid)
             ->first();
 
@@ -94,7 +94,7 @@ class RfidController extends Controller
 
         return $this->success($request, [
             'message' => "Order #ORD-{$order->order_id} collected successfully.",
-            'order' => $this->orderPayload($order->fresh(['customer.user', 'collectionSlot.shop'])),
+            'order' => $this->orderPayload($order->fresh(['customer.user', 'collectionSlot', 'shop'])),
         ]);
     }
 
@@ -134,7 +134,7 @@ class RfidController extends Controller
             'order_status' => $order->order_status,
             'rfid_uid' => $order->rfid_uid,
             'customer_name' => $order->customer?->user?->full_name,
-            'shop_name' => $order->collectionSlot?->shop?->shop_name,
+            'shop_name' => $order->shop?->shop_name,
             'collected_at' => $order->collected_at?->toDateTimeString(),
         ];
     }

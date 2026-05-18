@@ -25,7 +25,7 @@
         <div class="flex items-center gap-6">
             <div class="relative hidden lg:block">
                 <form action="{{ route('products.index') }}" method="GET" class="flex">
-                    <input type="text" name="search" placeholder="Search local curators..." class="bg-surface-container-high border-none rounded-full px-6 py-2 text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all"/>
+                    <input type="text" name="search" placeholder="Search local curators..." value="{{ request('search') }}" class="bg-surface-container-high border-none rounded-full px-6 py-2 text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all"/>
                 </form>
             </div>
 

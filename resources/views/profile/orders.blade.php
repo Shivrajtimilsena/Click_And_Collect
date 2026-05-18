@@ -42,14 +42,14 @@
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 bg-surface-container overflow-hidden shrink-0">
                                         <img
-                                            alt="{{ $order->collectionSlot?->shop->shop_name ?? 'Shop' }}"
+                                            alt="{{ $order->shop->shop_name ?? 'Shop' }}"
                                             class="w-full h-full object-cover"
-                                            src="{{ $order->collectionSlot?->shop->shop_image ?? 'https://via.placeholder.com/40' }}"
+                                            src="{{ $order->shop->shop_image ?? 'https://via.placeholder.com/40' }}"
                                         />
                                     </div>
                                     <div>
                                         <p class="font-bold text-on-surface text-sm">
-                                            {{ $order->collectionSlot?->shop->shop_name ?? 'Unknown Shop' }}
+                                            {{ $order->shop->shop_name ?? 'Unknown Shop' }}
                                         </p>
                                         <p class="text-xs text-on-surface-variant">
                                             #{{ str_pad($order->order_id, 5, '0', STR_PAD_LEFT) }}

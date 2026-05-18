@@ -131,7 +131,7 @@
 
                             <!-- Shop Name & Order Details -->
                             <h4 class="font-headline text-2xl font-bold mb-2">
-                                {{ $order->collectionSlot->shop->shop_name ?? 'Unknown Shop' }}
+                                {{ $order->shop->shop_name ?? 'Unknown Shop' }}
                             </h4>
                             <p class="text-on-surface-variant text-sm mb-4">
                                 Order #{{ str_pad($order->order_id, 5, '0', STR_PAD_LEFT) }} • {{ $order->items->count() }} Items
@@ -156,7 +156,7 @@
                         <img 
                             alt="Shop background" 
                             class="absolute -right-16 -bottom-16 w-64 h-64 object-cover opacity-10 group-hover:scale-110 transition-transform duration-500 rounded-full"
-                            src="{{ $order->collectionSlot->shop->banner_image ?? 'https://via.placeholder.com/256' }}"
+                            src="{{ $order->shop->banner_image ?? 'https://via.placeholder.com/256' }}"
                         />
                     </div>
                     @endforeach
@@ -190,12 +190,12 @@
                                             <img 
                                                 alt="Shop" 
                                                 class="w-full h-full object-cover"
-                                                src="{{ $order->collectionSlot->shop->shop_image ?? 'https://via.placeholder.com/48' }}"
+                                                src="{{ $order->shop->shop_image ?? 'https://via.placeholder.com/48' }}"
                                             />
                                         </div>
                                         <div>
                                             <p class="font-bold text-on-surface">
-                                                {{ $order->collectionSlot->shop->shop_name ?? 'Unknown Shop' }}
+                                                {{ $order->shop->shop_name ?? 'Unknown Shop' }}
                                             </p>
                                             <p class="text-xs text-on-surface-variant">
                                                 {{ $order->order_date?->format('M d, Y') }} • #{{ str_pad($order->order_id, 5, '0', STR_PAD_LEFT) }}

@@ -95,7 +95,7 @@
                             <tr>
                                 <td class="px-5 py-4 font-bold">#ORD-{{ $order->order_id }}</td>
                                 <td class="px-5 py-4">{{ $order->customer?->user?->full_name ?? 'Unknown' }}</td>
-                                <td class="px-5 py-4">{{ $order->collectionSlot?->shop?->shop_name ?? 'No shop' }}</td>
+                                <td class="px-5 py-4">{{ $order->shop->shop_name ?? 'No shop' }}</td>
                                 <td class="px-5 py-4">
                                     <span class="bg-zinc-100 px-3 py-1 text-xs font-bold">{{ str_replace('_', ' ', $order->order_status) }}</span>
                                 </td>

@@ -15,7 +15,6 @@ class CollectionSlot extends Model
     protected $keyType = 'int';
 
     protected $fillable = [
-        'shop_id',
         'slot_date',
         'slot_day',
         'slot_label',
@@ -31,11 +30,6 @@ class CollectionSlot extends Model
         'capacity' => 'integer',
         'total_order' => 'integer',
     ];
-
-    public function shop()
-    {
-        return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
-    }
 
     public function orders()
     {

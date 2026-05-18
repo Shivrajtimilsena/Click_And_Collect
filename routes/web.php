@@ -262,6 +262,7 @@ Route::middleware('auth')->group(function () {
             return app(TraderController::class)->dashboard();
         })->name('dashboard');
         Route::get('/orders', [TraderController::class, 'orders'])->name('orders.index');
+        Route::patch('/orders/{order}/status', [TraderController::class, 'updateStatus'])->name('orders.status');
         Route::get('/inventory', [TraderController::class, 'inventory'])->name('inventory.index');
         Route::get('/product/create', [TraderController::class, 'productCreate'])->name('product.create');
         Route::post('/product', [TraderController::class, 'productStore'])->name('product.store');
