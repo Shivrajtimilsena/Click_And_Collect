@@ -10,9 +10,9 @@
         @forelse ($shops as $shop)
             <a href="{{ route('shops.show', $shop) }}" class="bg-surface-container-lowest rounded-lg overflow-hidden hover:shadow-lg transition-all group">
                 <div class="aspect-video bg-gradient-to-br from-primary to-primary-fixed flex items-center justify-center text-white text-center p-6 relative overflow-hidden">
-                    @if ($shop->trader->user->avatar_url)
+                    @if ($shop->shop_image)
                         <img 
-                            src="{{ $shop->trader->user->avatar_url }}" 
+                            src="{{ $shop->shop_image }}" 
                             alt="{{ $shop->shop_name }}"
                             class="absolute inset-0 w-full h-full object-cover"
                         />
@@ -24,13 +24,7 @@
                     <p class="text-sm text-primary font-bold mb-2">{{ $shop->trader->shop_type ?? 'Shop' }}</p>
                     <p class="text-on-surface-variant text-sm mb-4">{{ $shop->description ?? 'Quality local products' }}</p>
                     
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-1">
-                            <span class="material-symbols-outlined text-orange-500 fill-current">star</span>
-                            <span class="font-bold">{{ number_format($shop->rating ?? 0, 1) }}</span>
-                        </div>
-                        <span class="text-sm text-on-surface-variant">{{ $shop->products->count() }} Products</span>
-                    </div>
+                    <span class="text-sm text-on-surface-variant">{{ $shop->products->count() }} Products</span>
                 </div>
             </a>
         @empty

@@ -67,11 +67,6 @@ class Product extends Model
         return $this->price * (1 - ($this->discount->discount_percentage ?? 0) / 100);
     }
 
-    public function getAverageRatingAttribute(): float
-    {
-        return $this->reviews()->avg('rating') ?? 0;
-    }
-
     public function getReviewCountAttribute(): int
     {
         return $this->reviews()->count();

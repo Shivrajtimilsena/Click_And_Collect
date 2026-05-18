@@ -182,3 +182,46 @@
     @endif
 </div>
 @endsection
+
+@section('scripts')
+<script>
+function updateOrderStatus(select) {
+    var newStatus = select.value;
+
+    if (!confirm('Are you sure you want to change this order status to ' + newStatus.replace(/_/g, ' ') + '?')) {
+        return;
+    }
+
+    fetch(select.dataset.url, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        },
+        body: JSON.stringify({ status: newStatus }),
+    })
+    .then(function(res) {
+        if (!res.ok) {
+            return res.json().then(function(data) {
+                throw new Error(data.error || 'Failed to update status');
+            });
+        }
+        return res.json();
+    })
+    .then(function() {
+        var statusColors = {
+            'PENDING': 'bg-zinc-100 text-zinc-500',
+            'IN_PROGRESS': 'bg-blue-100 text-blue-700',
+            'READY': 'bg-orange-100 text-orange-700',
+            'COMPLETED': 'bg-green-100 text-green-700',
+            'CANCELLED': 'bg-red-100 text-red-700',
+        };
+        select.className = 'px-3 py-2 text-xs font-bold uppercase border border-surface-container-high bg-white ' + (statusColors[newStatus] || 'bg-zinc-100 text-zinc-500');
+    })
+    .catch(function(err) {
+        alert('Error: ' + err.message);
+    });
+}
+</script>
+@endsection
+

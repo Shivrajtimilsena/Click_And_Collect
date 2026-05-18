@@ -56,6 +56,11 @@ class Order extends Model
         return $this->belongsTo(CollectionSlot::class, 'collection_slot_id', 'collection_slot_id');
     }
 
+    public function shop()
+    {
+        return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
+    }
+
     public function payment()
     {
         return $this->hasOne(Payment::class, 'order_id', 'order_id');

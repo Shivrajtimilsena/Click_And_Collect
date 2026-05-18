@@ -7,7 +7,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Models\Review;
 use App\Models\Trader;
 use App\Models\TraderApplication;
 use Illuminate\Http\RedirectResponse;
@@ -101,8 +100,6 @@ class TraderController extends Controller
             ->limit(10)
             ->get();
 
-        $avgRating = $this->getTraderAverageRating($shopIds);
-
         $weeklyRevenue = $this->getWeeklyRevenue($shopIds);
         $monthlyRevenue = $this->getMonthlyRevenue($shopIds);
         $yearlyRevenue = $this->getYearlyRevenue($shopIds);
@@ -113,7 +110,6 @@ class TraderController extends Controller
             'activeOrders' => $activeOrders,
             'totalRevenue' => $totalRevenue,
             'lowStockItems' => $lowStockItems,
-            'avgRating' => $avgRating,
             'recentOrders' => $recentOrders,
             'weeklyRevenue' => $weeklyRevenue,
             'monthlyRevenue' => $monthlyRevenue,
@@ -206,7 +202,6 @@ class TraderController extends Controller
 
         $validated = $request->validate([
             'shop_type' => 'required|string|max:50',
-            'logo_url' => 'nullable|string|max:500',
             'shop_name' => 'required|string|max:255',
             'description' => 'nullable|string|max:600',
             'shop_address' => 'nullable|string|max:500',
@@ -216,7 +211,6 @@ class TraderController extends Controller
 
         $trader->update([
             'shop_type' => $validated['shop_type'],
-            'logo_url' => $validated['logo_url'],
         ]);
 
         $shopData = [
@@ -228,12 +222,17 @@ class TraderController extends Controller
 
         if ($request->hasFile('shop_image')) {
             $file = $request->file('shop_image');
-            $filename = 'shop_'.$shop->shop_id.'_'.time().'.'.$file->getClientOriginalExtension();
-            $path = $file->storeAs('shops', $filename, 'public');
+            $ext = $file->getClientOriginalExtension();
+            $path = $file->storeAs('shops', 'shop_'.$shop->shop_id.'_'.time().'.'.$ext, 'public');
             $shopData['shop_image'] = '/storage/'.$path;
         }
 
         $shop->update($shopData);
+
+        $user->update([
+            'full_name' => $validated['shop_name'],
+            'avatar_url' => $shopData['shop_image'] ?? $user->avatar_url,
+        ]);
 
         return redirect()->route('trader.settings')->with('success', 'Settings updated successfully!');
     }
@@ -254,14 +253,6 @@ class TraderController extends Controller
         $user->update(['password' => $validated['new_password']]);
 
         return redirect()->route('trader.settings')->with('success', 'Password changed successfully!');
-    }
-
-    private function getTraderAverageRating(array $shopIds): float
-    {
-        return Review::whereHas('product.shop', function ($query) use ($shopIds) {
-            $query->whereIn('shop_id', $shopIds);
-        })
-            ->avg('review_rating') ?? 0;
     }
 
     private function getWeeklyRevenue(array $shopIds): array

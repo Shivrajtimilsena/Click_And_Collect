@@ -65,17 +65,15 @@
 
             <select name="collection_slot_id" id="collection_slot_id" required class="hidden">
                 <option value="">-- Select collection slot --</option>
-                @foreach ($collectionSlots as $shopId => $slots)
-                    @foreach ($slots as $slot)
-                        @php
-                            $day = \Carbon\Carbon::parse($slot->slot_date)->format('l');
-                            $time = $slot->start_time;
-                            $available = $slot->capacity - $slot->total_order;
-                        @endphp
-                        <option value="{{ $slot->collection_slot_id }}" data-day="{{ $day }}" data-time="{{ $time }}" data-available="{{ $available }}">
-                            {{ $day }}, {{ $slot->slot_date?->format('M d') ?? 'N/A' }} - {{ $slot->slot_label }} ({{ $available }} left)
-                        </option>
-                    @endforeach
+                @foreach ($collectionSlots as $slot)
+                    @php
+                        $day = \Carbon\Carbon::parse($slot->slot_date)->format('l');
+                        $time = $slot->start_time;
+                        $available = $slot->capacity - $slot->total_order;
+                    @endphp
+                    <option value="{{ $slot->collection_slot_id }}" data-day="{{ $day }}" data-time="{{ $time }}" data-available="{{ $available }}">
+                        {{ $day }}, {{ $slot->slot_date?->format('M d') ?? 'N/A' }} - {{ $slot->slot_label }} ({{ $available }} left)
+                    </option>
                 @endforeach
             </select>
 

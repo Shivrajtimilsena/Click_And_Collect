@@ -17,13 +17,11 @@ class Review extends Model
     protected $fillable = [
         'product_id',
         'customer_id',
-        'review_rating',
         'review',
         'review_date',
     ];
 
     protected $casts = [
-        'review_rating' => 'float',
         'review_date' => 'date',
     ];
 
