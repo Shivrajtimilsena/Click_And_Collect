@@ -260,7 +260,7 @@ Route::middleware('auth')->group(function () {
             return app(TraderController::class)->dashboard();
         })->name('dashboard');
         Route::get('/orders', [TraderController::class, 'orders'])->name('orders.index');
-        Route::patch('/orders/{order}/status', [TraderController::class, 'updateOrderStatus'])->name('orders.status.update');
+        Route::patch('/orders/{order}/status', [TraderController::class, 'updateStatus'])->name('orders.status');
         Route::post('/orders/{order}/rfid', [RfidController::class, 'assignToOrder'])->name('orders.rfid.assign');
         Route::post('/rfid-scan', [RfidController::class, 'scanForTrader'])->name('rfid.scan');
         Route::get('/inventory', [TraderController::class, 'inventory'])->name('inventory.index');

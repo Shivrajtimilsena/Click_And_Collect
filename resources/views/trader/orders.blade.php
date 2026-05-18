@@ -148,17 +148,13 @@
                                 ];
                                 $statusColor = $statusColors[$order->order_status] ?? 'bg-zinc-100 text-zinc-500';
                             @endphp
-                            <form method="POST" action="{{ route('trader.orders.status.update', $order) }}">
-                                @csrf
-                                @method('PATCH')
-                                <select name="order_status" class="px-3 py-2 text-xs font-bold uppercase border border-surface-container-high bg-white {{ $statusColor }}" onchange="this.form.submit()">
-                                    <option value="PENDING" {{ $order->order_status == 'PENDING' ? 'selected' : '' }}>Pending</option>
-                                    <option value="IN_PROGRESS" {{ $order->order_status == 'IN_PROGRESS' ? 'selected' : '' }}>In Progress</option>
-                                    <option value="READY" {{ $order->order_status == 'READY' ? 'selected' : '' }}>Ready</option>
-                                    <option value="COMPLETED" {{ $order->order_status == 'COMPLETED' ? 'selected' : '' }}>Completed</option>
-                                    <option value="CANCELLED" {{ $order->order_status == 'CANCELLED' ? 'selected' : '' }}>Cancelled</option>
-                                </select>
-                            </form>
+                            <select class="px-3 py-2 text-xs font-bold uppercase border border-surface-container-high bg-white {{ $statusColor }}" data-url="{{ route('trader.orders.status', $order) }}" onchange="updateOrderStatus(this)">
+                                <option value="PENDING" {{ $order->order_status == 'PENDING' ? 'selected' : '' }}>Pending</option>
+                                <option value="IN_PROGRESS" {{ $order->order_status == 'IN_PROGRESS' ? 'selected' : '' }}>In Progress</option>
+                                <option value="READY" {{ $order->order_status == 'READY' ? 'selected' : '' }}>Ready</option>
+                                <option value="COMPLETED" {{ $order->order_status == 'COMPLETED' ? 'selected' : '' }}>Completed</option>
+                                <option value="CANCELLED" {{ $order->order_status == 'CANCELLED' ? 'selected' : '' }}>Cancelled</option>
+                            </select>
                         </td>
                         <td class="px-8 py-6 text-right font-bold text-sm">&pound;{{ number_format($order->total_amount, 2) }}</td>
                         <td class="px-8 py-6 text-right">
@@ -224,4 +220,3 @@ function updateOrderStatus(select) {
 }
 </script>
 @endsection
-

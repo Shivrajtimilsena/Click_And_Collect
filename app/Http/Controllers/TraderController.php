@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Trader;
 use App\Models\TraderApplication;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -136,31 +137,39 @@ class TraderController extends Controller
         ]);
     }
 
-    public function updateOrderStatus(Request $request, Order $order): RedirectResponse
+    public function updateStatus(Request $request, Order $order): JsonResponse
     {
         $validated = $request->validate([
-            'order_status' => 'required|in:PENDING,IN_PROGRESS,READY,COMPLETED,CANCELLED',
+            'status' => 'required|string|in:PENDING,IN_PROGRESS,READY,COMPLETED,CANCELLED',
         ]);
 
         $user = Auth::user();
         $trader = $user->trader;
         $shopIds = $trader->shops()->pluck('shop_id')->toArray();
 
-        if (! in_array($order->shop_id, $shopIds)) {
-            abort(403, 'You do not have permission to update this order.');
+        $orderBelongsToTrader = Order::where('order_id', $order->order_id)
+            ->whereHas('items.product.shop', function ($query) use ($shopIds) {
+                $query->whereIn('shop_id', $shopIds);
+            })
+            ->exists();
+
+        if (! $orderBelongsToTrader) {
+            return response()->json(['error' => 'You do not have permission to update this order.'], 403);
         }
 
-        $updates = [
-            'order_status' => $validated['order_status'],
-        ];
+        $updates = ['order_status' => $validated['status']];
 
-        if ($validated['order_status'] === 'COMPLETED' && ! $order->collected_at) {
+        if ($validated['status'] === 'COMPLETED' && ! $order->collected_at) {
             $updates['collected_at'] = now();
         }
 
         $order->update($updates);
 
-        return back()->with('success', "Order #ORD-{$order->order_id} status updated.");
+        return response()->json([
+            'success' => true,
+            'message' => 'Order status updated successfully.',
+            'order_status' => $validated['status'],
+        ]);
     }
 
     public function inventory(): View
