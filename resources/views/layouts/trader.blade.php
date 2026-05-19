@@ -122,6 +122,10 @@
                         <span class="material-symbols-outlined">dashboard</span>
                         <span>Dashboard</span>
                     </a>
+                    <a class="flex items-center gap-3 {{ request()->routeIs('trader.profile') ? 'bg-primary text-on-primary' : 'text-zinc-600 hover:bg-surface-container-high' }} px-4 py-3 font-medium text-sm transition-all" href="{{ route('trader.profile') }}">
+                        <span class="material-symbols-outlined">account_circle</span>
+                        <span>Profile</span>
+                    </a>
                     <a class="flex items-center gap-3 {{ request()->routeIs('trader.orders.*') ? 'bg-primary text-on-primary' : 'text-zinc-600 hover:bg-surface-container-high' }} px-4 py-3 font-medium text-sm transition-all" href="{{ route('trader.orders.index') }}">
                         <span class="material-symbols-outlined">shopping_bag</span>
                         <span>Orders</span>
@@ -186,7 +190,7 @@
                                      @endif
                                  </button>
                                  <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all border border-surface-container-high">
-                                     <a href="{{ route('profile.settings') }}" class="block px-4 py-2 hover:bg-surface-container-high">My Profile</a>
+                                     <a href="{{ route('trader.profile') }}" class="block px-4 py-2 hover:bg-surface-container-high">My Profile</a>
                                      <form method="POST" action="{{ route('logout') }}">
                                          @csrf
                                          <button type="submit" class="w-full text-left px-4 py-2 hover:bg-surface-container-high">Logout</button>

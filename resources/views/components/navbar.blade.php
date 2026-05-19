@@ -5,7 +5,7 @@
                 <span class="material-symbols-outlined text-zinc-800 text-2xl">menu</span>
             </button>
             <a href="{{ route('home') }}" class="flex items-center">
-                <img src="{{ asset('images/logo.png') }}" alt="Click&Collect" class="h-10 md:h-12 w-auto" />
+                <img src="{{ asset('images/logo.png') }}" alt="Click&Collect" class="h-12 md:h-12 w-auto" />
             </a>
         </div>
 

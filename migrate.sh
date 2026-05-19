@@ -1,0 +1,3 @@
+php artisan migrate --path=database/migrations/2026_05_19_080842_create_trader_withdrawal_table.php
+php artisan migrate --path=database/migrations/2026_05_19_083126_add_paypal_batch_status_to_trader_withdrawal_table.php
+php artisan migrate --path=database/migrations/2026_05_19_114312_drop_unique_trader_id_on_shop_table.php

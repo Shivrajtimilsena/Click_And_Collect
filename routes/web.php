@@ -275,12 +275,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('/product/{product}', [TraderController::class, 'productDestroy'])->name('product.destroy');
         Route::post('/product/{product}/flash-deal', [TraderController::class, 'setFlashDeal'])->name('product.flash-deal');
         Route::delete('/product/{product}/flash-deal', [TraderController::class, 'removeFlashDeal'])->name('product.flash-deal.remove');
+        Route::get('/profile', [TraderController::class, 'profile'])->name('profile');
         Route::get('/settings', [TraderController::class, 'settings'])->name('settings');
         Route::patch('/settings', [TraderController::class, 'updateSettings'])->name('settings.update');
         Route::post('/settings/change-password', [TraderController::class, 'changePassword'])->name('settings.change-password');
 
         // Shops
         Route::post('/shops', [TraderController::class, 'storeShop'])->name('shops.store');
+        Route::patch('/shops/{shop}', [TraderController::class, 'updateShop'])->name('shops.update');
         Route::post('/switch-shop/{shop}', [TraderController::class, 'switchShop'])->name('shops.switch');
 
         // Notifications

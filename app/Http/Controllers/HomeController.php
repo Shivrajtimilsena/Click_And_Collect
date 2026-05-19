@@ -35,7 +35,7 @@ class HomeController extends Controller
         // Local traders/shops
         $shops = Shop::where('is_active', 'Y')
             ->with('products', 'trader')
-            ->limit(10)
+            ->limit(5)
             ->get();
 
         return view('index', [

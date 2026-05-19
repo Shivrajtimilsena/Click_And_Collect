@@ -443,6 +443,21 @@ class TraderController extends Controller
         return redirect()->route('trader.inventory.index')->with('success', 'Product created successfully!');
     }
 
+    public function profile(): View
+    {
+        $user = Auth::user();
+        $trader = $user->trader;
+        $shops = $trader->shops()->withCount('products')->get();
+        $currentShop = $this->getCurrentShop();
+
+        return view('trader.profile', [
+            'user' => $user,
+            'trader' => $trader,
+            'shops' => $shops,
+            'currentShop' => $currentShop,
+        ]);
+    }
+
     public function productEdit(Product $product): View|RedirectResponse
     {
         $user = auth()->user();
@@ -776,6 +791,39 @@ class TraderController extends Controller
         session(['current_shop_id' => $shop->shop_id]);
 
         return redirect()->back()->with('success', "Shop '{$shop->shop_name}' created successfully.");
+    }
+
+    public function updateShop(Request $request, Shop $shop): RedirectResponse
+    {
+        $trader = Auth::user()->trader;
+
+        if ($shop->trader_id !== $trader->trader_id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'shop_name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:600',
+            'shop_address' => 'nullable|string|max:500',
+            'shop_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        $shopData = [
+            'shop_name' => $validated['shop_name'],
+            'description' => $validated['description'] ?? null,
+            'shop_address' => $validated['shop_address'] ?? null,
+        ];
+
+        if ($request->hasFile('shop_image')) {
+            $file = $request->file('shop_image');
+            $ext = $file->getClientOriginalExtension();
+            $path = $file->storeAs('shops', 'shop_'.time().'_'.uniqid().'.'.$ext, 'public');
+            $shopData['shop_image'] = '/storage/'.$path;
+        }
+
+        $shop->update($shopData);
+
+        return redirect()->back()->with('success', "Shop '{$shop->shop_name}' updated successfully.");
     }
 
     private function formatNotificationMessage($notification): string
