@@ -135,6 +135,7 @@ Route::get('/category/{slug}', function ($slug) {
 
 // Shops
 Route::get('/shops', [ShopController::class, 'index'])->name('shops.index');
+Route::get('/traders/{trader}/shops', [ShopController::class, 'traderShops'])->name('traders.shops');
 Route::get('/shops/{shop}', [ShopController::class, 'show'])->name('shops.show');
 
 // Coupon validation

@@ -20,15 +20,15 @@
             <p class="text-lg opacity-90 mb-6">{{ $shop->description ?? 'Quality local products' }}</p>
             
             <div class="flex items-center gap-6">
-                <div class="flex items-center gap-2">
+                <a href="#products" class="flex items-center gap-2 hover:opacity-90 transition-opacity">
                     <span class="material-symbols-outlined">shopping_bag</span>
                     <span class="font-bold">{{ $totalProducts }} Products</span>
-                </div>
-                @if($traderShops->count() > 1)
-                    <div class="flex items-center gap-2">
+                </a>
+                @if($trader)
+                    <a href="{{ route('traders.shops', $trader) }}" class="flex items-center gap-2 hover:opacity-90 transition-opacity">
                         <span class="material-symbols-outlined">storefront</span>
                         <span class="font-bold">{{ $traderShops->count() }} Shops</span>
-                    </div>
+                    </a>
                 @endif
             </div>
         </div>
@@ -53,7 +53,7 @@
     </div>
 
     <!-- Products Section -->
-    <div class="space-y-6">
+    <div id="products" class="space-y-6">
         <h2 class="text-2xl font-extrabold">Products from {{ $trader?->user?->full_name ?? $shop->shop_name }}</h2>
         
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -62,11 +62,6 @@
             @empty
                 <p class="col-span-full text-center text-on-surface-variant py-12">No products available</p>
             @endforelse
-        </div>
-
-        <!-- Pagination -->
-        <div class="flex justify-center">
-            {{ $products->links() }}
         </div>
     </div>
 </div>

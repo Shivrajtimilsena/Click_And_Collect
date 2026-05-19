@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CollectionSlot;
 use App\Models\Shop;
+use App\Models\Trader;
 use Illuminate\View\View;
 
 class ShopController extends Controller
@@ -29,12 +30,10 @@ class ShopController extends Controller
                 ->getQuery()
                 ->whereIn('shop_id', $shopIds)
                 ->with(['reviews', 'shop'])
-                ->paginate(12)
-            : $shop->products()->with(['reviews', 'shop'])->paginate(12);
+                ->get()
+            : $shop->products()->with(['reviews', 'shop'])->get();
 
-        $totalProducts = $shopIds
-            ? $traderShops->loadCount('products')->sum('products_count')
-            : $shop->products()->count();
+        $totalProducts = $products->count();
 
         $collectionSlotCount = CollectionSlot::where('is_active', 'Y')->count();
 
@@ -45,6 +44,21 @@ class ShopController extends Controller
             'products' => $products,
             'totalProducts' => $totalProducts,
             'collectionSlotCount' => $collectionSlotCount,
+        ]);
+    }
+
+    public function traderShops(Trader $trader): View
+    {
+        $trader->load('user');
+
+        $shops = $trader->shops()
+            ->with('products')
+            ->orderBy('shop_name')
+            ->get();
+
+        return view('shops.trader-shops', [
+            'trader' => $trader,
+            'shops' => $shops,
         ]);
     }
 }

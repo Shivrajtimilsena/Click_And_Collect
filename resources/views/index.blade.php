@@ -9,7 +9,7 @@
 @section('content')
 <div class="space-y-6">
         <!-- Hero Banner -->
-        <section class="relative min-h-[280px] sm:h-[300px] md:h-[400px] overflow-hidden group">
+        <section class="relative min-h-[280px] sm:h-[300px] md:h-[400px] overflow-hidden group rounded-sm">
             <picture>
                 <source srcset="{{ asset('images/landing_hero.webp') }}" type="image/webp">
                 <img alt="Fresh Produce" class="absolute inset-0 w-full h-full object-cover"
