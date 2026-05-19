@@ -133,28 +133,39 @@
                             </span>
                             <input class="bg-surface-container-high border-none py-2 pl-10 pr-4 text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search orders..." type="text"/>
                         </div>
-                        <div class="flex items-center gap-4 text-zinc-500">
-                            <button class="hover:text-primary transition-colors active:scale-95 duration-200 relative">
-                                <span class="material-symbols-outlined">notifications</span>
-                                <span class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
-                            </button>
-                            <div class="relative group">
-                                <button class="hover:text-primary transition-colors active:scale-95 duration-200">
-                                    @if(Auth::user()->avatar_url)
-                                        <img src="{{ Auth::user()->avatar_url }}" alt="Profile" class="w-8 h-8 rounded-full object-cover"/>
-                                    @else
-                                        <span class="material-symbols-outlined">account_circle</span>
-                                    @endif
-                                </button>
-                                <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all border border-surface-container-high">
-                                    <a href="{{ route('profile.settings') }}" class="block px-4 py-2 hover:bg-surface-container-high">My Profile</a>
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <button type="submit" class="w-full text-left px-4 py-2 hover:bg-surface-container-high">Logout</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
+                         <div class="flex items-center gap-4 text-zinc-500">
+                             <div class="relative" id="notif-wrapper">
+                                 <button id="notif-btn" class="hover:text-primary transition-colors active:scale-95 duration-200 relative">
+                                     <span class="material-symbols-outlined">notifications</span>
+                                     <span id="notif-dot" class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full hidden"></span>
+                                     <span id="notif-count" class="absolute -top-1.5 -right-1.5 bg-primary text-on-primary text-[10px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center hidden min-w-[18px] px-1" style="display:none">0</span>
+                                 </button>
+                                 <div id="notif-dropdown" class="hidden absolute right-0 top-full mt-2 w-80 bg-white shadow-xl border border-surface-container-high rounded-lg overflow-hidden z-50">
+                                     <div class="p-3 border-b border-surface-container-high flex justify-between items-center bg-surface-container-low">
+                                         <span class="font-bold text-sm font-headline">Notifications</span>
+                                         <button id="mark-all-read" class="text-xs text-primary font-semibold hover:underline hidden">Mark all read</button>
+                                     </div>
+                                     <div id="notif-list" class="max-h-72 overflow-y-auto"></div>
+                                     <div id="notif-empty" class="hidden p-6 text-center text-zinc-400 text-sm">No notifications yet</div>
+                                 </div>
+                             </div>
+                             <div class="relative group">
+                                 <button class="hover:text-primary transition-colors active:scale-95 duration-200">
+                                     @if(Auth::user()->avatar_url)
+                                         <img src="{{ Auth::user()->avatar_url }}" alt="Profile" class="w-8 h-8 rounded-full object-cover"/>
+                                     @else
+                                         <span class="material-symbols-outlined">account_circle</span>
+                                     @endif
+                                 </button>
+                                 <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all border border-surface-container-high">
+                                     <a href="{{ route('profile.settings') }}" class="block px-4 py-2 hover:bg-surface-container-high">My Profile</a>
+                                     <form method="POST" action="{{ route('logout') }}">
+                                         @csrf
+                                         <button type="submit" class="w-full text-left px-4 py-2 hover:bg-surface-container-high">Logout</button>
+                                     </form>
+                                 </div>
+                             </div>
+                         </div>
                     </div>
                 </header>
 
@@ -210,5 +221,123 @@
     @endauth
 
     @yield('scripts')
+
+    <script>
+        let unreadCount = 0;
+
+        function fetchNotifications() {
+            fetch('{{ route("trader.notifications.index") }}', {
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                unreadCount = data.unread_count;
+                updateBadge();
+                renderDropdown(data.notifications);
+            })
+            .catch(() => {});
+        }
+
+        function updateBadge() {
+            const dot = document.getElementById('notif-dot');
+            const count = document.getElementById('notif-count');
+            if (unreadCount > 0) {
+                dot.classList.remove('hidden');
+                count.classList.remove('hidden');
+                count.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                document.getElementById('mark-all-read').classList.remove('hidden');
+            } else {
+                dot.classList.add('hidden');
+                count.classList.add('hidden');
+                document.getElementById('mark-all-read').classList.add('hidden');
+            }
+        }
+
+        function renderDropdown(notifications) {
+            const list = document.getElementById('notif-list');
+            const empty = document.getElementById('notif-empty');
+            list.innerHTML = '';
+            if (!notifications.length) {
+                empty.classList.remove('hidden');
+                list.classList.add('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+            list.classList.remove('hidden');
+            notifications.forEach(n => {
+                const div = document.createElement('div');
+                div.className = 'px-4 py-3 border-b border-surface-container-high last:border-b-0 hover:bg-surface-container-low transition-colors cursor-pointer' + (n.read ? '' : ' bg-primary/5');
+                div.innerHTML = `
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-on-surface truncate">${n.message}</p>
+                            <p class="text-xs text-zinc-400 mt-0.5">${n.created_at}</p>
+                        </div>
+                        ${!n.read ? `<button onclick="markRead('${n.id}', this)" class="text-xs text-primary font-semibold hover:underline shrink-0">Mark read</button>` : ''}
+                    </div>
+                `;
+                div.onclick = function(e) {
+                    if (e.target.tagName === 'BUTTON') return;
+                    if (n.order_id) {
+                        window.location.href = '{{ route("trader.orders.index") }}';
+                    }
+                };
+                list.appendChild(div);
+            });
+        }
+
+        function markRead(id, btn) {
+            fetch('{{ url("trader/notifications") }}/' + id + '/read', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            })
+            .then(r => r.json())
+            .then(() => {
+                if (btn) {
+                    btn.closest('.px-4').classList.remove('bg-primary/5');
+                    btn.remove();
+                }
+                unreadCount = Math.max(0, unreadCount - 1);
+                updateBadge();
+            })
+            .catch(() => {});
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchNotifications();
+
+            document.getElementById('notif-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                const dd = document.getElementById('notif-dropdown');
+                dd.classList.toggle('hidden');
+                if (!dd.classList.contains('hidden')) {
+                    fetchNotifications();
+                }
+            });
+
+            document.getElementById('mark-all-read').addEventListener('click', function() {
+                fetch('{{ route("trader.notifications.read-all") }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                })
+                .then(r => r.json())
+                .then(() => {
+                    unreadCount = 0;
+                    updateBadge();
+                    document.querySelectorAll('#notif-list .bg-primary\\/5').forEach(el => el.classList.remove('bg-primary/5'));
+                    document.querySelectorAll('#notif-list button').forEach(b => b.remove());
+                });
+            });
+
+            document.addEventListener('click', function(e) {
+                const wrapper = document.getElementById('notif-wrapper');
+                if (wrapper && !wrapper.contains(e.target)) {
+                    document.getElementById('notif-dropdown').classList.add('hidden');
+                }
+            });
+        });
+
+        setInterval(fetchNotifications, 30000);
+    </script>
 </body>
 </html>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CollectionSlot;
 use App\Models\Coupon;
 use App\Models\Order;
+use App\Notifications\OrderPlaced;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -171,7 +172,9 @@ class OrderController extends Controller
                 }
             }
 
-            DB::transaction(function () use ($shopGroups, $customer, $slot, $group_id, $combinedTotal, $couponId, $totalCouponDiscount) {
+            $orders = [];
+
+            DB::transaction(function () use ($shopGroups, $customer, $slot, $group_id, $combinedTotal, $couponId, $totalCouponDiscount, &$orders) {
                 foreach ($shopGroups as $shopId => $items) {
                     $orderAmount = $items->sum(fn ($item) => $item->product->discounted_price * $item->quantity);
                     $ratio = $combinedTotal > 0 ? $orderAmount / $combinedTotal : 0;
@@ -206,10 +209,19 @@ class OrderController extends Controller
                     }
 
                     $slot->increment('total_order');
+
+                    $orders[] = $order;
                 }
             });
 
             $cart->products()->delete();
+
+            foreach ($orders as $order) {
+                $shop = $order->shop;
+                if ($shop && $shop->trader && $shop->trader->user) {
+                    $shop->trader->user->notify(new OrderPlaced($order));
+                }
+            }
 
             $shopCount = $shopGroups->count();
             $message = $shopCount > 1

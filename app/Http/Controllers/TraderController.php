@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Illuminate\Notifications\DatabaseNotification;
 
 class TraderController extends Controller
 {
@@ -136,7 +137,7 @@ class TraderController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, Order $order): \Illuminate\Http\JsonResponse
+    public function updateStatus(Request $request, Order $order): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'status' => 'required|string|in:PENDING,IN_PROGRESS,READY,COMPLETED,CANCELLED',
@@ -153,7 +154,7 @@ class TraderController extends Controller
             ->exists();
 
         if (! $orderBelongsToTrader) {
-            return response()->json(['error' => 'You do not have permission to update this order.'], 403);
+            return back()->withErrors(['status' => 'You do not have permission to update this order.']);
         }
 
         $updates = ['order_status' => $validated['status']];
@@ -164,11 +165,9 @@ class TraderController extends Controller
 
         $order->update($updates);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Order status updated successfully.',
-            'order_status' => $validated['status'],
-        ]);
+        $label = str_replace('_', ' ', $validated['status']);
+
+        return back()->with('success', "Order #ORD-{$order->order_id} status updated to {$label}.");
     }
 
     public function inventory(): View
@@ -532,5 +531,55 @@ class TraderController extends Controller
         $product->discount()->delete();
 
         return redirect()->route('trader.inventory.index')->with('success', 'Flash deal removed.');
+    }
+
+    public function notifications(Request $request)
+    {
+        $user = auth()->user();
+        $notifications = $user->notifications()
+            ->latest()
+            ->take(20)
+            ->get();
+
+        $unreadCount = $user->unreadNotifications()->count();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'notifications' => $notifications->map(function ($n) {
+                    return [
+                        'id' => $n->id,
+                        'message' => $this->formatNotificationMessage($n),
+                        'read' => $n->read_at !== null,
+                        'created_at' => $n->created_at->diffForHumans(),
+                        'order_id' => $n->data['order_id'] ?? null,
+                    ];
+                }),
+                'unread_count' => $unreadCount,
+            ]);
+        }
+
+        return view('trader.notifications', compact('notifications', 'unreadCount'));
+    }
+
+    public function markRead(DatabaseNotification $notification)
+    {
+        $notification->markAsRead();
+        return response()->json(['success' => true]);
+    }
+
+    public function markAllRead()
+    {
+        auth()->user()->unreadNotifications->markAsRead();
+        return response()->json(['success' => true]);
+    }
+
+    private function formatNotificationMessage($notification): string
+    {
+        $data = $notification->data;
+
+        return match ($notification->type) {
+            'App\Notifications\OrderPlaced' => "New order from {$data['customer_name']} (#{$data['group_id']})",
+            default => 'New notification',
+        };
     }
 }

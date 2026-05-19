@@ -6,6 +6,7 @@ use App\Mail\OrderConfirmationMail;
 use App\Models\CollectionSlot;
 use App\Models\Coupon;
 use App\Models\Order;
+use App\Notifications\OrderPlaced;
 use App\Services\PayPalService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -183,6 +184,13 @@ class PayPalController extends Controller
             });
 
             $cart->products()->delete();
+
+            foreach ($orders as $order) {
+                $shop = $order->shop;
+                if ($shop && $shop->trader && $shop->trader->user) {
+                    $shop->trader->user->notify(new OrderPlaced($order));
+                }
+            }
 
             $ordersForEmail = Order::where('group_id', $group_id)
                 ->with('items.product', 'collectionSlot', 'shop', 'payment')

@@ -277,6 +277,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [TraderController::class, 'settings'])->name('settings');
         Route::patch('/settings', [TraderController::class, 'updateSettings'])->name('settings.update');
         Route::post('/settings/change-password', [TraderController::class, 'changePassword'])->name('settings.change-password');
+
+        // Notifications
+        Route::get('/notifications', [TraderController::class, 'notifications'])->name('notifications.index');
+        Route::post('/notifications/{notification}/read', [TraderController::class, 'markRead'])->name('notifications.read');
+        Route::post('/notifications/read-all', [TraderController::class, 'markAllRead'])->name('notifications.read-all');
     });
 
     // Admin Panel
