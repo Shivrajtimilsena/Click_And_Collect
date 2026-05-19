@@ -220,4 +220,3 @@ function updateOrderStatus(select) {
 }
 </script>
 @endsection
-
