@@ -20,12 +20,28 @@
 
     <div class="bg-surface-container-lowest p-8 border border-surface-container-high relative overflow-hidden group">
         <div class="flex flex-col gap-2 relative z-10">
-            <span class="text-xs font-bold text-secondary uppercase tracking-widest">Total Revenue</span>
-            <span class="text-4xl font-headline font-extrabold text-on-surface">&pound;{{ number_format($totalRevenue, 2) }}</span>
-            <span class="text-xs text-primary font-bold flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">payments</span>
-                All time earnings
-            </span>
+            <span class="text-xs font-bold text-secondary uppercase tracking-widest">Available Balance</span>
+            <span class="text-4xl font-headline font-extrabold text-primary">&pound;{{ number_format($availableBalance, 2) }}</span>
+            <div class="flex items-center gap-4 mt-1">
+                <span class="text-xs text-secondary flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">account_balance_wallet</span>
+                    Revenue: &pound;{{ number_format($totalRevenue, 2) }}
+                </span>
+                <span class="text-xs text-secondary flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">arrow_upward</span>
+                    Withdrawn: &pound;{{ number_format($totalWithdrawn, 2) }}
+                </span>
+            </div>
+            <div class="mt-4 flex gap-3">
+                <a href="{{ route('trader.withdraw.form') }}" class="bg-primary text-on-primary px-6 py-2.5 text-xs font-bold hover:opacity-90 transition-all inline-flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">call_made</span>
+                    Withdraw Funds
+                </a>
+                <a href="{{ route('trader.withdrawals.index') }}" class="border border-surface-container-high px-6 py-2.5 text-xs font-bold text-secondary hover:bg-surface-container-low transition-all inline-flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">history</span>
+                    History
+                </a>
+            </div>
         </div>
         <span class="material-symbols-outlined absolute -right-4 -bottom-4 text-8xl text-surface-container-high opacity-30 group-hover:opacity-50 transition-opacity">account_balance_wallet</span>
     </div>

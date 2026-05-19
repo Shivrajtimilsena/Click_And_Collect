@@ -7,7 +7,9 @@ use App\Mail\TraderRejectedMail;
 use App\Models\Shop;
 use App\Models\Trader;
 use App\Models\TraderApplication;
+use App\Models\TraderWithdrawal;
 use App\Models\User;
+use App\Services\PayPalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,8 +24,9 @@ class AdminController extends Controller
         $pendingCount = TraderApplication::where('status', 'PENDING')->count();
         $approvedCount = TraderApplication::where('status', 'APPROVED')->count();
         $rejectedCount = TraderApplication::where('status', 'REJECTED')->count();
+        $pendingWithdrawals = TraderWithdrawal::where('status', 'PENDING')->count();
 
-        return view('admin.dashboard', compact('pendingCount', 'approvedCount', 'rejectedCount'));
+        return view('admin.dashboard', compact('pendingCount', 'approvedCount', 'rejectedCount', 'pendingWithdrawals'));
     }
 
     public function applications(): View
@@ -181,6 +184,73 @@ class AdminController extends Controller
             'user_id' => $user->user_id,
             'email' => $user->email,
         ]);
+    }
+
+    public function withdrawals(): View
+    {
+        $withdrawals = TraderWithdrawal::with('trader.user')
+            ->latest()
+            ->paginate(30);
+
+        return view('admin.withdrawals', compact('withdrawals'));
+    }
+
+    public function approveWithdrawal(Request $request, TraderWithdrawal $withdrawal): RedirectResponse
+    {
+        if ($withdrawal->status !== 'PENDING') {
+            return back()->with('error', 'This withdrawal has already been processed.');
+        }
+
+        $paypalService = app(PayPalService::class);
+
+        try {
+            $result = $paypalService->createPayout(
+                $withdrawal->amount,
+                config('paypal.currency', 'GBP'),
+                $withdrawal->paypal_email,
+                "Withdrawal from Click&Collect - Ref #{$withdrawal->withdrawal_id}"
+            );
+
+            $batchId = $result['batch_header']['payout_batch_id'] ?? null;
+
+            $withdrawal->update([
+                'status' => $batchId ? 'COMPLETED' : 'APPROVED',
+                'paypal_batch_id' => $batchId,
+                'processed_by' => $request->user()->user_id,
+                'processed_at' => now(),
+            ]);
+
+            return redirect()->route('admin.withdrawals.index')
+                ->with('success', "Withdrawal #{$withdrawal->withdrawal_id} approved and payout sent.");
+        } catch (\Exception $e) {
+            Log::error('Withdrawal payout failed', [
+                'withdrawal_id' => $withdrawal->withdrawal_id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'PayPal payout failed: '.$e->getMessage());
+        }
+    }
+
+    public function rejectWithdrawal(Request $request, TraderWithdrawal $withdrawal): RedirectResponse
+    {
+        if ($withdrawal->status !== 'PENDING') {
+            return back()->with('error', 'This withdrawal has already been processed.');
+        }
+
+        $request->validate([
+            'admin_notes' => 'required|string|max:1000',
+        ]);
+
+        $withdrawal->update([
+            'status' => 'REJECTED',
+            'admin_notes' => $request->admin_notes,
+            'processed_by' => $request->user()->user_id,
+            'processed_at' => now(),
+        ]);
+
+        return redirect()->route('admin.withdrawals.index')
+            ->with('success', "Withdrawal #{$withdrawal->withdrawal_id} rejected.");
     }
 
     public function rejectFromApex(Request $request, TraderApplication $application): JsonResponse

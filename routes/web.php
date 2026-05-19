@@ -283,6 +283,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/notifications/{notification}/read', [TraderController::class, 'markRead'])->name('notifications.read');
         Route::post('/notifications/read-all', [TraderController::class, 'markAllRead'])->name('notifications.read-all');
         Route::delete('/notifications', [TraderController::class, 'clearAll'])->name('notifications.clear-all');
+
+        // Withdrawals
+        Route::get('/withdraw', [TraderController::class, 'showWithdrawForm'])->name('withdraw.form');
+        Route::post('/withdraw', [TraderController::class, 'submitWithdrawal'])->name('withdraw.submit');
+        Route::get('/withdrawals', [TraderController::class, 'withdrawalHistory'])->name('withdrawals.index');
     });
 
     // Admin Panel
@@ -292,6 +297,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/applications/{application}', [AdminController::class, 'showApplication'])->name('application.show');
         Route::post('/applications/{application}/approve', [AdminController::class, 'approve'])->name('application.approve');
         Route::post('/applications/{application}/reject', [AdminController::class, 'reject'])->name('application.reject');
+
+        // Withdrawals
+        Route::get('/withdrawals', [AdminController::class, 'withdrawals'])->name('withdrawals.index');
+        Route::post('/withdrawals/{withdrawal}/approve', [AdminController::class, 'approveWithdrawal'])->name('withdrawals.approve');
+        Route::post('/withdrawals/{withdrawal}/reject', [AdminController::class, 'rejectWithdrawal'])->name('withdrawals.reject');
     });
 });
 

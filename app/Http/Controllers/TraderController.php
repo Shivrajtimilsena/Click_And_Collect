@@ -9,10 +9,12 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Trader;
 use App\Models\TraderApplication;
+use App\Models\TraderWithdrawal;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Illuminate\Notifications\DatabaseNotification;
@@ -106,6 +108,11 @@ class TraderController extends Controller
         $monthlyRevenue = $this->getMonthlyRevenue($shopIds);
         $yearlyRevenue = $this->getYearlyRevenue($shopIds);
 
+        $totalWithdrawn = TraderWithdrawal::where('trader_id', $trader->trader_id)
+            ->whereIn('status', ['APPROVED', 'COMPLETED'])
+            ->sum('amount');
+        $availableBalance = max(0, $totalRevenue - $totalWithdrawn);
+
         return view('trader.dashboard', [
             'trader' => $trader,
             'shops' => $shops,
@@ -116,6 +123,8 @@ class TraderController extends Controller
             'weeklyRevenue' => $weeklyRevenue,
             'monthlyRevenue' => $monthlyRevenue,
             'yearlyRevenue' => $yearlyRevenue,
+            'totalWithdrawn' => $totalWithdrawn,
+            'availableBalance' => $availableBalance,
         ]);
     }
 
@@ -578,6 +587,79 @@ class TraderController extends Controller
     {
         auth()->user()->notifications()->delete();
         return response()->json(['success' => true]);
+    }
+
+    private function getTraderRevenueData(): array
+    {
+        $user = Auth::user();
+        $trader = $user->trader;
+        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+
+        $totalRevenue = OrderItem::whereHas('product.shop', function ($query) use ($shopIds) {
+            $query->whereIn('shop_id', $shopIds);
+        })
+            ->whereHas('order', function ($query) {
+                $query->where('order_status', '!=', 'CANCELLED');
+            })
+            ->sum('line_total');
+
+        $totalWithdrawn = TraderWithdrawal::where('trader_id', $trader->trader_id)
+            ->whereIn('status', ['APPROVED', 'COMPLETED'])
+            ->sum('amount');
+
+        $availableBalance = max(0, $totalRevenue - $totalWithdrawn);
+
+        return compact('totalRevenue', 'totalWithdrawn', 'availableBalance', 'trader');
+    }
+
+    public function showWithdrawForm(): View
+    {
+        $data = $this->getTraderRevenueData();
+
+        $recentWithdrawals = TraderWithdrawal::where('trader_id', $data['trader']->trader_id)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('trader.withdraw', array_merge($data, [
+            'recentWithdrawals' => $recentWithdrawals,
+        ]));
+    }
+
+    public function submitWithdrawal(Request $request): RedirectResponse
+    {
+        $data = $this->getTraderRevenueData();
+
+        $validated = $request->validate([
+            'amount' => "required|numeric|min:1|max:{$data['availableBalance']}",
+            'paypal_email' => 'required|email',
+        ]);
+
+        TraderWithdrawal::create([
+            'trader_id' => $data['trader']->trader_id,
+            'amount' => $validated['amount'],
+            'paypal_email' => $validated['paypal_email'],
+            'status' => 'PENDING',
+        ]);
+
+        return redirect()->route('trader.withdrawals.index')
+            ->with('success', 'Withdrawal request submitted for review.');
+    }
+
+    public function withdrawalHistory(): View
+    {
+        $user = Auth::user();
+        $trader = $user->trader;
+
+        $data = $this->getTraderRevenueData();
+
+        $withdrawals = TraderWithdrawal::where('trader_id', $trader->trader_id)
+            ->latest()
+            ->paginate(20);
+
+        return view('trader.withdrawals', array_merge($data, [
+            'withdrawals' => $withdrawals,
+        ]));
     }
 
     private function formatNotificationMessage($notification): string

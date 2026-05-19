@@ -174,6 +174,61 @@ class PayPalService
         return $response->json();
     }
 
+    public function createPayout(float $amount, string $currency, string $receiverEmail, string $note = ''): array
+    {
+        $token = $this->getAccessToken();
+
+        $senderBatchId = 'POUT_' . uniqid();
+
+        $payload = [
+            'sender_batch_header' => [
+                'sender_batch_id' => $senderBatchId,
+                'email_subject' => 'Your withdrawal from Click&Collect',
+                'email_message' => 'You have received a payout from Click&Collect.',
+            ],
+            'items' => [
+                [
+                    'recipient_type' => 'EMAIL',
+                    'amount' => [
+                        'value' => number_format($amount, 2, '.', ''),
+                        'currency' => $currency,
+                    ],
+                    'receiver' => $receiverEmail,
+                    'note' => $note ?: 'Withdrawal from Click&Collect',
+                ],
+            ],
+        ];
+
+        $response = Http::timeout(30)
+            ->withToken($token)
+            ->withHeader('Content-Type', 'application/json')
+            ->post($this->baseUrl.'/v1/payments/payouts', $payload);
+
+        if (! $response->successful()) {
+            $errorBody = $response->json();
+            Log::error('PayPal payout failed', [
+                'status' => $response->status(),
+                'body' => $errorBody,
+                'amount' => $amount,
+                'receiver' => $receiverEmail,
+            ]);
+
+            $errorMessage = $errorBody['message'] ?? $errorBody['error_description'] ?? 'Unknown error';
+            throw new \Exception('PayPal payout failed: '.$errorMessage);
+        }
+
+        $data = $response->json();
+        $batchId = $data['batch_header']['payout_batch_id'] ?? null;
+
+        Log::info('PayPal payout created', [
+            'batch_id' => $batchId,
+            'amount' => $amount,
+            'receiver' => $receiverEmail,
+        ]);
+
+        return $data;
+    }
+
     /**
      * Test the PayPal connection and credentials
      */
