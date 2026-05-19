@@ -131,7 +131,9 @@
     </main>
 
     @include('modals.auth-modal')
-    @include('components.footer')
+    <div class="@hasSection('sidebar') lg:ml-64 @endif">
+        @include('components.footer')
+    </div>
 
     <script>
     function addToWishlist(productId, event) {
