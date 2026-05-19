@@ -63,7 +63,7 @@
                                 <div class="space-y-3">
                                     <div class="flex items-center justify-between text-sm p-3 rounded-md bg-surface-container-low">
                                         <span class="font-medium">{{ $slot->start_time ?? 'TBA' }} — {{ $slot->end_time ?? 'TBA' }}</span>
-                                        <span class="text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded">{{ $slot->capacity - $slot->total_order ?? 0 }} LEFT</span>
+                                        <span class="text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded">{{ ($slot->capacity - $slot->total_order) ?? 0 }} LEFT</span>
                                     </div>
                                 </div>
                             </div>

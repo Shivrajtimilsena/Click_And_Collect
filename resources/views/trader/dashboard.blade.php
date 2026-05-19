@@ -75,7 +75,7 @@
 
         {{-- Weekly Chart --}}
         <div id="revenue-chart-weekly" class="revenue-chart">
-            @php $amounts = array_column($weeklyRevenue, 'amount'); $maxRevenue = max(max($amounts), 1); @endphp
+            @php $amounts = array_column($weeklyRevenue, 'amount'); $maxRevenue = max(!empty($amounts) ? max($amounts) : 0, 1); @endphp
             <div class="h-64 px-8 flex items-end justify-between gap-4 pt-4 relative">
                 <div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 py-4">
                     <div class="w-full border-t border-zinc-400"></div>
@@ -105,7 +105,7 @@
 
         {{-- Monthly Chart --}}
         <div id="revenue-chart-monthly" class="revenue-chart hidden">
-            @php $amounts = array_column($monthlyRevenue, 'amount'); $maxRevenue = max(max($amounts), 1); @endphp
+            @php $amounts = array_column($monthlyRevenue, 'amount'); $maxRevenue = max(!empty($amounts) ? max($amounts) : 0, 1); @endphp
             <div class="h-64 px-8 flex items-end justify-between gap-4 pt-4 relative">
                 <div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 py-4">
                     <div class="w-full border-t border-zinc-400"></div>
@@ -135,7 +135,7 @@
 
         {{-- Yearly Chart --}}
         <div id="revenue-chart-yearly" class="revenue-chart hidden">
-            @php $amounts = array_column($yearlyRevenue, 'amount'); $maxRevenue = max(max($amounts), 1); @endphp
+            @php $amounts = array_column($yearlyRevenue, 'amount'); $maxRevenue = max(!empty($amounts) ? max($amounts) : 0, 1); @endphp
             <div class="h-64 px-8 flex items-end justify-between gap-4 pt-4 relative">
                 <div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 py-4">
                     <div class="w-full border-t border-zinc-400"></div>

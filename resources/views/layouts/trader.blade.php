@@ -91,10 +91,32 @@
     @auth
         @if(Auth::user()->role === 'TRADER')
             <aside class="h-screen w-64 fixed left-0 top-0 z-40 bg-surface-container-lowest flex flex-col py-8 px-4 gap-2 border-r border-surface-container-high">
-                <a href="{{ route('home') }}" class="px-4 mb-10 hover:opacity-80 transition-opacity cursor-pointer">
+                <a href="{{ route('home') }}" class="px-4 mb-4 hover:opacity-80 transition-opacity cursor-pointer">
                     <h1 class="text-lg font-bold text-zinc-900 font-headline">Click&Collect</h1>
                     <p class="text-xs font-medium text-primary uppercase tracking-widest">Trader Portal</p>
                 </a>
+
+                @if($shops->isNotEmpty())
+                <div class="px-2 mb-6">
+                    <form method="POST" action="{{ route('trader.shops.switch', $currentShop ?? $shops->first()) }}" id="shop-switch-form">
+                        @csrf
+                        <div class="relative">
+                            <select name="shop_id" onchange="document.getElementById('shop-switch-form').action = '{{ url('trader/switch-shop') }}/' + this.value; this.form.submit();"
+                                class="w-full bg-surface-container-high border border-surface-container-low text-sm px-3 py-2.5 appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20">
+                                @foreach($shops as $shop)
+                                    <option value="{{ $shop->shop_id }}" {{ ($currentShop?->shop_id ?? $shops->first()->shop_id) == $shop->shop_id ? 'selected' : '' }}>
+                                        {{ $shop->shop_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
+                                <span class="material-symbols-outlined text-sm">unfold_more</span>
+                            </span>
+                        </div>
+                    </form>
+                </div>
+                @endif
+
                 <nav class="flex-1 space-y-1">
                     <a class="flex items-center gap-3 {{ request()->routeIs('trader.dashboard') ? 'bg-primary text-on-primary' : 'text-zinc-600 hover:bg-surface-container-high' }} px-4 py-3 font-medium text-sm transition-all" href="{{ route('trader.dashboard') }}">
                         <span class="material-symbols-outlined">dashboard</span>
@@ -125,6 +147,9 @@
                 <header class="fixed top-0 right-0 left-64 z-50 bg-white/80 backdrop-blur-xl flex justify-between items-center px-8 h-20 shadow-sm">
                     <div class="flex items-center gap-4">
                         <span class="text-sm font-medium uppercase tracking-wider text-zinc-500">@yield('header-title', 'Overview / Dashboard')</span>
+                        @if($currentShop)
+                        <span class="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">{{ $currentShop->shop_name }}</span>
+                        @endif
                     </div>
                     <div class="flex items-center gap-6">
                         <div class="relative group">

@@ -211,17 +211,47 @@ class AdminController extends Controller
                 "Withdrawal from Click&Collect - Ref #{$withdrawal->withdrawal_id}"
             );
 
-            $batchId = $result['batch_header']['payout_batch_id'] ?? null;
+            $batchId = $result['payout_batch_id'] ?? null;
+            $batchStatus = $result['batch_status'] ?? 'UNKNOWN';
+
+            // Query batch status to get item-level status (not in create response)
+            try {
+                $batchDetail = $paypalService->getPayoutStatus($batchId);
+                $itemStatus = $batchDetail['item_status'] ?? 'UNKNOWN';
+            } catch (\Exception $e) {
+                $itemStatus = $batchStatus; // fallback to batch status
+            }
+
+            $localStatus = match ($itemStatus) {
+                'SUCCESS' => 'COMPLETED',
+                'UNCLAIMED' => 'APPROVED',
+                'PENDING', 'PROCESSING' => 'APPROVED',
+                'DENIED', 'RETURNED' => 'FAILED',
+                default => 'APPROVED',
+            };
+
+            $paypalBatchStatus = "{$itemStatus} (batch: {$batchStatus})";
 
             $withdrawal->update([
-                'status' => $batchId ? 'COMPLETED' : 'APPROVED',
+                'status' => $localStatus,
                 'paypal_batch_id' => $batchId,
+                'paypal_batch_status' => $paypalBatchStatus,
                 'processed_by' => $request->user()->user_id,
                 'processed_at' => now(),
             ]);
 
+            if ($localStatus === 'COMPLETED') {
+                return redirect()->route('admin.withdrawals.index')
+                    ->with('success', "Withdrawal #{$withdrawal->withdrawal_id} completed — £" . number_format($withdrawal->amount, 2) . " sent to {$withdrawal->paypal_email}.");
+            }
+
+            if ($itemStatus === 'UNCLAIMED') {
+                return redirect()->route('admin.withdrawals.index')
+                    ->with('warning', "Withdrawal #{$withdrawal->withdrawal_id} approved but PayPal reports UNCLAIMED. The recipient needs to claim the payment in their PayPal account. The funds will be returned if not claimed within 30 days.");
+            }
+
             return redirect()->route('admin.withdrawals.index')
-                ->with('success', "Withdrawal #{$withdrawal->withdrawal_id} approved and payout sent.");
+                ->with('info', "Withdrawal #{$withdrawal->withdrawal_id} approved. PayPal status: {$itemStatus}. Funds will arrive once PayPal processes the batch.");
         } catch (\Exception $e) {
             Log::error('Withdrawal payout failed', [
                 'withdrawal_id' => $withdrawal->withdrawal_id,
@@ -229,6 +259,67 @@ class AdminController extends Controller
             ]);
 
             return back()->with('error', 'PayPal payout failed: '.$e->getMessage());
+        }
+    }
+
+    public function checkWithdrawalStatus(Request $request, TraderWithdrawal $withdrawal): RedirectResponse
+    {
+        if (! $withdrawal->paypal_batch_id) {
+            return back()->with('error', 'No PayPal batch ID found for this withdrawal.');
+        }
+
+        $paypalService = app(PayPalService::class);
+
+        try {
+            $status = $paypalService->getPayoutStatus($withdrawal->paypal_batch_id);
+
+            $itemStatus = $status['item_status'] ?? 'UNKNOWN';
+            $batchStatus = $status['batch_status'] ?? 'UNKNOWN';
+            $errors = $status['errors'] ?? null;
+
+            $localStatus = match ($itemStatus) {
+                'SUCCESS' => 'COMPLETED',
+                'UNCLAIMED' => 'APPROVED',
+                'PENDING', 'PROCESSING' => 'APPROVED',
+                'DENIED', 'RETURNED' => 'FAILED',
+                default => $withdrawal->status,
+            };
+
+            $paypalBatchStatus = "{$itemStatus} (batch: {$batchStatus})";
+
+            $withdrawal->update([
+                'status' => $localStatus,
+                'paypal_batch_status' => $paypalBatchStatus,
+            ]);
+
+            $message = "Withdrawal #{$withdrawal->withdrawal_id} status refreshed: item={$itemStatus}, batch={$batchStatus}.";
+
+            if ($localStatus === 'COMPLETED') {
+                return redirect()->route('admin.withdrawals.index')
+                    ->with('success', $message . ' Payment completed.');
+            }
+
+            if ($itemStatus === 'UNCLAIMED') {
+                return redirect()->route('admin.withdrawals.index')
+                    ->with('warning', $message . ' The recipient still needs to claim this payment in their PayPal account.');
+            }
+
+            if ($localStatus === 'FAILED') {
+                $reason = $errors['message'] ?? 'Unknown reason';
+                return redirect()->route('admin.withdrawals.index')
+                    ->with('error', $message . " Payment failed: {$reason}");
+            }
+
+            return redirect()->route('admin.withdrawals.index')
+                ->with('info', $message);
+        } catch (\Exception $e) {
+            Log::error('PayPal status check failed', [
+                'withdrawal_id' => $withdrawal->withdrawal_id,
+                'batch_id' => $withdrawal->paypal_batch_id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Failed to check PayPal status: ' . $e->getMessage());
         }
     }
 

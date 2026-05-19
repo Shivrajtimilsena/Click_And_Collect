@@ -278,6 +278,10 @@ Route::middleware('auth')->group(function () {
         Route::patch('/settings', [TraderController::class, 'updateSettings'])->name('settings.update');
         Route::post('/settings/change-password', [TraderController::class, 'changePassword'])->name('settings.change-password');
 
+        // Shops
+        Route::post('/shops', [TraderController::class, 'storeShop'])->name('shops.store');
+        Route::post('/switch-shop/{shop}', [TraderController::class, 'switchShop'])->name('shops.switch');
+
         // Notifications
         Route::get('/notifications', [TraderController::class, 'notifications'])->name('notifications.index');
         Route::post('/notifications/{notification}/read', [TraderController::class, 'markRead'])->name('notifications.read');
@@ -302,6 +306,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/withdrawals', [AdminController::class, 'withdrawals'])->name('withdrawals.index');
         Route::post('/withdrawals/{withdrawal}/approve', [AdminController::class, 'approveWithdrawal'])->name('withdrawals.approve');
         Route::post('/withdrawals/{withdrawal}/reject', [AdminController::class, 'rejectWithdrawal'])->name('withdrawals.reject');
+        Route::post('/withdrawals/{withdrawal}/check-status', [AdminController::class, 'checkWithdrawalStatus'])->name('withdrawals.check-status');
     });
 });
 

@@ -12,12 +12,19 @@
             <p class="text-sm text-secondary">Manage your products across all shops</p>
         </div>
         <div class="flex gap-4">
-            <select class="px-4 py-2 bg-surface-container-high border-none text-sm focus:ring-2 focus:ring-primary/20">
-                <option value="">All Shops</option>
-                @foreach($shops as $shop)
-                    <option value="{{ $shop->shop_id }}">{{ $shop->shop_name }}</option>
-                @endforeach
-            </select>
+            @if($shops->isNotEmpty())
+            <form method="POST" action="{{ route('trader.shops.switch', $currentShop ?? $shops->first()) }}" id="inventory-shop-switch">
+                @csrf
+                <select name="shop_id" onchange="this.form.action='{{ url('trader/switch-shop') }}/'+this.value; this.form.submit();"
+                    class="px-4 py-2 bg-surface-container-high border-none text-sm focus:ring-2 focus:ring-primary/20">
+                    @foreach($shops as $shop)
+                        <option value="{{ $shop->shop_id }}" {{ ($currentShop->shop_id ?? $shops->first()->shop_id) == $shop->shop_id ? 'selected' : '' }}>
+                            {{ $shop->shop_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </form>
+            @endif
             <button class="bg-primary text-on-primary px-4 py-2 text-sm font-bold flex items-center gap-2">
                 <a href="{{ route('trader.product.create') }}" class="flex items-center gap-2 text-on-primary hover:opacity-90">
                     <span class="material-symbols-outlined text-sm">add</span>

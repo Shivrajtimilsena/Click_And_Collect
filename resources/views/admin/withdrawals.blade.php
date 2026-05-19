@@ -17,6 +17,7 @@
                         <th class="px-6 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest">PayPal</th>
                         <th class="px-6 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest">Date</th>
                         <th class="px-6 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest">Status</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest">PayPal Batch</th>
                         <th class="px-6 py-4 text-[10px] font-bold text-secondary uppercase tracking-widest">Actions</th>
                     </tr>
                 </thead>
@@ -38,6 +39,24 @@
                             @endphp
                             <span class="px-3 py-1 text-[10px] font-bold uppercase {{ $color }}">{{ $w->status }}</span>
                         </td>
+                        <td class="px-6 py-4 text-xs text-secondary">
+                            @if($w->paypal_batch_id)
+                                <span class="font-mono" title="{{ $w->paypal_batch_id }}">{{ substr($w->paypal_batch_id, 0, 12) }}...</span>
+                                @if($w->paypal_batch_status)
+                                    @php
+                                        $isUnclaimed = str_contains($w->paypal_batch_status, 'UNCLAIMED');
+                                        $isSuccess = str_contains($w->paypal_batch_status, 'SUCCESS');
+                                        $isFailed = str_contains($w->paypal_batch_status, 'DENIED') || str_contains($w->paypal_batch_status, 'RETURNED');
+                                    @endphp
+                                    <br><span class="text-[10px] {{ $isUnclaimed ? 'text-yellow-600' : ($isSuccess ? 'text-green-600' : ($isFailed ? 'text-red-600' : 'text-zinc-400')) }}">PayPal: {{ $w->paypal_batch_status }}</span>
+                                    @if($isUnclaimed)
+                                        <br><span class="text-[10px] text-yellow-600 font-bold">Recipient must claim in PayPal</span>
+                                    @endif
+                                @endif
+                            @else
+                                -
+                            @endif
+                        </td>
                         <td class="px-6 py-4">
                             @if($w->status === 'PENDING')
                             <div class="flex gap-2">
@@ -50,6 +69,17 @@
                                     Reject
                                 </button>
                             </div>
+                            @elseif($w->status === 'APPROVED' && $w->paypal_batch_id)
+                            <div class="flex flex-col gap-2">
+                                <span class="text-xs text-secondary">{{ $w->processed_at?->format('d M Y') ?? '-' }}</span>
+                                <form action="{{ route('admin.withdrawals.check-status', $w) }}" method="POST">
+                                    @csrf
+                                    <button type="submit"
+                                        class="bg-blue-600 text-white px-3 py-1 text-xs font-bold hover:opacity-90 transition-all">
+                                        Refresh Status
+                                    </button>
+                                </form>
+                            </div>
                             @else
                             <span class="text-xs text-secondary">{{ $w->processed_at?->format('d M Y') ?? '-' }}</span>
                             @endif
@@ -57,7 +87,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center text-secondary">No withdrawal requests.</td>
+                        <td colspan="8" class="px-6 py-12 text-center text-secondary">No withdrawal requests.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -74,7 +104,8 @@
 <div id="approve-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
     <div class="bg-white max-w-md w-full mx-4 p-8">
         <h3 class="text-xl font-headline font-bold mb-2">Approve Withdrawal</h3>
-        <p class="text-sm text-secondary mb-6">This will send a PayPal payout to the trader. Continue?</p>
+        <p class="text-sm text-secondary mb-2">This will send a PayPal payout to the trader. Continue?</p>
+        <p class="text-xs text-error font-semibold mb-4">Ensure the merchant PayPal account has sufficient balance before approving.</p>
         <div class="bg-surface-container-low p-4 mb-6 text-sm space-y-2">
             <div class="flex justify-between"><span class="text-secondary">Trader:</span><span class="font-bold" id="approve-trader-name"></span></div>
             <div class="flex justify-between"><span class="text-secondary">Amount:</span><span class="font-bold" id="approve-amount"></span></div>

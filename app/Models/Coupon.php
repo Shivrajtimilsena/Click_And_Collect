@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -34,20 +35,19 @@ class Coupon extends Model
 
     public function isValid(): bool
     {
-        // Check if coupon is active
-        if ($this->is_active !== 'Y') {
+        if (! $this->is_active) {
             return false;
         }
-        
-        // Check if within valid date range
-        $now = \Carbon\Carbon::now()->toDateString();
+
+        $now = Carbon::now()->toDateString();
+
         if ($this->start_date && $this->start_date > $now) {
-            return false; // Not started yet
+            return false;
         }
         if ($this->end_date && $this->end_date < $now) {
-            return false; // Already expired
+            return false;
         }
-        
+
         return true;
     }
 }

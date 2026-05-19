@@ -48,15 +48,30 @@ class CartController extends Controller
 
     public function update(UpdateCartRequest $request, CartProduct $cartProduct): RedirectResponse
     {
+        $product = $cartProduct->product;
+        $newQty = $request->validated('quantity');
+
+        if ($newQty > $product->stock) {
+            return back()->with('error', "Only {$product->stock} units of {$product->product_name} are available.");
+        }
+
+        if ($product->max_order && $newQty > $product->max_order) {
+            return back()->with('error', "Maximum {$product->max_order} units of {$product->product_name} per order.");
+        }
+
+        if ($product->min_order && $newQty < $product->min_order) {
+            return back()->with('error', "Minimum {$product->min_order} units of {$product->product_name} per order.");
+        }
+
         $cart = $cartProduct->cart;
         $currentTotal = $cart->products()->sum('quantity');
-        $newTotal = $currentTotal - $cartProduct->quantity + $request->validated('quantity');
+        $newTotal = $currentTotal - $cartProduct->quantity + $newQty;
 
         if ($newTotal > 20) {
             return back()->with('error', 'max 20 item allowed to order');
         }
 
-        $cartProduct->update(['quantity' => $request->validated('quantity')]);
+        $cartProduct->update(['quantity' => $newQty]);
 
         return back()->with('success', 'Cart updated!');
     }

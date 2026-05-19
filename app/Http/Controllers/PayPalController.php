@@ -6,6 +6,7 @@ use App\Mail\OrderConfirmationMail;
 use App\Models\CollectionSlot;
 use App\Models\Coupon;
 use App\Models\Order;
+use App\Models\Product;
 use App\Notifications\OrderPlaced;
 use App\Services\PayPalService;
 use Carbon\Carbon;
@@ -39,6 +40,16 @@ class PayPalController extends Controller
             return response()->json(['error' => 'Cart is empty.'], 400);
         }
 
+        foreach ($cartItems as $item) {
+            $product = $item->product;
+            if ($product->stock < $item->quantity) {
+                return response()->json(['error' => "Sorry, only {$product->stock} units of {$product->product_name} are available."], 400);
+            }
+            if ($product->max_order && $item->quantity > $product->max_order) {
+                return response()->json(['error' => "Maximum {$product->max_order} units of {$product->product_name} per order."], 400);
+            }
+        }
+
         $total = 0;
         $paypalItems = [];
 
@@ -67,6 +78,12 @@ class PayPalController extends Controller
         }
 
         $total = max(0, $total - $couponDiscount);
+
+        // Don't send itemized breakdown when coupon is applied
+        // to avoid PayPal item_total validation mismatch
+        if ($couponDiscount > 0) {
+            $paypalItems = [];
+        }
 
         try {
             $paypalOrder = $this->paypalService->createOrder($total, config('paypal.currency'), $paypalItems);
@@ -99,6 +116,16 @@ class PayPalController extends Controller
 
         if ($cartItems->isEmpty()) {
             return response()->json(['error' => 'Cart is empty.'], 400);
+        }
+
+        foreach ($cartItems as $item) {
+            $product = $item->product;
+            if ($product->stock < $item->quantity) {
+                return response()->json(['error' => "Sorry, only {$product->stock} units of {$product->product_name} are available. Please update your cart."], 400);
+            }
+            if ($product->max_order && $item->quantity > $product->max_order) {
+                return response()->json(['error' => "Maximum {$product->max_order} units of {$product->product_name} per order."], 400);
+            }
         }
 
         try {
@@ -135,19 +162,54 @@ class PayPalController extends Controller
 
             $orders = [];
 
-            DB::transaction(function () use ($shopGroups, $customer, $slot, $group_id, $paypalTxnId, $combinedTotal, $couponId, $totalCouponDiscount, &$orders) {
-                foreach ($shopGroups as $shopId => $items) {
-                    $orderAmount = $items->sum(fn ($item) => $item->product->discounted_price * $item->quantity);
-                    $ratio = $combinedTotal > 0 ? $orderAmount / $combinedTotal : 0;
-                    $shopDiscount = round($totalCouponDiscount * $ratio, 2);
-                    if ($ratio > 0 && $shopDiscount == 0) {
-                        $shopDiscount = 0.01;
+            DB::transaction(function () use ($shopGroups, $customer, $request, $group_id, $paypalTxnId, $combinedTotal, $couponId, $totalCouponDiscount, &$orders, $cartItems) {
+                // Lock slot row to prevent capacity race condition
+                $lockedSlot = CollectionSlot::where('collection_slot_id', $request->collection_slot_id)
+                    ->where('is_active', 'Y')
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($lockedSlot->total_order >= $lockedSlot->capacity) {
+                    throw new \Exception('This collection slot is now full. Please choose another time.');
+                }
+
+                $productIds = $cartItems->pluck('product.product_id')->unique();
+                $lockedProducts = Product::whereIn('product_id', $productIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('product_id');
+
+                foreach ($cartItems as $item) {
+                    $product = $lockedProducts->get($item->product->product_id);
+                    if (! $product || $product->stock < $item->quantity) {
+                        throw new \Exception("Sorry, only {$product->stock} units of {$product->product_name} are available.");
                     }
+                    if ($product->max_order && $item->quantity > $product->max_order) {
+                        throw new \Exception("Maximum {$product->max_order} units of {$product->product_name} per order.");
+                    }
+                }
+
+                $totalQty = $cartItems->sum('quantity');
+                $remainingDiscount = $totalCouponDiscount;
+                $shopCount = $shopGroups->count();
+                $shopIndex = 0;
+
+                foreach ($shopGroups as $shopId => $items) {
+                    $shopIndex++;
+                    $orderAmount = $items->sum(fn ($item) => $item->product->discounted_price * $item->quantity);
+                    $shopQty = $items->sum('quantity');
+
+                    if ($shopIndex === $shopCount) {
+                        $shopDiscount = round($remainingDiscount, 2);
+                    } else {
+                        $shopDiscount = $totalQty > 0 ? round($totalCouponDiscount * $shopQty / $totalQty, 2) : 0;
+                    }
+                    $remainingDiscount -= $shopDiscount;
                     $totalAmount = max(0, $orderAmount - $shopDiscount);
 
                     $order = $customer->orders()->create([
                         'shop_id' => $shopId,
-                        'collection_slot_id' => $slot->collection_slot_id,
+                        'collection_slot_id' => $request->collection_slot_id,
                         'group_id' => $group_id,
                         'coupon_id' => $couponId,
                         'order_amount' => $orderAmount,
@@ -166,10 +228,8 @@ class PayPalController extends Controller
                             'line_total' => $unitPrice * $item->quantity,
                         ]);
 
-                        $item->product->decrement('stock', $item->quantity);
+                        $lockedProducts[$item->product->product_id]->decrement('stock', $item->quantity);
                     }
-
-                    $slot->increment('total_order');
 
                     $order->payment()->create([
                         'payment_date' => Carbon::now(),
@@ -181,6 +241,8 @@ class PayPalController extends Controller
 
                     $orders[] = $order;
                 }
+
+                $lockedSlot->increment('total_order');
             });
 
             $cart->products()->delete();

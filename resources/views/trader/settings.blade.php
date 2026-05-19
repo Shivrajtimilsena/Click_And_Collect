@@ -16,6 +16,81 @@
         </div>
     @endif
 
+    <!-- Your Shops -->
+    <div class="bg-surface-container-lowest border border-surface-container-high rounded-lg overflow-hidden">
+        <div class="px-8 py-6 border-b border-surface-container-high flex justify-between items-center">
+            <div>
+                <h3 class="text-lg font-bold font-headline">Your Shops</h3>
+                <p class="text-sm text-secondary">Switch between shops or create a new one</p>
+            </div>
+        </div>
+        <div class="p-8">
+            @if($shops->isNotEmpty())
+            <div class="flex flex-wrap gap-4">
+                @foreach($shops as $s)
+                @php $activeShopId = $shop?->shop_id ?? $shops->first()->shop_id; @endphp
+                <div class="flex items-center gap-3 px-4 py-3 border {{ $activeShopId == $s->shop_id ? 'border-primary bg-primary/5' : 'border-surface-container-high' }}">
+                    @if($s->shop_image)
+                        <img src="{{ $s->shop_image }}" alt="" class="w-10 h-10 rounded object-cover">
+                    @else
+                        <div class="w-10 h-10 bg-surface-container-high flex items-center justify-center">
+                            <span class="material-symbols-outlined text-secondary text-sm">store</span>
+                        </div>
+                    @endif
+                    <div>
+                        <p class="text-sm font-bold {{ $activeShopId == $s->shop_id ? 'text-primary' : '' }}">{{ $s->shop_name }}</p>
+                        <p class="text-xs text-secondary">{{ $s->products_count ?? $s->products?->count() ?? 0 }} products</p>
+                    </div>
+                    @if($activeShopId != $s->shop_id)
+                    <form method="POST" action="{{ route('trader.shops.switch', $s) }}" class="ml-2">
+                        @csrf
+                        <button type="submit" class="text-xs text-primary font-bold hover:underline">Switch</button>
+                    </form>
+                    @else
+                    <span class="ml-2 text-[10px] font-bold uppercase text-primary tracking-widest">Active</span>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+            @else
+            <p class="text-sm text-secondary mb-4">You haven't created any shops yet. Create your first one below.</p>
+            @endif
+            <button onclick="document.getElementById('add-shop-settings').classList.toggle('hidden')" class="mt-4 text-sm text-primary font-bold hover:underline flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">add</span>
+                Add New Shop
+            </button>
+            <form id="add-shop-settings" method="POST" action="{{ route('trader.shops.store') }}" enctype="multipart/form-data" class="hidden mt-4 space-y-3 bg-surface-container-low p-4 border border-surface-container-high">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-1">Shop Name</label>
+                        <input type="text" name="shop_name" required
+                            class="w-full px-4 py-2.5 bg-surface border border-surface-container-high text-sm focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-1">Address</label>
+                        <input type="text" name="shop_address"
+                            class="w-full px-4 py-2.5 bg-surface border border-surface-container-high text-sm focus:ring-2 focus:ring-primary/20">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-1">Description</label>
+                    <textarea name="description" rows="2"
+                        class="w-full px-4 py-2.5 bg-surface border border-surface-container-high text-sm focus:ring-2 focus:ring-primary/20"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-1">Shop Photo (optional)</label>
+                    <input type="file" name="shop_image" accept="image/jpeg,image/png,image/gif,image/webp"
+                        class="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-on-primary file:font-bold file:text-sm">
+                </div>
+                <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 text-sm font-bold hover:opacity-90">
+                    Create Shop
+                </button>
+            </form>
+        </div>
+    </div>
+
+    @if($shop)
     <form method="POST" action="{{ route('trader.settings.update') }}" enctype="multipart/form-data" class="space-y-8">
         @csrf
         @method('PATCH')
@@ -134,6 +209,13 @@
             </div>
         </div>
     </form>
+    @else
+    <div class="bg-surface-container-lowest border border-surface-container-high rounded-lg p-8 text-center">
+        <span class="material-symbols-outlined text-4xl text-secondary mb-4">store</span>
+        <h3 class="text-lg font-bold font-headline mb-2">No Shop Selected</h3>
+        <p class="text-sm text-secondary">Create your first shop above to access settings.</p>
+    </div>
+    @endif
 
     <!-- Change Password -->
     <div class="bg-surface-container-lowest border border-surface-container-high rounded-lg overflow-hidden">

@@ -19,6 +19,10 @@ class Shop extends Model
 
     protected $keyType = 'int';
 
+    protected $casts = [
+        'trader_id' => 'integer',
+    ];
+
     protected $fillable = [
         'trader_id',
         'shop_name',

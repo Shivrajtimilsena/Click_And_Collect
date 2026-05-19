@@ -31,6 +31,21 @@
                     </div>
 
                     <div class="space-y-6">
+                        <!-- Shop Selection -->
+                        @if($shops && $shops->count() > 1)
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Shop</label>
+                            <select name="shop_id"
+                                class="w-full bg-surface-container-high border-0 rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/20 transition-all appearance-none">
+                                @foreach($shops as $s)
+                                    <option value="{{ $s->shop_id }}" {{ ($currentShop->shop_id ?? $shops->first()->shop_id) == $s->shop_id ? 'selected' : '' }}>
+                                        {{ $s->shop_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+
                         <!-- Product Name -->
                         <div>
                             <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Product Name</label>

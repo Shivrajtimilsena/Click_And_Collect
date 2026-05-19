@@ -20,6 +20,7 @@ class TraderWithdrawal extends Model
         'paypal_email',
         'status',
         'paypal_batch_id',
+        'paypal_batch_status',
         'admin_notes',
         'processed_by',
         'processed_at',

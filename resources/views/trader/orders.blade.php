@@ -52,15 +52,21 @@
     <div class="px-8 py-6 flex justify-between items-center border-b border-surface-container-high">
         <div>
             <h3 class="text-lg font-bold font-headline">All Orders</h3>
-            <p class="text-sm text-secondary">Manage customer orders</p>
+            <p class="text-sm text-secondary">
+                Manage customer orders
+                @if($currentShop)
+                    for <strong>{{ $currentShop->shop_name }}</strong>
+                @endif
+            </p>
         </div>
         <div class="flex gap-4">
-            <select class="px-4 py-2 bg-surface-container-high border-none text-sm focus:ring-2 focus:ring-primary/20">
-                <option>All Status</option>
-                <option>Pending</option>
-                <option>In Progress</option>
-                <option>Ready</option>
-                <option>Completed</option>
+            <select id="status-filter" class="px-4 py-2 bg-surface-container-high border-none text-sm focus:ring-2 focus:ring-primary/20">
+                <option value="All Status" {{ $currentStatus === 'All Status' ? 'selected' : '' }}>All Status</option>
+                <option value="PENDING" {{ $currentStatus === 'PENDING' ? 'selected' : '' }}>Pending</option>
+                <option value="IN_PROGRESS" {{ $currentStatus === 'IN_PROGRESS' ? 'selected' : '' }}>In Progress</option>
+                <option value="READY" {{ $currentStatus === 'READY' ? 'selected' : '' }}>Ready</option>
+                <option value="COMPLETED" {{ $currentStatus === 'COMPLETED' ? 'selected' : '' }}>Completed</option>
+                <option value="CANCELLED" {{ $currentStatus === 'CANCELLED' ? 'selected' : '' }}>Cancelled</option>
             </select>
         </div>
     </div>
@@ -183,6 +189,17 @@
 </div>
 @endsection
 
-
+<script>
+document.getElementById('status-filter').addEventListener('change', function() {
+    var value = this.value;
+    var url = new URL(window.location.href);
+    if (value === 'All Status') {
+        url.searchParams.delete('status');
+    } else {
+        url.searchParams.set('status', value);
+    }
+    window.location.href = url.toString();
+});
+</script>
 
 

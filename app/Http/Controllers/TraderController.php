@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Shop;
 use App\Models\Trader;
 use App\Models\TraderApplication;
 use App\Models\TraderWithdrawal;
@@ -74,39 +75,47 @@ class TraderController extends Controller
             );
         }
 
-        $shops = $trader->shops()->with('products')->get();
-        $shopIds = $shops->pluck('shop_id')->toArray();
+        $allShops = $trader->shops()->with('products')->get();
+        $currentShop = $this->getCurrentShop();
+        $currentShopId = $currentShop?->shop_id;
 
-        $activeOrders = Order::whereHas('items.product.shop', function ($query) use ($shopIds) {
-            $query->whereIn('shop_id', $shopIds);
-        })
-            ->whereIn('order_status', ['PENDING', 'READY', 'IN_PROGRESS'])
-            ->count();
+        $activeOrders = 0;
+        $totalRevenue = 0;
+        $lowStockItems = 0;
+        $recentOrders = collect();
+        $weeklyRevenue = [];
+        $monthlyRevenue = [];
+        $yearlyRevenue = [];
 
-        $totalRevenue = OrderItem::whereHas('product.shop', function ($query) use ($shopIds) {
-            $query->whereIn('shop_id', $shopIds);
-        })
-            ->whereHas('order', function ($query) {
-                $query->where('order_status', '!=', 'CANCELLED');
-            })
-            ->sum('line_total');
+        if ($currentShopId) {
+            $activeOrders = Order::where('shop_id', $currentShopId)
+                ->whereIn('order_status', ['PENDING', 'READY', 'IN_PROGRESS'])
+                ->count();
 
-        $lowStockItems = Product::whereIn('shop_id', $shopIds)
-            ->where('stock', '<', 5)
-            ->where('product_status', 'ACTIVE')
-            ->count();
+            $totalRevenue = OrderItem::whereHas('product', function ($query) use ($currentShopId) {
+                    $query->where('shop_id', $currentShopId);
+                })
+                ->whereHas('order', function ($query) {
+                    $query->where('order_status', '!=', 'CANCELLED');
+                })
+                ->sum('line_total');
 
-        $recentOrders = Order::whereHas('items.product.shop', function ($query) use ($shopIds) {
-            $query->whereIn('shop_id', $shopIds);
-        })
-            ->with(['items.product', 'collectionSlot', 'customer.user'])
-            ->latest()
-            ->limit(10)
-            ->get();
+            $lowStockItems = Product::where('shop_id', $currentShopId)
+                ->where('stock', '<', 5)
+                ->where('product_status', 'ACTIVE')
+                ->count();
 
-        $weeklyRevenue = $this->getWeeklyRevenue($shopIds);
-        $monthlyRevenue = $this->getMonthlyRevenue($shopIds);
-        $yearlyRevenue = $this->getYearlyRevenue($shopIds);
+            $recentOrders = Order::where('shop_id', $currentShopId)
+                ->with(['items.product', 'collectionSlot', 'customer.user'])
+                ->latest()
+                ->limit(10)
+                ->get();
+
+            $shopIds = [$currentShopId];
+            $weeklyRevenue = $this->getWeeklyRevenue($shopIds);
+            $monthlyRevenue = $this->getMonthlyRevenue($shopIds);
+            $yearlyRevenue = $this->getYearlyRevenue($shopIds);
+        }
 
         $totalWithdrawn = TraderWithdrawal::where('trader_id', $trader->trader_id)
             ->whereIn('status', ['APPROVED', 'COMPLETED'])
@@ -115,7 +124,8 @@ class TraderController extends Controller
 
         return view('trader.dashboard', [
             'trader' => $trader,
-            'shops' => $shops,
+            'shops' => $allShops,
+            'currentShop' => $currentShop,
             'activeOrders' => $activeOrders,
             'totalRevenue' => $totalRevenue,
             'lowStockItems' => $lowStockItems,
@@ -128,22 +138,29 @@ class TraderController extends Controller
         ]);
     }
 
-    public function orders(): View
+    public function orders(Request $request): View
     {
         $user = Auth::user();
         $trader = $user->trader;
-        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+        $currentShopId = $this->getCurrentShopId();
+        $currentShop = $this->getCurrentShop();
 
-        $orders = Order::whereHas('items.product.shop', function ($query) use ($shopIds) {
-            $query->whereIn('shop_id', $shopIds);
-        })
-            ->with(['items.product', 'collectionSlot', 'customer.user'])
-            ->latest()
-            ->paginate(20);
+        $status = $request->get('status');
+
+        $query = Order::where('shop_id', $currentShopId)
+            ->with(['items.product', 'collectionSlot', 'customer.user']);
+
+        if ($status && $status !== 'All Status') {
+            $query->where('order_status', strtoupper($status));
+        }
+
+        $orders = $query->latest()->paginate(20);
 
         return view('trader.orders', [
             'orders' => $orders,
             'trader' => $trader,
+            'currentShop' => $currentShop,
+            'currentStatus' => $status ?? 'All Status',
         ]);
     }
 
@@ -155,12 +172,10 @@ class TraderController extends Controller
 
         $user = Auth::user();
         $trader = $user->trader;
-        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+        $currentShopId = $this->getCurrentShopId();
 
         $orderBelongsToTrader = Order::where('order_id', $order->order_id)
-            ->whereHas('items.product.shop', function ($query) use ($shopIds) {
-                $query->whereIn('shop_id', $shopIds);
-            })
+            ->where('shop_id', $currentShopId)
             ->exists();
 
         if (! $orderBelongsToTrader) {
@@ -184,10 +199,11 @@ class TraderController extends Controller
     {
         $user = Auth::user();
         $trader = $user->trader;
-        $shops = $trader->shops()->with('products.category')->get();
-        $shopIds = $shops->pluck('shop_id')->toArray();
+        $currentShopId = $this->getCurrentShopId();
+        $currentShop = $this->getCurrentShop();
+        $allShops = $trader->shops()->with('products.category')->get();
 
-        $products = Product::whereIn('shop_id', $shopIds)
+        $products = Product::where('shop_id', $currentShopId)
             ->where('product_status', 'ACTIVE')
             ->with('shop', 'category', 'discount')
             ->latest()
@@ -195,7 +211,8 @@ class TraderController extends Controller
 
         return view('trader.inventory', [
             'products' => $products,
-            'shops' => $shops,
+            'shops' => $allShops,
+            'currentShop' => $currentShop,
             'trader' => $trader,
         ]);
     }
@@ -204,10 +221,13 @@ class TraderController extends Controller
     {
         $user = Auth::user();
         $trader = $user->trader;
+        $currentShop = $this->getCurrentShop();
+        $allShops = $trader->shops;
 
         return view('trader.settings', [
             'trader' => $trader,
-            'shop' => $trader->shops()->first(),
+            'shop' => $currentShop,
+            'shops' => $allShops,
         ]);
     }
 
@@ -215,7 +235,11 @@ class TraderController extends Controller
     {
         $user = Auth::user();
         $trader = $user->trader;
-        $shop = $trader->shops()->first();
+        $shop = $this->getCurrentShop();
+
+        if (! $shop) {
+            return redirect()->route('trader.settings')->with('error', 'You need to create a shop first.');
+        }
 
         $validated = $request->validate([
             'shop_type' => 'required|string|max:50',
@@ -344,9 +368,17 @@ class TraderController extends Controller
 
     public function productCreate(): View
     {
+        $user = auth()->user();
+        $trader = $user->trader;
+        $allShops = $trader->shops;
+        $currentShop = $this->getCurrentShop();
         $categories = ProductCategory::where('is_active', 'Y')->get();
 
-        return view('trader.product-create', ['categories' => $categories]);
+        return view('trader.product-create', [
+            'categories' => $categories,
+            'shops' => $allShops,
+            'currentShop' => $currentShop,
+        ]);
     }
 
     public function productStore(Request $request): RedirectResponse
@@ -367,6 +399,7 @@ class TraderController extends Controller
             'description' => 'required|string|max:1000',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'allergens' => 'nullable|array',
+            'shop_id' => 'nullable|exists:shop,shop_id',
         ]);
 
         $user = auth()->user();
@@ -376,7 +409,8 @@ class TraderController extends Controller
             return back()->with('error', 'You must have at least one shop to create products.');
         }
 
-        $shop = $trader->shops()->first();
+        $shopId = $validated['shop_id'] ?? $this->getCurrentShopId();
+        $shop = Shop::where('shop_id', $shopId)->where('trader_id', $trader->trader_id)->firstOrFail();
 
         $imageUrl = null;
         if ($request->hasFile('image')) {
@@ -413,17 +447,19 @@ class TraderController extends Controller
     {
         $user = auth()->user();
         $trader = $user->trader;
-        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+        $currentShopId = $this->getCurrentShopId();
 
-        if (! in_array($product->shop_id, $shopIds)) {
+        if ($product->shop_id !== $currentShopId) {
             abort(403, 'You do not have permission to edit this product.');
         }
 
+        $currentShop = $this->getCurrentShop();
         $categories = ProductCategory::where('is_active', 'Y')->get();
 
         return view('trader.product-edit', [
             'product' => $product,
             'categories' => $categories,
+            'currentShop' => $currentShop,
         ]);
     }
 
@@ -431,9 +467,9 @@ class TraderController extends Controller
     {
         $user = auth()->user();
         $trader = $user->trader;
-        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+        $currentShopId = $this->getCurrentShopId();
 
-        if (! in_array($product->shop_id, $shopIds)) {
+        if ($product->shop_id !== $currentShopId) {
             abort(403, 'You do not have permission to update this product.');
         }
 
@@ -479,14 +515,12 @@ class TraderController extends Controller
     {
         $user = auth()->user();
         $trader = $user->trader;
-        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+        $currentShopId = $this->getCurrentShopId();
 
-        if (! in_array($product->shop_id, $shopIds)) {
+        if ($product->shop_id !== $currentShopId) {
             abort(403, 'You do not have permission to delete this product.');
         }
 
-        // Soft delete by marking as inactive instead of hard deleting
-        // This preserves order history and doesn't violate foreign key constraints
         $product->update([
             'product_status' => 'INACTIVE',
         ]);
@@ -498,9 +532,9 @@ class TraderController extends Controller
     {
         $user = auth()->user();
         $trader = $user->trader;
-        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+        $currentShopId = $this->getCurrentShopId();
 
-        if (! in_array($product->shop_id, $shopIds)) {
+        if ($product->shop_id !== $currentShopId) {
             abort(403, 'You do not have permission to modify this product.');
         }
 
@@ -532,9 +566,9 @@ class TraderController extends Controller
     {
         $user = auth()->user();
         $trader = $user->trader;
-        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+        $currentShopId = $this->getCurrentShopId();
 
-        if (! in_array($product->shop_id, $shopIds)) {
+        if ($product->shop_id !== $currentShopId) {
             abort(403, 'You do not have permission to modify this product.');
         }
 
@@ -593,15 +627,18 @@ class TraderController extends Controller
     {
         $user = Auth::user();
         $trader = $user->trader;
-        $shopIds = $trader->shops()->pluck('shop_id')->toArray();
+        $currentShopId = $this->getCurrentShopId();
 
-        $totalRevenue = OrderItem::whereHas('product.shop', function ($query) use ($shopIds) {
-            $query->whereIn('shop_id', $shopIds);
-        })
-            ->whereHas('order', function ($query) {
-                $query->where('order_status', '!=', 'CANCELLED');
-            })
-            ->sum('line_total');
+        $totalRevenue = 0;
+        if ($currentShopId) {
+            $totalRevenue = OrderItem::whereHas('product', function ($query) use ($currentShopId) {
+                    $query->where('shop_id', $currentShopId);
+                })
+                ->whereHas('order', function ($query) {
+                    $query->where('order_status', '!=', 'CANCELLED');
+                })
+                ->sum('line_total');
+        }
 
         $totalWithdrawn = TraderWithdrawal::where('trader_id', $trader->trader_id)
             ->whereIn('status', ['APPROVED', 'COMPLETED'])
@@ -615,6 +652,7 @@ class TraderController extends Controller
     public function showWithdrawForm(): View
     {
         $data = $this->getTraderRevenueData();
+        $currentShop = $this->getCurrentShop();
 
         $recentWithdrawals = TraderWithdrawal::where('trader_id', $data['trader']->trader_id)
             ->latest()
@@ -623,6 +661,7 @@ class TraderController extends Controller
 
         return view('trader.withdraw', array_merge($data, [
             'recentWithdrawals' => $recentWithdrawals,
+            'currentShop' => $currentShop,
         ]));
     }
 
@@ -650,6 +689,7 @@ class TraderController extends Controller
     {
         $user = Auth::user();
         $trader = $user->trader;
+        $currentShop = $this->getCurrentShop();
 
         $data = $this->getTraderRevenueData();
 
@@ -659,7 +699,83 @@ class TraderController extends Controller
 
         return view('trader.withdrawals', array_merge($data, [
             'withdrawals' => $withdrawals,
+            'currentShop' => $currentShop,
         ]));
+    }
+
+    // === Multi-shop helpers ===
+
+    private function getCurrentShop(): ?Shop
+    {
+        $trader = Auth::user()->trader;
+        $shopId = session('current_shop_id');
+
+        if ($shopId && $trader->shops()->where('shop_id', $shopId)->exists()) {
+            return $trader->shops()->findOrFail($shopId);
+        }
+
+        $first = $trader->shops()->first();
+        if ($first) {
+            session(['current_shop_id' => $first->shop_id]);
+        }
+
+        return $first;
+    }
+
+    private function getCurrentShopId(): ?int
+    {
+        $shop = $this->getCurrentShop();
+        return $shop?->shop_id;
+    }
+
+    public function switchShop(Request $request, Shop $shop): RedirectResponse
+    {
+        $trader = Auth::user()->trader;
+
+        if ($shop->trader_id !== $trader->trader_id) {
+            abort(403);
+        }
+
+        session(['current_shop_id' => $shop->shop_id]);
+
+        return redirect()->back()->with('success', "Switched to {$shop->shop_name}.");
+    }
+
+    public function storeShop(Request $request): RedirectResponse
+    {
+        $trader = Auth::user()->trader;
+
+        if ($trader->shops()->count() >= 5) {
+            return redirect()->back()->with('error', 'You can only create up to 5 shops.');
+        }
+
+        $validated = $request->validate([
+            'shop_name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:600',
+            'shop_address' => 'nullable|string|max:500',
+            'shop_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        $shopData = [
+            'trader_id' => $trader->trader_id,
+            'shop_name' => $validated['shop_name'],
+            'description' => $validated['description'],
+            'shop_address' => $validated['shop_address'],
+            'is_active' => true,
+        ];
+
+        if ($request->hasFile('shop_image')) {
+            $file = $request->file('shop_image');
+            $ext = $file->getClientOriginalExtension();
+            $path = $file->storeAs('shops', 'shop_'.time().'_'.uniqid().'.'.$ext, 'public');
+            $shopData['shop_image'] = '/storage/'.$path;
+        }
+
+        $shop = Shop::create($shopData);
+
+        session(['current_shop_id' => $shop->shop_id]);
+
+        return redirect()->back()->with('success', "Shop '{$shop->shop_name}' created successfully.");
     }
 
     private function formatNotificationMessage($notification): string

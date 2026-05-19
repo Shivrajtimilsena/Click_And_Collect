@@ -127,6 +127,24 @@
             </div>
         @endif
 
+        @if (session('warning'))
+            <div id="warningNotification" class="mb-4 p-4 bg-yellow-500/15 text-yellow-700 border border-yellow-500/30 flex justify-between items-center">
+                <span>{{ session('warning') }}</span>
+                <button onclick="document.getElementById('warningNotification').style.display='none'" class="text-yellow-700 hover:text-yellow-800 font-bold text-xl leading-none">
+                    ×
+                </button>
+            </div>
+        @endif
+
+        @if (session('info'))
+            <div id="infoNotification" class="mb-4 p-4 bg-blue-500/15 text-blue-700 border border-blue-500/30 flex justify-between items-center">
+                <span>{{ session('info') }}</span>
+                <button onclick="document.getElementById('infoNotification').style.display='none'" class="text-blue-700 hover:text-blue-800 font-bold text-xl leading-none">
+                    ×
+                </button>
+            </div>
+        @endif
+
         @yield('content')
     </main>
 

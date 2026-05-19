@@ -218,15 +218,58 @@ class PayPalService
         }
 
         $data = $response->json();
-        $batchId = $data['batch_header']['payout_batch_id'] ?? null;
+        $batchHeader = $data['batch_header'] ?? [];
+        $batchId = $batchHeader['payout_batch_id'] ?? null;
+        $batchStatus = $batchHeader['batch_status'] ?? 'UNKNOWN';
 
         Log::info('PayPal payout created', [
             'batch_id' => $batchId,
+            'batch_status' => $batchStatus,
             'amount' => $amount,
             'receiver' => $receiverEmail,
         ]);
 
-        return $data;
+        return [
+            'payout_batch_id' => $batchId,
+            'batch_status' => $batchStatus,
+        ];
+    }
+
+    public function getPayoutStatus(string $batchId): array
+    {
+        $token = $this->getAccessToken();
+
+        $response = Http::timeout(30)
+            ->withToken($token)
+            ->withHeader('Content-Type', 'application/json')
+            ->get($this->baseUrl."/v1/payments/payouts/{$batchId}");
+
+        if (! $response->successful()) {
+            $errorBody = $response->json();
+            Log::error('PayPal batch status check failed', [
+                'batch_id' => $batchId,
+                'status' => $response->status(),
+                'body' => $errorBody,
+            ]);
+            throw new \Exception('Failed to check payout batch status: '.($errorBody['message'] ?? 'Unknown error'));
+        }
+
+        $data = $response->json();
+        $batchHeader = $data['batch_header'] ?? [];
+        $items = $data['items'] ?? [];
+        $firstItem = $items[0] ?? [];
+        $itemStatus = $firstItem['payout_item']['status'] ?? $firstItem['transaction_status'] ?? 'UNKNOWN';
+        $itemId = $firstItem['payout_item_id'] ?? $firstItem['transaction_id'] ?? null;
+        $errors = $firstItem['errors'] ?? null;
+
+        return [
+            'batch_id' => $batchId,
+            'batch_status' => $batchHeader['batch_status'] ?? 'UNKNOWN',
+            'item_status' => $itemStatus,
+            'item_id' => $itemId,
+            'errors' => $errors,
+            'time_completed' => $batchHeader['time_completed'] ?? null,
+        ];
     }
 
     /**
