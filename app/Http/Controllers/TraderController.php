@@ -574,6 +574,12 @@ class TraderController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function clearAll()
+    {
+        auth()->user()->notifications()->delete();
+        return response()->json(['success' => true]);
+    }
+
     private function formatNotificationMessage($notification): string
     {
         $data = $notification->data;

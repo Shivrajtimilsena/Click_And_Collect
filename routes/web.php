@@ -282,6 +282,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/notifications', [TraderController::class, 'notifications'])->name('notifications.index');
         Route::post('/notifications/{notification}/read', [TraderController::class, 'markRead'])->name('notifications.read');
         Route::post('/notifications/read-all', [TraderController::class, 'markAllRead'])->name('notifications.read-all');
+        Route::delete('/notifications', [TraderController::class, 'clearAll'])->name('notifications.clear-all');
     });
 
     // Admin Panel

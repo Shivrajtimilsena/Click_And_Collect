@@ -140,11 +140,14 @@
                                      <span id="notif-dot" class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full hidden"></span>
                                      <span id="notif-count" class="absolute -top-1.5 -right-1.5 bg-primary text-on-primary text-[10px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center hidden min-w-[18px] px-1" style="display:none">0</span>
                                  </button>
-                                 <div id="notif-dropdown" class="hidden absolute right-0 top-full mt-2 w-80 bg-white shadow-xl border border-surface-container-high rounded-lg overflow-hidden z-50">
-                                     <div class="p-3 border-b border-surface-container-high flex justify-between items-center bg-surface-container-low">
-                                         <span class="font-bold text-sm font-headline">Notifications</span>
-                                         <button id="mark-all-read" class="text-xs text-primary font-semibold hover:underline hidden">Mark all read</button>
-                                     </div>
+                                  <div id="notif-dropdown" class="hidden absolute right-0 top-full mt-2 w-80 bg-white shadow-xl border border-surface-container-high rounded-lg overflow-hidden z-50">
+                                      <div class="p-3 border-b border-surface-container-high flex items-center justify-between bg-surface-container-low">
+                                          <span class="font-bold text-sm font-headline">Notifications</span>
+                                          <div class="flex items-center gap-3">
+                                              <button id="clear-all" class="text-xs text-zinc-500 hover:text-error font-semibold hover:underline hidden">Clear all</button>
+                                              <button id="mark-all-read" class="text-xs text-primary font-semibold hover:underline hidden">Mark all read</button>
+                                          </div>
+                                      </div>
                                      <div id="notif-list" class="max-h-72 overflow-y-auto"></div>
                                      <div id="notif-empty" class="hidden p-6 text-center text-zinc-400 text-sm">No notifications yet</div>
                                  </div>
@@ -241,16 +244,21 @@
         function updateBadge() {
             const dot = document.getElementById('notif-dot');
             const count = document.getElementById('notif-count');
-            if (unreadCount > 0) {
+            const hasUnread = unreadCount > 0;
+            if (hasUnread) {
                 dot.classList.remove('hidden');
                 count.classList.remove('hidden');
                 count.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                document.getElementById('mark-all-read').classList.remove('hidden');
             } else {
                 dot.classList.add('hidden');
                 count.classList.add('hidden');
-                document.getElementById('mark-all-read').classList.add('hidden');
             }
+            document.getElementById('mark-all-read').classList.toggle('hidden', !hasUnread);
+        }
+
+        function updateActionButtons(notifCount) {
+            document.getElementById('mark-all-read').classList.toggle('hidden', unreadCount === 0);
+            document.getElementById('clear-all').classList.toggle('hidden', notifCount === 0);
         }
 
         function renderDropdown(notifications) {
@@ -260,10 +268,12 @@
             if (!notifications.length) {
                 empty.classList.remove('hidden');
                 list.classList.add('hidden');
+                updateActionButtons(0);
                 return;
             }
             empty.classList.add('hidden');
             list.classList.remove('hidden');
+            updateActionButtons(notifications.length);
             notifications.forEach(n => {
                 const div = document.createElement('div');
                 div.className = 'px-4 py-3 border-b border-surface-container-high last:border-b-0 hover:bg-surface-container-low transition-colors cursor-pointer' + (n.read ? '' : ' bg-primary/5');
@@ -326,6 +336,23 @@
                     updateBadge();
                     document.querySelectorAll('#notif-list .bg-primary\\/5').forEach(el => el.classList.remove('bg-primary/5'));
                     document.querySelectorAll('#notif-list button').forEach(b => b.remove());
+                    updateActionButtons(document.querySelectorAll('#notif-list > div').length);
+                });
+            });
+
+            document.getElementById('clear-all').addEventListener('click', function() {
+                fetch('{{ route("trader.notifications.clear-all") }}', {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                })
+                .then(r => r.json())
+                .then(() => {
+                    unreadCount = 0;
+                    updateBadge();
+                    updateActionButtons(0);
+                    document.getElementById('notif-list').innerHTML = '';
+                    document.getElementById('notif-list').classList.add('hidden');
+                    document.getElementById('notif-empty').classList.remove('hidden');
                 });
             });
 
