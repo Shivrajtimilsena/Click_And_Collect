@@ -2,11 +2,12 @@
 
 @section('title', 'Click&Collect | Home')
 
-@section('content')
-<div class="flex flex-col lg:flex-row gap-6">
-    @include('components.category-sidebar')
+@section('sidebar')
+    @include('components.category-sidebar', ['categories' => $categories])
+@endsection
 
-    <div class="flex-grow space-y-6 overflow-hidden">
+@section('content')
+<div class="space-y-6">
         <!-- Hero Banner -->
         <section class="relative h-[400px] overflow-hidden group">
             <img alt="Fresh Produce" class="absolute inset-0 w-full h-full object-cover" 
@@ -80,5 +81,4 @@
             </div>
         </section>
     </div>
-</div>
 @endsection

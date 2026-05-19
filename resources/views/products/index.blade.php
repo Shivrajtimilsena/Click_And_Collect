@@ -2,11 +2,12 @@
 
 @section('title', 'Products | Click&Collect')
 
-@section('content')
-<div class="flex flex-col lg:flex-row gap-6">
+@section('sidebar')
     @include('components.category-sidebar', ['categories' => $categories])
+@endsection
 
-    <div class="flex-grow space-y-6">
+@section('content')
+<div class="space-y-6">
         <div class="flex items-center justify-between">
             <h1 class="text-2xl font-extrabold">Products</h1>
             <form action="{{ route('products.index') }}" method="GET" class="flex gap-2">
@@ -41,5 +42,4 @@
             {{ $products->links() }}
         </div>
     </div>
-</div>
 @endsection

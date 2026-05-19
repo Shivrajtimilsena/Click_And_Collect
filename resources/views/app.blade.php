@@ -93,7 +93,12 @@
 <body class="bg-surface text-on-background selection:bg-primary-container selection:text-on-primary-container" data-auth="{{ auth()->check() ? 'true' : 'false' }}">
     @include('components.navbar')
 
-    <main class="pt-24 pb-12 px-4 md:px-12 mx-auto @hasSection('trader-page') max-w-3xl @else max-w-480 @endif">
+    @hasSection('sidebar')
+        <aside class="hidden lg:block fixed lg:top-24 left-0 w-64 bg-surface border-r border-surface-container-high p-4 z-40 overflow-y-auto" style="height: calc(100vh - 6rem);">
+            @yield('sidebar')
+        </aside>
+    @endif
+    <main class="pt-24 pb-12 px-4 md:px-12 mx-auto @hasSection('trader-page') max-w-3xl @else max-w-480 @endif @hasSection('sidebar') lg:ml-64 @endif">
         @if ($errors->any())
             <div class="mb-4 p-4 bg-error/10 text-error rounded-lg">
                 <ul class="list-disc list-inside">
