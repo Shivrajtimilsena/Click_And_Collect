@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -22,32 +23,36 @@ class PayPalService
 
     public function getAccessToken(): string
     {
-        $response = Http::timeout(30)
-            ->withBasicAuth($this->clientId, $this->secret)
-            ->asForm()
-            ->post($this->baseUrl.'/v1/oauth2/token', [
-                'grant_type' => 'client_credentials',
-            ]);
+        $cacheKey = 'paypal_access_token';
 
-        if (! $response->successful()) {
-            $errorBody = $response->json();
-            Log::error('PayPal auth failed', [
-                'status' => $response->status(),
-                'response' => $errorBody,
-                'client_id' => $this->clientId,
-            ]);
-            
-            $errorMessage = $errorBody['error_description'] ?? $errorBody['message'] ?? 'Unknown error';
-            throw new \Exception('PayPal authentication failed: '.$errorMessage);
-        }
+        return Cache::remember($cacheKey, 32400, function () {
+            $response = Http::timeout(10)
+                ->withBasicAuth($this->clientId, $this->secret)
+                ->asForm()
+                ->post($this->baseUrl.'/v1/oauth2/token', [
+                    'grant_type' => 'client_credentials',
+                ]);
 
-        $token = $response->json('access_token');
-        if (! $token) {
-            Log::error('PayPal token missing', ['response' => $response->json()]);
-            throw new \Exception('PayPal failed to return access token.');
-        }
+            if (! $response->successful()) {
+                $errorBody = $response->json();
+                Log::error('PayPal auth failed', [
+                    'status' => $response->status(),
+                    'response' => $errorBody,
+                    'client_id' => $this->clientId,
+                ]);
 
-        return $token;
+                $errorMessage = $errorBody['error_description'] ?? $errorBody['message'] ?? 'Unknown error';
+                throw new \Exception('PayPal authentication failed: '.$errorMessage);
+            }
+
+            $token = $response->json('access_token');
+            if (! $token) {
+                Log::error('PayPal token missing', ['response' => $response->json()]);
+                throw new \Exception('PayPal failed to return access token.');
+            }
+
+            return $token;
+        });
     }
 
     public function createOrder(float $total, string $currency = 'GBP', array $items = []): array
@@ -87,7 +92,7 @@ class PayPalService
             $payload['purchase_units'][0]['items'] = $items;
         }
 
-        $response = Http::timeout(30)
+        $response = Http::timeout(10)
             ->withToken($token)
             ->withHeader('Content-Type', 'application/json')
             ->post($this->baseUrl.'/v2/checkout/orders', $payload);
@@ -119,7 +124,7 @@ class PayPalService
     {
         $token = $this->getAccessToken();
 
-        $response = Http::timeout(30)
+        $response = Http::timeout(10)
             ->withToken($token)
             ->withHeader('Content-Type', 'application/json')
             ->get($this->baseUrl."/v2/checkout/orders/{$paypalOrderId}");
@@ -147,7 +152,7 @@ class PayPalService
             'order_id' => $paypalOrderId,
         ]);
 
-        $response = Http::timeout(30)
+        $response = Http::timeout(10)
             ->withToken($token)
             ->withHeader('Content-Type', 'application/json')
             ->post($this->baseUrl."/v2/checkout/orders/{$paypalOrderId}/capture", (object) []);
@@ -199,7 +204,7 @@ class PayPalService
             ],
         ];
 
-        $response = Http::timeout(30)
+        $response = Http::timeout(10)
             ->withToken($token)
             ->withHeader('Content-Type', 'application/json')
             ->post($this->baseUrl.'/v1/payments/payouts', $payload);
@@ -239,7 +244,7 @@ class PayPalService
     {
         $token = $this->getAccessToken();
 
-        $response = Http::timeout(30)
+        $response = Http::timeout(10)
             ->withToken($token)
             ->withHeader('Content-Type', 'application/json')
             ->get($this->baseUrl."/v1/payments/payouts/{$batchId}");

@@ -1,5 +1,5 @@
-<div class="bg-surface-container-lowest p-2 group hover:shadow-lg transition-all duration-300">
-    <div class="aspect-square overflow-hidden bg-surface-container mb-2 relative">
+<div class="bg-surface-container-lowest p-2 rounded-sm group hover:shadow-lg transition-all duration-300">
+    <div class="aspect-square overflow-hidden bg-surface-container mb-2 relative rounded-sm">
         <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
              src="{{ $product->image_url ?? 'https://via.placeholder.com/300' }}" 
              alt="{{ $product->product_name }}"/>

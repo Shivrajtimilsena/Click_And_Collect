@@ -98,7 +98,7 @@
             @yield('sidebar')
         </aside>
     @endif
-    <main class="pt-24 pb-12 px-4 md:px-12 mx-auto @hasSection('trader-page') max-w-3xl @else max-w-480 @endif @hasSection('sidebar') lg:ml-64 @endif">
+    <main class="pt-24 pb-12 px-4 md:px-12 mx-auto @hasSection('trader-page') max-w-3xl @endif @hasSection('sidebar') lg:ml-64 @endif">
         @if ($errors->any())
             <div class="mb-4 p-4 bg-error/10 text-error rounded-lg">
                 <ul class="list-disc list-inside">

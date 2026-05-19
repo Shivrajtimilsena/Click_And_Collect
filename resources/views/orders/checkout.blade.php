@@ -160,9 +160,16 @@
 
     <!-- PayPal Button -->
     <div class="bg-surface-container-lowest border border-surface-container-high p-8 mb-6">
-        <div id="paypal-button-container" class="min-h-[50px]"></div>
+        <div id="paypal-button-container" class="min-h-[50px]">
+            <div id="paypal-loading" class="text-center py-8">
+                <div class="animate-pulse space-y-3">
+                    <div class="h-10 bg-surface-container-high rounded mx-auto max-w-sm"></div>
+                    <p class="text-sm text-secondary">Loading PayPal...</p>
+                </div>
+            </div>
+        </div>
         <p id="paypal-message" class="text-center text-sm text-secondary mt-3">Select a day and time slot to pay</p>
-        <div id="paypal-loading" class="hidden text-center py-4">
+        <div id="paypal-processing" class="hidden text-center py-4">
             <span class="text-primary font-bold">Processing payment...</span>
         </div>
     </div>
@@ -183,7 +190,8 @@
     var displayDiv = document.getElementById('selection-display');
     var message = document.getElementById('paypal-message');
     var paypalContainer = document.getElementById('paypal-button-container');
-    var loading = document.getElementById('paypal-loading');
+    var paypalLoading = document.getElementById('paypal-loading');
+    var processing = document.getElementById('paypal-processing');
     var fallback = document.getElementById('paypal-fallback');
 
     var couponInput = document.getElementById('coupon_input');
@@ -332,7 +340,8 @@
 
         if (typeof window.paypal === 'undefined') {
             attempts++;
-            if (attempts > 20) {
+            if (attempts > 10) {
+                if (paypalLoading) paypalLoading.classList.add('hidden');
                 if (fallback) fallback.classList.remove('hidden');
                 paypalContainer.innerHTML = '<p class="text-error text-center">PayPal is unavailable. Please refresh the page or try again later.</p>';
                 return;
@@ -341,6 +350,7 @@
             return;
         }
 
+        if (paypalLoading) paypalLoading.classList.add('hidden');
         paypalReady = true;
 
         paypal.Buttons({
@@ -375,7 +385,7 @@
                 });
             },
             onApprove: function(data) {
-                loading.classList.remove('hidden');
+                processing.classList.remove('hidden');
                 paypalContainer.classList.add('hidden');
 
                 var captureBody = {
@@ -403,7 +413,7 @@
                         throw new Error(result.error || 'Payment failed');
                     }
                 }).catch(function(err) {
-                    loading.classList.add('hidden');
+                    processing.classList.add('hidden');
                     paypalContainer.classList.remove('hidden');
                     alert('Payment failed: ' + err.message);
                 });

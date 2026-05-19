@@ -1,4 +1,4 @@
-<footer class="bg-zinc-100 dark:bg-zinc-950 w-full py-20 px-12 mt-auto bg-zinc-200 dark:bg-zinc-900">
+<footer class="bg-zinc-100 dark:bg-zinc-950 w-full py-20 px-4 md:px-12 mt-auto bg-zinc-200 dark:bg-zinc-900">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-[1440px] mx-auto">
         <div class="space-y-6">
             <div class="text-xl font-bold text-zinc-900 dark:text-zinc-100">Click&Collect</div>
