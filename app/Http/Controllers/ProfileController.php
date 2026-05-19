@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -47,10 +51,27 @@ class ProfileController extends Controller
             ->orderBy('order_date', 'desc')
             ->paginate(10);
 
+        // Stats for dashboard cards
+        $activeOrdersCount = $customer->orders()
+            ->whereIn('order_status', ['PENDING', 'READY', 'IN_PROGRESS'])
+            ->count();
+
+        $totalSpent = (float) $customer->orders()
+            ->where('order_status', 'COMPLETED')
+            ->sum('total_amount');
+
+        $savedShopsCount = $customer->wishlists()
+            ->withCount('products')
+            ->get()
+            ->sum('products_count');
+
         return view('profile.dashboard', [
             'upcomingCollections' => $upcomingCollections,
             'recentOrders' => $recentOrders,
             'customer' => $customer,
+            'activeOrdersCount' => $activeOrdersCount,
+            'totalSpent' => $totalSpent,
+            'savedShopsCount' => $savedShopsCount,
         ]);
     }
 
@@ -133,28 +154,8 @@ class ProfileController extends Controller
             );
         }
 
-        // Get recent orders for display
-        $orders = $customer->orders()
-            ->with(['items.product.shop.trader.user', 'collectionSlot'])
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
-
-        // Get upcoming collection slots
-        $upcomingSlots = $customer->orders()
-            ->with('collectionSlot')
-            ->whereIn('order_status', ['READY', 'PENDING'])
-            ->whereHas('collectionSlot', function ($query) {
-                $query->where('slot_date', '>=', now()->toDateString());
-            })
-            ->get()
-            ->map(fn ($order) => $order->collectionSlot)
-            ->filter();
-
         return view('profile.settings', [
             'customer' => $customer,
-            'orders' => $orders,
-            'upcomingSlots' => $upcomingSlots,
         ]);
     }
 
@@ -213,5 +214,27 @@ class ProfileController extends Controller
         $user->update(['password' => $request->new_password]);
 
         return redirect()->route('profile.settings')->with('success', 'Password changed successfully!');
+    }
+
+    public function clearOrderHistory(): RedirectResponse
+    {
+        $customer = Auth::user()->getCustomerRecord();
+
+        $orderIds = $customer->orders()
+            ->whereIn('order_status', ['COMPLETED', 'CANCELLED'])
+            ->pluck('order_id');
+
+        if ($orderIds->isEmpty()) {
+            return redirect()->route('profile.orders')->with('info', 'No completed or cancelled orders to clear.');
+        }
+
+        DB::transaction(function () use ($orderIds) {
+            OrderItem::whereIn('order_id', $orderIds)->delete();
+            Payment::whereIn('order_id', $orderIds)->delete();
+            Order::whereIn('order_id', $orderIds)->delete();
+        });
+
+        $count = $orderIds->count();
+        return redirect()->route('profile.orders')->with('success', "{$count} order(s) cleared from history.");
     }
 }

@@ -53,12 +53,12 @@
                         </a>
                     @endif
                     <div class="relative group">
-                        <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform">
+                        <button class="hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform flex items-center justify-center w-8 h-8">
                             @if (auth()->user()->avatar_url)
                                 <img 
                                     src="{{ auth()->user()->avatar_url }}" 
                                     alt="Profile"
-                                    class="w-6 h-6 rounded-full object-cover"
+                                    class="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover"
                                 />
                             @else
                                 <span class="material-symbols-outlined text-zinc-800 text-xl md:text-2xl">person</span>

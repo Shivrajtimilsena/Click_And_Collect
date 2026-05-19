@@ -1,6 +1,6 @@
 <!-- Edit Profile Modal -->
-<div id="edit-profile-modal" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4" style="display: none;">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditProfileModal()"></div>
+<div id="edit-profile-modal" class="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-4" style="display: none;">
+    <div class="absolute inset-0 bg-black/50" onclick="closeEditProfileModal()"></div>
 
     <div class="relative bg-surface rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto z-10" onclick="event.stopPropagation()">
         <button onclick="closeEditProfileModal()" class="absolute top-4 right-4 p-2 hover:bg-surface-container rounded-full transition-colors z-10">

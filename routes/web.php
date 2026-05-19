@@ -220,6 +220,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
         Route::patch('/update', [ProfileController::class, 'update'])->name('update');
         Route::post('/change-password', [ProfileController::class, 'changePassword'])->name('change-password');
+        Route::post('/orders/clear-history', [ProfileController::class, 'clearOrderHistory'])->name('orders.clear-history');
     });
 
     // Backward compatibility
