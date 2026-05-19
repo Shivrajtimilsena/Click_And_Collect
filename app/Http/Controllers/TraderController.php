@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Trader;
 use App\Models\TraderApplication;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -137,7 +138,7 @@ class TraderController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, Order $order): \Illuminate\Http\RedirectResponse
+    public function updateStatus(Request $request, Order $order): RedirectResponse
     {
         $validated = $request->validate([
             'status' => 'required|string|in:PENDING,IN_PROGRESS,READY,COMPLETED,CANCELLED',
