@@ -64,11 +64,6 @@
         </div>
 
         <div class="bg-surface-container-lowest rounded-lg p-6">
-            <h3 class="font-bold text-lg mb-4">Collection Slots Available</h3>
-            <p class="text-on-surface-variant">{{ $collectionSlotCount }} slots available</p>
-        </div>
-
-        <div class="bg-surface-container-lowest rounded-lg p-6">
             <h3 class="font-bold text-lg mb-4">Status</h3>
             <p class="text-green-600 font-bold">{{ $shop->is_active ? 'Open' : 'Closed' }}</p>
         </div>

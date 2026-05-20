@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Illuminate\Notifications\DatabaseNotification;
+use App\Models\Notification;
 
 class TraderController extends Controller
 {
@@ -611,7 +611,7 @@ class TraderController extends Controller
         return view('trader.notifications', compact('notifications', 'unreadCount'));
     }
 
-    public function markRead(DatabaseNotification $notification)
+    public function markRead(Notification $notification)
     {
         $notification->markAsRead();
         return response()->json(['success' => true]);

@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Notification;
 
 class User extends Authenticatable
 {
@@ -92,5 +93,16 @@ class User extends Authenticatable
     public function admin()
     {
         return $this->hasOne(Admin::class, 'user_id', 'user_id');
+    }
+
+    public function notifications()
+    {
+        return $this->morphMany(Notification::class, 'notifiable')
+            ->orderBy('created_at', 'desc');
+    }
+
+    public function unreadNotifications()
+    {
+        return $this->notifications()->whereNull('read_at');
     }
 }
