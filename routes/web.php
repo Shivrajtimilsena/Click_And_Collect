@@ -289,6 +289,7 @@ Route::middleware('auth')->group(function () {
         // Shops
         Route::post('/shops', [TraderController::class, 'storeShop'])->name('shops.store');
         Route::patch('/shops/{shop}', [TraderController::class, 'updateShop'])->name('shops.update');
+        Route::delete('/shops/{shop}', [TraderController::class, 'destroyShop'])->name('shops.destroy');
         Route::post('/switch-shop/{shop}', [TraderController::class, 'switchShop'])->name('shops.switch');
 
         // Notifications

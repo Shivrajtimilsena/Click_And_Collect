@@ -817,6 +817,28 @@ class TraderController extends Controller
         return redirect()->back()->with('success', "Shop '{$shop->shop_name}' updated successfully.");
     }
 
+    public function destroyShop(Shop $shop): RedirectResponse
+    {
+        $trader = Auth::user()->trader;
+
+        if ($shop->trader_id !== $trader->trader_id) {
+            abort(403);
+        }
+
+        if ($trader->shops()->count() <= 1) {
+            return redirect()->back()->with('error', 'You must have at least one shop.');
+        }
+
+        $shop->delete();
+
+        if (session('current_shop_id') == $shop->shop_id) {
+            $first = $trader->shops()->first();
+            session(['current_shop_id' => $first?->shop_id]);
+        }
+
+        return redirect()->back()->with('success', "Shop '{$shop->shop_name}' deleted successfully.");
+    }
+
     private function formatNotificationMessage($notification): string
     {
         $data = $notification->data;
