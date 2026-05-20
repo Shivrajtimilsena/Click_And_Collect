@@ -335,9 +335,15 @@
             @endif
 
             var role = document.body.getAttribute('data-role');
+            var isAuthed = document.body.getAttribute('data-auth') === 'true';
             document.querySelectorAll('form[action="{{ route('cart.add') }}"]').forEach(function (form) {
                 form.addEventListener('submit', function (event) {
                     event.preventDefault();
+
+                    if (!isAuthed) {
+                        showErrorToast('Please login first.', 'Sign in to add items to your cart.');
+                        return;
+                    }
 
                     if (role === 'TRADER') {
                         showErrorToast('You cannot buy products.', 'Traders are not allowed to place orders.');
