@@ -165,6 +165,9 @@
                         @endif
                     </div>
                     <div class="flex items-center gap-6">
+                        <a href="{{ route('home') }}" class="text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-primary transition-colors">
+                            Back to Home
+                        </a>
                         <div class="relative group">
                             <span class="absolute inset-y-0 left-3 flex items-center text-zinc-400">
                                 <span class="material-symbols-outlined text-xl">search</span>
