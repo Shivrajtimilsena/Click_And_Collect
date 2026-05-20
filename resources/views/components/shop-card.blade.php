@@ -1,7 +1,8 @@
-<div class="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
-    @php
-        $traderName = $shop->trader?->user?->full_name ?? $shop->shop_name;
-    @endphp
+@php
+    $traderName = $shop->trader?->user?->full_name ?? $shop->shop_name;
+@endphp
+
+<div class="flex-shrink-0 flex flex-col items-center gap-2 group">
     <a href="{{ route('shops.show', $shop) }}" class="w-20 h-20 rounded-full border-4 border-transparent group-hover:border-primary transition-all overflow-hidden bg-white shadow-sm p-1">
         @if ($shop->shop_image)
             <img 

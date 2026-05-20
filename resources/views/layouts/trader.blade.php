@@ -91,9 +91,18 @@
     @auth
         @if(Auth::user()->role === 'TRADER')
             <aside class="h-screen w-64 fixed left-0 top-0 z-40 bg-surface-container-lowest flex flex-col py-8 px-4 gap-2 border-r border-surface-container-high">
-                <a href="{{ route('home') }}" class="px-4 mb-4 hover:opacity-80 transition-opacity cursor-pointer">
-                    <h1 class="text-lg font-bold text-zinc-900 font-headline">Click&Collect</h1>
-                    <p class="text-xs font-medium text-primary uppercase tracking-widest">Trader Portal</p>
+                <a href="{{ route('trader.profile') }}" class="px-4 mb-4 hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-surface-container-high border border-surface-container-high overflow-hidden flex items-center justify-center">
+                        @if(Auth::user()->avatar_url)
+                            <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->full_name }}" class="w-full h-full object-cover" />
+                        @else
+                            <span class="material-symbols-outlined text-secondary">person</span>
+                        @endif
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold text-zinc-900 font-headline">{{ Auth::user()->full_name }}</h1>
+                        <p class="text-xs font-medium text-primary uppercase tracking-widest">Trader Portal</p>
+                    </div>
                 </a>
 
                 @if($shops->isNotEmpty())
@@ -213,10 +222,87 @@
                     @endif
 
                     @if (session('success'))
-                        <div class="mb-4 p-4 bg-green-500/15 text-green-700 border border-green-500/30 flex justify-between items-center">
-                            <span>{{ session('success') }}</span>
-                            <button onclick="this.parentElement.style.display='none'" class="font-bold text-xl leading-none">&times;</button>
+                        <div id="traderSuccessToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-primary/20 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-lg">check</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-on-surface">{{ session('success') }}</p>
+                                <p class="text-xs text-secondary mt-1">Your changes were saved.</p>
+                            </div>
+                            <button onclick="document.getElementById('traderSuccessToast').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
                         </div>
+                        <script>
+                            setTimeout(function () {
+                                var toast = document.getElementById('traderSuccessToast');
+                                if (toast) {
+                                    toast.style.display = 'none';
+                                }
+                            }, 2400);
+                        </script>
+                    @endif
+
+                    @if (session('error'))
+                        <div id="traderErrorToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-error/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-error/15 text-error flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-lg">error</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-on-surface">{{ session('error') }}</p>
+                                <p class="text-xs text-secondary mt-1">Please try again.</p>
+                            </div>
+                            <button onclick="document.getElementById('traderErrorToast').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+                        </div>
+                        <script>
+                            setTimeout(function () {
+                                var toast = document.getElementById('traderErrorToast');
+                                if (toast) {
+                                    toast.style.display = 'none';
+                                }
+                            }, 2600);
+                        </script>
+                    @endif
+
+                    @if (session('warning'))
+                        <div id="traderWarningToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-yellow-500/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-yellow-500/15 text-yellow-700 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-lg">warning</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-on-surface">{{ session('warning') }}</p>
+                                <p class="text-xs text-secondary mt-1">Please review the details.</p>
+                            </div>
+                            <button onclick="document.getElementById('traderWarningToast').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+                        </div>
+                        <script>
+                            setTimeout(function () {
+                                var toast = document.getElementById('traderWarningToast');
+                                if (toast) {
+                                    toast.style.display = 'none';
+                                }
+                            }, 2600);
+                        </script>
+                    @endif
+
+                    @if (session('info'))
+                        <div id="traderInfoToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-blue-500/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-500/15 text-blue-700 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-lg">info</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-on-surface">{{ session('info') }}</p>
+                                <p class="text-xs text-secondary mt-1">Here is an update.</p>
+                            </div>
+                            <button onclick="document.getElementById('traderInfoToast').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+                        </div>
+                        <script>
+                            setTimeout(function () {
+                                var toast = document.getElementById('traderInfoToast');
+                                if (toast) {
+                                    toast.style.display = 'none';
+                                }
+                            }, 2600);
+                        </script>
                     @endif
 
                     @yield('content')

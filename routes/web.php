@@ -10,6 +10,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RfidController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SavedShopController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\TraderController;
 use App\Http\Controllers\WishlistController;
@@ -239,6 +240,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/add', [WishlistController::class, 'add'])->name('wishlist.add');
     Route::delete('/wishlist/{wishlistProduct}', [WishlistController::class, 'remove'])->name('wishlist.remove');
+
+    // Saved Shops
+    Route::post('/shops/{shop}/save', [SavedShopController::class, 'store'])->name('shops.save');
+    Route::delete('/shops/{shop}/save', [SavedShopController::class, 'destroy'])->name('shops.save.remove');
 
     // Orders
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');

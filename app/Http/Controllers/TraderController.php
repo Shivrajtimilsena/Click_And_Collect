@@ -225,6 +225,7 @@ class TraderController extends Controller
         $allShops = $trader->shops;
 
         return view('trader.settings', [
+            'user' => $user,
             'trader' => $trader,
             'shop' => $currentShop,
             'shops' => $allShops,
@@ -235,45 +236,35 @@ class TraderController extends Controller
     {
         $user = Auth::user();
         $trader = $user->trader;
-        $shop = $this->getCurrentShop();
-
-        if (! $shop) {
-            return redirect()->route('trader.settings')->with('error', 'You need to create a shop first.');
-        }
 
         $validated = $request->validate([
+            'full_name' => 'required|string|max:255',
+            'phone_no' => 'nullable|string|max:30',
+            'address' => 'nullable|string|max:500',
             'shop_type' => 'required|string|max:50',
-            'shop_name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:600',
-            'shop_address' => 'nullable|string|max:500',
-            'shop_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'is_active' => 'nullable|boolean',
+            'logo_url' => 'nullable|string|max:500',
+            'avatar_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
         $trader->update([
             'shop_type' => $validated['shop_type'],
+            'logo_url' => $validated['logo_url'] ?? $trader->logo_url,
         ]);
 
-        $shopData = [
-            'shop_name' => $validated['shop_name'],
-            'description' => $validated['description'],
-            'shop_address' => $validated['shop_address'],
-            'is_active' => $request->has('is_active'),
+        $userData = [
+            'full_name' => $validated['full_name'],
+            'phone_no' => $validated['phone_no'] ?? null,
+            'address' => $validated['address'] ?? null,
         ];
 
-        if ($request->hasFile('shop_image')) {
-            $file = $request->file('shop_image');
+        if ($request->hasFile('avatar_image')) {
+            $file = $request->file('avatar_image');
             $ext = $file->getClientOriginalExtension();
-            $path = $file->storeAs('shops', 'shop_'.$shop->shop_id.'_'.time().'.'.$ext, 'public');
-            $shopData['shop_image'] = '/storage/'.$path;
+            $path = $file->storeAs('avatars', 'trader_'.$trader->trader_id.'_'.time().'.'.$ext, 'public');
+            $userData['avatar_url'] = '/storage/'.$path;
         }
 
-        $shop->update($shopData);
-
-        $user->update([
-            'full_name' => $validated['shop_name'],
-            'avatar_url' => $shopData['shop_image'] ?? $user->avatar_url,
-        ]);
+        $user->update($userData);
 
         return redirect()->route('trader.settings')->with('success', 'Settings updated successfully!');
     }

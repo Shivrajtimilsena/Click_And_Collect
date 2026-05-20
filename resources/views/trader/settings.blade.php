@@ -90,37 +90,35 @@
         </div>
     </div>
 
-    @if($shop)
     <form method="POST" action="{{ route('trader.settings.update') }}" enctype="multipart/form-data" class="space-y-8">
         @csrf
         @method('PATCH')
 
-        <!-- Profile Section -->
+        <!-- Trader Profile -->
         <div class="bg-surface-container-lowest border border-surface-container-high rounded-lg overflow-hidden">
             <div class="px-8 py-6 border-b border-surface-container-high">
-                <h3 class="text-lg font-bold font-headline">Profile</h3>
-                <p class="text-sm text-secondary">Your shop name, photo, and details shown to customers</p>
+                <h3 class="text-lg font-bold font-headline">Trader Profile</h3>
+                <p class="text-sm text-secondary">Your personal details and profile image</p>
             </div>
             <div class="p-8 space-y-6">
                 <div class="flex items-center gap-6">
                     <div class="relative shrink-0">
-                        @if($shop->shop_image)
-                            <img src="{{ $shop->shop_image }}" alt="{{ $shop->shop_name }}" class="w-24 h-24 rounded-xl object-cover ring-4 ring-surface-container-high">
+                        @if($user->avatar_url)
+                            <img src="{{ $user->avatar_url }}" alt="{{ $user->full_name }}" class="w-24 h-24 rounded-xl object-cover ring-4 ring-surface-container-high">
                         @else
                             <div class="w-24 h-24 rounded-xl bg-surface-container-high flex items-center justify-center ring-4 ring-surface-container-high">
-                                <span class="material-symbols-outlined text-3xl text-secondary">store</span>
+                                <span class="material-symbols-outlined text-3xl text-secondary">person</span>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Shop Photo</label>
-                        <input type="file" name="shop_image" id="shop_image" accept="image/jpeg,image/png,image/gif,image/webp"
+                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Profile Photo</label>
+                        <input type="file" name="avatar_image" id="avatar_image" accept="image/jpeg,image/png,image/gif,image/webp"
                                class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-on-primary file:font-bold file:text-sm"/>
-                        @error('shop_image')
+                        @error('avatar_image')
                             <p class="text-error text-sm mt-1">{{ $message }}</p>
                         @enderror
-                        <p class="text-xs text-secondary mt-2" id="shop_image_hint">Upload a photo (max 5MB, jpg/png/gif/webp)</p>
-                        <p class="text-error text-sm mt-1 hidden" id="shop_image_error">File size exceeds the 5MB limit. Please choose a smaller file.</p>
+                        <p class="text-xs text-secondary mt-2">Upload a photo (max 5MB, jpg/png/gif/webp)</p>
                     </div>
                 </div>
 
@@ -128,12 +126,17 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Name</label>
-                        <input type="text" name="shop_name" value="{{ old('shop_name', $shop->shop_name) }}"
-                               class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20 @error('shop_name') ring-2 ring-error @enderror"/>
-                        @error('shop_name')
+                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Full Name</label>
+                        <input type="text" name="full_name" value="{{ old('full_name', $user->full_name) }}"
+                               class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20 @error('full_name') ring-2 ring-error @enderror"/>
+                        @error('full_name')
                             <p class="text-error text-sm mt-1">{{ $message }}</p>
                         @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Email</label>
+                        <input type="email" value="{{ $user->email }}" disabled
+                               class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low text-secondary"/>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Shop Type</label>
@@ -147,13 +150,24 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Phone</label>
+                        <input type="text" name="phone_no" value="{{ old('phone_no', $user->phone_no) }}"
+                               class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Logo URL</label>
+                        <input type="url" name="logo_url" value="{{ old('logo_url', $trader->logo_url) }}"
+                               placeholder="https://example.com/logo.png"
+                               class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20"/>
+                    </div>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Description</label>
-                    <textarea name="description" rows="3"
-                              class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20">{{ old('description', $shop->description) }}</textarea>
-                    @error('description')
-                        <p class="text-error text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Address</label>
+                    <input type="text" name="address" value="{{ old('address', $user->address) }}"
+                           class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20"/>
                 </div>
 
                 <div class="flex justify-end pt-2">
@@ -163,59 +177,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- Shop Address & Details -->
-        <div class="bg-surface-container-lowest border border-surface-container-high rounded-lg overflow-hidden">
-            <div class="px-8 py-6 border-b border-surface-container-high">
-                <h3 class="text-lg font-bold font-headline">Location & Contact</h3>
-                <p class="text-sm text-secondary">Where customers can collect their orders</p>
-            </div>
-            <div class="p-8 space-y-6">
-                <div>
-                    <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Shop Address</label>
-                    <input type="text" name="shop_address" value="{{ old('shop_address', $shop->shop_address) }}"
-                           placeholder="Street, city, postcode"
-                           class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20 @error('shop_address') ring-2 ring-error @enderror"/>
-                    @error('shop_address')
-                        <p class="text-error text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Logo URL</label>
-                    <input type="url" name="logo_url" value="{{ old('logo_url', $trader->logo_url) }}"
-                           placeholder="https://example.com/logo.png"
-                           class="w-full px-4 py-3 bg-surface-container-high border border-surface-container-low focus:ring-2 focus:ring-primary/20"/>
-                </div>
-            </div>
-        </div>
-
-        <!-- Status & Save -->
-        <div class="bg-surface-container-lowest border border-surface-container-high rounded-lg overflow-hidden">
-            <div class="px-8 py-6 border-b border-surface-container-high">
-                <h3 class="text-lg font-bold font-headline">Shop Status</h3>
-            </div>
-            <div class="p-8 flex items-center justify-between">
-                <label class="flex items-center gap-4 cursor-pointer">
-                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', $shop->is_active) ? 'checked' : '' }}
-                           class="w-5 h-5 rounded border-surface-container-low text-primary focus:ring-primary/20"/>
-                    <div>
-                        <span class="font-bold text-on-surface">Shop Active</span>
-                        <p class="text-xs text-secondary">Toggle to show/hide your shop from customers</p>
-                    </div>
-                </label>
-                <button type="submit" class="bg-primary text-on-primary px-8 py-3 font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all">
-                    Save Changes
-                </button>
-            </div>
-        </div>
     </form>
-    @else
-    <div class="bg-surface-container-lowest border border-surface-container-high rounded-lg p-8 text-center">
-        <span class="material-symbols-outlined text-4xl text-secondary mb-4">store</span>
-        <h3 class="text-lg font-bold font-headline mb-2">No Shop Selected</h3>
-        <p class="text-sm text-secondary">Create your first shop above to access settings.</p>
-    </div>
-    @endif
 
     <!-- Change Password -->
     <div class="bg-surface-container-lowest border border-surface-container-high rounded-lg overflow-hidden">

@@ -89,9 +89,18 @@
         @if(in_array(Auth::user()->role, ['CUSTOMER', 'TRADER']))
             {{-- Desktop Sidebar --}}
             <aside class="hidden lg:flex h-screen w-64 fixed left-0 top-0 z-40 bg-surface-container-lowest flex-col py-8 px-4 gap-2 border-r border-surface-container-high">
-                <a href="{{ route('home') }}" class="px-4 mb-4 hover:opacity-80 transition-opacity cursor-pointer">
-                    <h1 class="text-lg font-bold text-zinc-900 font-headline">Click&Collect</h1>
-                    <p class="text-xs font-medium text-primary uppercase tracking-widest">My Account</p>
+                <a href="{{ route('profile.dashboard') }}" class="px-4 mb-4 hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-surface-container-high border border-surface-container-high overflow-hidden flex items-center justify-center">
+                        @if(Auth::user()->avatar_url)
+                            <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->full_name }}" class="w-full h-full object-cover" />
+                        @else
+                            <span class="material-symbols-outlined text-secondary">person</span>
+                        @endif
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold text-zinc-900 font-headline">{{ Auth::user()->full_name }}</h1>
+                        <p class="text-xs font-medium text-primary uppercase tracking-widest">My Account</p>
+                    </div>
                 </a>
 
                 <nav class="flex-1 space-y-1">
@@ -126,9 +135,18 @@
                 <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="closeMobileSidebar()"></div>
                 <aside class="fixed top-0 left-0 h-full w-72 max-w-[85vw] bg-surface-container-lowest flex flex-col py-8 px-4 gap-2 shadow-2xl">
                     <div class="flex items-center justify-between px-4 mb-2">
-                        <a href="{{ route('home') }}" class="hover:opacity-80 transition-opacity cursor-pointer">
-                            <h1 class="text-lg font-bold text-zinc-900 font-headline">Click&Collect</h1>
-                            <p class="text-xs font-medium text-primary uppercase tracking-widest">My Account</p>
+                        <a href="{{ route('profile.dashboard') }}" class="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-surface-container-high border border-surface-container-high overflow-hidden flex items-center justify-center">
+                                @if(Auth::user()->avatar_url)
+                                    <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->full_name }}" class="w-full h-full object-cover" />
+                                @else
+                                    <span class="material-symbols-outlined text-secondary">person</span>
+                                @endif
+                            </div>
+                            <div>
+                                <h1 class="text-base font-bold text-zinc-900 font-headline">{{ Auth::user()->full_name }}</h1>
+                                <p class="text-[10px] font-medium text-primary uppercase tracking-widest">My Account</p>
+                            </div>
                         </a>
                         <button onclick="closeMobileSidebar()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors">
                             <span class="material-symbols-outlined">close</span>
@@ -203,10 +221,87 @@
                     @endif
 
                     @if (session('success'))
-                        <div class="mb-4 p-3 md:p-4 bg-green-500/15 text-green-700 border border-green-500/30 flex justify-between items-center text-sm">
-                            <span>{{ session('success') }}</span>
-                            <button onclick="this.parentElement.style.display='none'" class="font-bold text-xl leading-none">&times;</button>
+                        <div id="customerSuccessToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-primary/20 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-lg">check</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-on-surface">{{ session('success') }}</p>
+                                <p class="text-xs text-secondary mt-1">Your changes were saved.</p>
+                            </div>
+                            <button onclick="document.getElementById('customerSuccessToast').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
                         </div>
+                        <script>
+                            setTimeout(function () {
+                                var toast = document.getElementById('customerSuccessToast');
+                                if (toast) {
+                                    toast.style.display = 'none';
+                                }
+                            }, 2400);
+                        </script>
+                    @endif
+
+                    @if (session('error'))
+                        <div id="customerErrorToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-error/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-error/15 text-error flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-lg">error</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-on-surface">{{ session('error') }}</p>
+                                <p class="text-xs text-secondary mt-1">Please try again.</p>
+                            </div>
+                            <button onclick="document.getElementById('customerErrorToast').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+                        </div>
+                        <script>
+                            setTimeout(function () {
+                                var toast = document.getElementById('customerErrorToast');
+                                if (toast) {
+                                    toast.style.display = 'none';
+                                }
+                            }, 2600);
+                        </script>
+                    @endif
+
+                    @if (session('warning'))
+                        <div id="customerWarningToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-yellow-500/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-yellow-500/15 text-yellow-700 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-lg">warning</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-on-surface">{{ session('warning') }}</p>
+                                <p class="text-xs text-secondary mt-1">Please review the details.</p>
+                            </div>
+                            <button onclick="document.getElementById('customerWarningToast').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+                        </div>
+                        <script>
+                            setTimeout(function () {
+                                var toast = document.getElementById('customerWarningToast');
+                                if (toast) {
+                                    toast.style.display = 'none';
+                                }
+                            }, 2600);
+                        </script>
+                    @endif
+
+                    @if (session('info'))
+                        <div id="customerInfoToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-blue-500/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-500/15 text-blue-700 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-lg">info</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-on-surface">{{ session('info') }}</p>
+                                <p class="text-xs text-secondary mt-1">Here is an update.</p>
+                            </div>
+                            <button onclick="document.getElementById('customerInfoToast').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+                        </div>
+                        <script>
+                            setTimeout(function () {
+                                var toast = document.getElementById('customerInfoToast');
+                                if (toast) {
+                                    toast.style.display = 'none';
+                                }
+                            }, 2600);
+                        </script>
                     @endif
 
                     @yield('content')

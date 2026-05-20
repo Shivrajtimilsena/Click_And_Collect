@@ -19,7 +19,7 @@
             <h1 class="text-5xl font-extrabold mb-4">{{ $trader?->user?->full_name ?? $shop->shop_name }}</h1>
             <p class="text-lg opacity-90 mb-6">{{ $shop->description ?? 'Quality local products' }}</p>
             
-            <div class="flex items-center gap-6">
+            <div class="flex flex-wrap items-center gap-6">
                 <a href="#products" class="flex items-center gap-2 hover:opacity-90 transition-opacity">
                     <span class="material-symbols-outlined">shopping_bag</span>
                     <span class="font-bold">{{ $totalProducts }} Products</span>
@@ -29,6 +29,28 @@
                         <span class="material-symbols-outlined">storefront</span>
                         <span class="font-bold">{{ $traderShops->count() }} Shops</span>
                     </a>
+                @endif
+                @if(auth()->check() && !auth()->user()->isTrader())
+                    @php
+                        $isSavedShop = auth()->user()->customer
+                            ? auth()->user()->customer->savedShops()->wherePivot('shop_id', $shop->shop_id)->exists()
+                            : false;
+                    @endphp
+                    <form method="POST" action="{{ $isSavedShop ? route('shops.save.remove', $shop) : route('shops.save', $shop) }}">
+                        @csrf
+                        @if($isSavedShop)
+                            @method('DELETE')
+                        @endif
+                        <button type="submit" class="flex items-center gap-2 px-4 py-2 rounded-full border border-white/40 text-white text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors">
+                            <span class="material-symbols-outlined text-sm">favorite</span>
+                            {{ $isSavedShop ? 'Saved' : 'Save Shop' }}
+                        </button>
+                    </form>
+                @elseif(!auth()->check())
+                    <button type="button" onclick="openAuthModal('login')" class="flex items-center gap-2 px-4 py-2 rounded-full border border-white/40 text-white text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors">
+                        <span class="material-symbols-outlined text-sm">favorite</span>
+                        Save Shop
+                    </button>
                 @endif
             </div>
         </div>

@@ -35,6 +35,12 @@ class Customer extends Model
         return $this->hasMany(Wishlist::class, 'customer_id', 'customer_id');
     }
 
+    public function savedShops()
+    {
+        return $this->belongsToMany(Shop::class, 'customer_saved_shop', 'customer_id', 'shop_id')
+            ->withTimestamps();
+    }
+
     public function orders()
     {
         return $this->hasMany(Order::class, 'customer_id', 'customer_id');

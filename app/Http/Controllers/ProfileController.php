@@ -60,10 +60,7 @@ class ProfileController extends Controller
             ->where('order_status', 'COMPLETED')
             ->sum('total_amount');
 
-        $savedShopsCount = $customer->wishlists()
-            ->withCount('products')
-            ->get()
-            ->sum('products_count');
+        $savedShopsCount = $customer->savedShops()->count();
 
         return view('profile.dashboard', [
             'upcomingCollections' => $upcomingCollections,
@@ -127,11 +124,11 @@ class ProfileController extends Controller
             );
         }
 
-        $wishlists = $customer->wishlists()
-            ->with('products.product.discount')
+        $savedShops = $customer->savedShops()
+            ->with('trader.user')
             ->get();
 
-        return view('profile.shops', ['wishlists' => $wishlists]);
+        return view('profile.shops', ['savedShops' => $savedShops]);
     }
 
     /**

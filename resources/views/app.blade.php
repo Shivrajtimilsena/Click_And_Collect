@@ -90,7 +90,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="bg-surface text-on-background selection:bg-primary-container selection:text-on-primary-container" data-auth="{{ auth()->check() ? 'true' : 'false' }}">
+<body class="bg-surface text-on-background selection:bg-primary-container selection:text-on-primary-container" data-auth="{{ auth()->check() ? 'true' : 'false' }}" data-role="{{ auth()->check() ? auth()->user()->role : '' }}">
     @include('components.navbar')
 
     @hasSection('sidebar')
@@ -109,44 +109,264 @@
             </div>
         @endif
 
-        @if (session('success'))
-            <div id="successNotification" class="mb-4 p-4 bg-green-500/15 text-green-700 border border-green-500/30 flex justify-between items-center">
-                <span>{{ session('success') }}</span>
-                <button onclick="document.getElementById('successNotification').style.display='none'" class="text-green-700 hover:text-green-800 font-bold text-xl leading-none">
-                    ×
-                </button>
+        @if (request()->routeIs('home'))
+            <div id="successToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-primary/20 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3 hidden">
+                <div class="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-lg">check</span>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-on-surface" id="successToastTitle">Product added to cart!</p>
+                    <p class="text-xs text-secondary mt-1" id="successToastBody">Your item is ready in the cart.</p>
+                </div>
+                <button type="button" onclick="hideSuccessToast()" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
             </div>
-        @endif
+            <div id="errorToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-error/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3 hidden">
+                <div class="w-8 h-8 rounded-full bg-error/15 text-error flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-lg">error</span>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-on-surface" id="errorToastTitle">You cannot buy products.</p>
+                    <p class="text-xs text-secondary mt-1" id="errorToastBody">Traders are not allowed to place orders.</p>
+                </div>
+                <button type="button" onclick="hideErrorToast()" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+            </div>
+            <div id="warningToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-yellow-500/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3 hidden">
+                <div class="w-8 h-8 rounded-full bg-yellow-500/15 text-yellow-700 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-lg">warning</span>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-on-surface" id="warningToastTitle">Warning</p>
+                    <p class="text-xs text-secondary mt-1" id="warningToastBody">Please review the details.</p>
+                </div>
+                <button type="button" onclick="hideWarningToast()" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+            </div>
+            <div id="infoToast" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-blue-500/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3 hidden">
+                <div class="w-8 h-8 rounded-full bg-blue-500/15 text-blue-700 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-lg">info</span>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-on-surface" id="infoToastTitle">Info</p>
+                    <p class="text-xs text-secondary mt-1" id="infoToastBody">Here is an update.</p>
+                </div>
+                <button type="button" onclick="hideInfoToast()" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+            </div>
+        @else
+            @if (session('success'))
+                <div id="successNotification" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-primary/20 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-lg">check</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-on-surface">{{ session('success') }}</p>
+                        <p class="text-xs text-secondary mt-1">Action completed successfully.</p>
+                    </div>
+                    <button onclick="document.getElementById('successNotification').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+                </div>
+                <script>
+                    setTimeout(function () {
+                        var toast = document.getElementById('successNotification');
+                        if (toast) {
+                            toast.style.display = 'none';
+                        }
+                    }, 2400);
+                </script>
+            @endif
 
-        @if (session('error'))
-            <div id="errorNotification" class="mb-4 p-4 bg-error/10 text-error border border-error/30 flex justify-between items-center">
-                <span>{{ session('error') }}</span>
-                <button onclick="document.getElementById('errorNotification').style.display='none'" class="text-error hover:text-error font-bold text-xl leading-none">
-                    ×
-                </button>
-            </div>
-        @endif
+            @if (session('error'))
+                <div id="errorNotification" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-error/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-error/15 text-error flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-lg">error</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-on-surface">{{ session('error') }}</p>
+                        <p class="text-xs text-secondary mt-1">Please try again.</p>
+                    </div>
+                    <button onclick="document.getElementById('errorNotification').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+                </div>
+                <script>
+                    setTimeout(function () {
+                        var toast = document.getElementById('errorNotification');
+                        if (toast) {
+                            toast.style.display = 'none';
+                        }
+                    }, 2600);
+                </script>
+            @endif
 
-        @if (session('warning'))
-            <div id="warningNotification" class="mb-4 p-4 bg-yellow-500/15 text-yellow-700 border border-yellow-500/30 flex justify-between items-center">
-                <span>{{ session('warning') }}</span>
-                <button onclick="document.getElementById('warningNotification').style.display='none'" class="text-yellow-700 hover:text-yellow-800 font-bold text-xl leading-none">
-                    ×
-                </button>
-            </div>
-        @endif
+            @if (session('warning'))
+                <div id="warningNotification" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-yellow-500/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-yellow-500/15 text-yellow-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-lg">warning</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-on-surface">{{ session('warning') }}</p>
+                        <p class="text-xs text-secondary mt-1">Please review the details.</p>
+                    </div>
+                    <button onclick="document.getElementById('warningNotification').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+                </div>
+                <script>
+                    setTimeout(function () {
+                        var toast = document.getElementById('warningNotification');
+                        if (toast) {
+                            toast.style.display = 'none';
+                        }
+                    }, 2600);
+                </script>
+            @endif
 
-        @if (session('info'))
-            <div id="infoNotification" class="mb-4 p-4 bg-blue-500/15 text-blue-700 border border-blue-500/30 flex justify-between items-center">
-                <span>{{ session('info') }}</span>
-                <button onclick="document.getElementById('infoNotification').style.display='none'" class="text-blue-700 hover:text-blue-800 font-bold text-xl leading-none">
-                    ×
-                </button>
-            </div>
+            @if (session('info'))
+                <div id="infoNotification" class="fixed top-24 right-4 md:right-8 z-[60] w-[280px] md:w-[320px] bg-white border border-blue-500/30 shadow-2xl rounded-xl px-4 py-3 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-500/15 text-blue-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-lg">info</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-on-surface">{{ session('info') }}</p>
+                        <p class="text-xs text-secondary mt-1">Here is an update.</p>
+                    </div>
+                    <button onclick="document.getElementById('infoNotification').style.display='none'" class="text-zinc-400 hover:text-zinc-600 font-bold text-lg leading-none">×</button>
+                </div>
+                <script>
+                    setTimeout(function () {
+                        var toast = document.getElementById('infoNotification');
+                        if (toast) {
+                            toast.style.display = 'none';
+                        }
+                    }, 2600);
+                </script>
+            @endif
         @endif
 
         @yield('content')
     </main>
+
+    @if (request()->routeIs('home'))
+    <script>
+        var toastTimer;
+        var errorToastTimer;
+
+        function showSuccessToast(title, body) {
+            var toast = document.getElementById('successToast');
+            if (!toast) return;
+            var titleEl = document.getElementById('successToastTitle');
+            var bodyEl = document.getElementById('successToastBody');
+            if (titleEl) titleEl.textContent = title || 'Product added to cart!';
+            if (bodyEl) bodyEl.textContent = body || 'Your item is ready in the cart.';
+            toast.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(hideSuccessToast, 2200);
+        }
+
+        function hideSuccessToast() {
+            var toast = document.getElementById('successToast');
+            if (toast) {
+                toast.classList.add('hidden');
+            }
+        }
+
+        function showErrorToast(title, body) {
+            var toast = document.getElementById('errorToast');
+            if (!toast) return;
+            var titleEl = document.getElementById('errorToastTitle');
+            var bodyEl = document.getElementById('errorToastBody');
+            if (titleEl) titleEl.textContent = title || 'You cannot buy products.';
+            if (bodyEl) bodyEl.textContent = body || 'Traders are not allowed to place orders.';
+            toast.classList.remove('hidden');
+            clearTimeout(errorToastTimer);
+            errorToastTimer = setTimeout(hideErrorToast, 2600);
+        }
+
+        function hideErrorToast() {
+            var toast = document.getElementById('errorToast');
+            if (toast) {
+                toast.classList.add('hidden');
+            }
+        }
+
+        function showWarningToast(title, body) {
+            var toast = document.getElementById('warningToast');
+            if (!toast) return;
+            var titleEl = document.getElementById('warningToastTitle');
+            var bodyEl = document.getElementById('warningToastBody');
+            if (titleEl) titleEl.textContent = title || 'Warning';
+            if (bodyEl) bodyEl.textContent = body || 'Please review the details.';
+            toast.classList.remove('hidden');
+            clearTimeout(errorToastTimer);
+            errorToastTimer = setTimeout(hideWarningToast, 2600);
+        }
+
+        function hideWarningToast() {
+            var toast = document.getElementById('warningToast');
+            if (toast) {
+                toast.classList.add('hidden');
+            }
+        }
+
+        function showInfoToast(title, body) {
+            var toast = document.getElementById('infoToast');
+            if (!toast) return;
+            var titleEl = document.getElementById('infoToastTitle');
+            var bodyEl = document.getElementById('infoToastBody');
+            if (titleEl) titleEl.textContent = title || 'Info';
+            if (bodyEl) bodyEl.textContent = body || 'Here is an update.';
+            toast.classList.remove('hidden');
+            clearTimeout(errorToastTimer);
+            errorToastTimer = setTimeout(hideInfoToast, 2600);
+        }
+
+        function hideInfoToast() {
+            var toast = document.getElementById('infoToast');
+            if (toast) {
+                toast.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            @if (session('success'))
+                showSuccessToast('{{ session('success') }}', 'Action completed successfully.');
+            @endif
+            @if (session('error'))
+                showErrorToast('{{ session('error') }}', 'Please try again.');
+            @endif
+            @if (session('warning'))
+                showWarningToast('{{ session('warning') }}', 'Please review the details.');
+            @endif
+            @if (session('info'))
+                showInfoToast('{{ session('info') }}', 'Here is an update.');
+            @endif
+
+            var role = document.body.getAttribute('data-role');
+            document.querySelectorAll('form[action="{{ route('cart.add') }}"]').forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+
+                    if (role === 'TRADER') {
+                        showErrorToast('You cannot buy products.', 'Traders are not allowed to place orders.');
+                        return;
+                    }
+
+                    var formData = new FormData(form);
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: formData,
+                        credentials: 'same-origin',
+                    }).then(function (response) {
+                        if (response.ok) {
+                            showSuccessToast('Product added to cart!', 'Your item is ready in the cart.');
+                        } else {
+                            showErrorToast('Could not add product', 'Please try again.');
+                        }
+                    }).catch(function () {
+                        showErrorToast('Could not add product', 'Please try again.');
+                    });
+                });
+            });
+        });
+    </script>
+    @endif
+
 
     @include('modals.auth-modal')
     <div class="@hasSection('sidebar') lg:ml-64 @endif">
