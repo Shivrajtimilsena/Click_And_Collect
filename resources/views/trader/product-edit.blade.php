@@ -170,21 +170,24 @@
                         <!-- Allergy Information -->
                         <div>
                             <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-4">Allergy Information</label>
+                            @php
+                                $productAllergens = $product->allergens ? explode(',', $product->allergens) : [];
+                            @endphp
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" name="allergens[]" value="gluten" {{ in_array('gluten', old('allergens', [])) ? 'checked' : '' }} class="rounded border-outline text-primary"/>
+                                    <input type="checkbox" name="allergens[]" value="gluten" {{ in_array('gluten', old('allergens', $productAllergens)) ? 'checked' : '' }} class="rounded border-outline text-primary"/>
                                     <span class="text-sm text-on-surface">Gluten</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" name="allergens[]" value="dairy" {{ in_array('dairy', old('allergens', [])) ? 'checked' : '' }} class="rounded border-outline text-primary"/>
+                                    <input type="checkbox" name="allergens[]" value="dairy" {{ in_array('dairy', old('allergens', $productAllergens)) ? 'checked' : '' }} class="rounded border-outline text-primary"/>
                                     <span class="text-sm text-on-surface">Dairy</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" name="allergens[]" value="nuts" {{ in_array('nuts', old('allergens', [])) ? 'checked' : '' }} class="rounded border-outline text-primary"/>
+                                    <input type="checkbox" name="allergens[]" value="nuts" {{ in_array('nuts', old('allergens', $productAllergens)) ? 'checked' : '' }} class="rounded border-outline text-primary"/>
                                     <span class="text-sm text-on-surface">Nuts</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" name="allergens[]" value="soya" {{ in_array('soya', old('allergens', [])) ? 'checked' : '' }} class="rounded border-outline text-primary"/>
+                                    <input type="checkbox" name="allergens[]" value="soya" {{ in_array('soya', old('allergens', $productAllergens)) ? 'checked' : '' }} class="rounded border-outline text-primary"/>
                                     <span class="text-sm text-on-surface">Soya</span>
                                 </label>
                             </div>

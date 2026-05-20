@@ -453,9 +453,8 @@ class TraderController extends Controller
     {
         $user = auth()->user();
         $trader = $user->trader;
-        $currentShopId = $this->getCurrentShopId();
 
-        if ($product->shop_id !== $currentShopId) {
+        if (!$trader->shops()->where('shop_id', $product->shop_id)->exists()) {
             abort(403, 'You do not have permission to edit this product.');
         }
 
@@ -473,9 +472,8 @@ class TraderController extends Controller
     {
         $user = auth()->user();
         $trader = $user->trader;
-        $currentShopId = $this->getCurrentShopId();
 
-        if ($product->shop_id !== $currentShopId) {
+        if (!$trader->shops()->where('shop_id', $product->shop_id)->exists()) {
             abort(403, 'You do not have permission to update this product.');
         }
 
@@ -505,12 +503,17 @@ class TraderController extends Controller
             }
         }
 
+        $allergens = $request->has('allergens') ? implode(',', $validated['allergens']) : null;
+
         $product->update([
             'product_category_id' => $validated['product_category_id'],
             'product_name' => $validated['product_name'],
             'description' => $validated['description'],
             'price' => $validated['price'],
             'stock' => $validated['stock'],
+            'min_order' => $validated['min_order'] ?? null,
+            'max_order' => $validated['max_order'] ?? null,
+            'allergens' => $allergens,
             'image_url' => $imageUrl,
         ]);
 
@@ -521,9 +524,8 @@ class TraderController extends Controller
     {
         $user = auth()->user();
         $trader = $user->trader;
-        $currentShopId = $this->getCurrentShopId();
 
-        if ($product->shop_id !== $currentShopId) {
+        if (!$trader->shops()->where('shop_id', $product->shop_id)->exists()) {
             abort(403, 'You do not have permission to delete this product.');
         }
 
@@ -538,9 +540,8 @@ class TraderController extends Controller
     {
         $user = auth()->user();
         $trader = $user->trader;
-        $currentShopId = $this->getCurrentShopId();
 
-        if ($product->shop_id !== $currentShopId) {
+        if (!$trader->shops()->where('shop_id', $product->shop_id)->exists()) {
             abort(403, 'You do not have permission to modify this product.');
         }
 
@@ -572,9 +573,8 @@ class TraderController extends Controller
     {
         $user = auth()->user();
         $trader = $user->trader;
-        $currentShopId = $this->getCurrentShopId();
 
-        if ($product->shop_id !== $currentShopId) {
+        if (!$trader->shops()->where('shop_id', $product->shop_id)->exists()) {
             abort(403, 'You do not have permission to modify this product.');
         }
 
