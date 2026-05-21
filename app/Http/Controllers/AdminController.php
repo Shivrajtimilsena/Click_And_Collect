@@ -54,7 +54,7 @@ class AdminController extends Controller
     public function products(): View
     {
         $products = Product::with('shop')
-            ->where('approval_status', 'APPROVED')
+            ->orderBy('approval_status')
             ->orderByDesc('product_id')
             ->paginate(30);
 

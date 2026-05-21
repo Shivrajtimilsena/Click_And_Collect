@@ -365,7 +365,7 @@ class PilotProductSeeder extends Seeder
                     'add_date' => now()->toDateString(),
                     'update_date' => now()->toDateString(),
                     'product_status' => 'ACTIVE',
-                    'approval_status' => 'APPROVED',
+                    'approval_status' => 'PENDING',
                     'image_url' => $product['image_url'],
                     'created_at' => $now,
                     'updated_at' => $now,

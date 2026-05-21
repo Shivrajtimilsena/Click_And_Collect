@@ -435,6 +435,7 @@ class TraderController extends Controller
             'price' => $validated['price'],
             'stock' => $validated['stock'],
             'allergy_information' => $allergens,
+            'approval_status' => 'PENDING',
             'product_status' => 'ACTIVE',
             'image_url' => $imageUrl,
         ]);
