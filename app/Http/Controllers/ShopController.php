@@ -12,7 +12,10 @@ class ShopController extends Controller
     public function index(): View
     {
         $shops = Shop::where('is_active', 'Y')
-            ->with('products', 'trader')
+            ->with(['products' => function ($query) {
+                $query->where('product_status', 'ACTIVE')
+                    ->where('approval_status', 'APPROVED');
+            }, 'trader'])
             ->paginate(12);
 
         return view('shops.index', ['shops' => $shops]);
@@ -29,9 +32,15 @@ class ShopController extends Controller
             ? $shop->products()
                 ->getQuery()
                 ->whereIn('shop_id', $shopIds)
+                ->where('product_status', 'ACTIVE')
+                ->where('approval_status', 'APPROVED')
                 ->with(['reviews', 'shop'])
                 ->get()
-            : $shop->products()->with(['reviews', 'shop'])->get();
+            : $shop->products()
+                ->where('product_status', 'ACTIVE')
+                ->where('approval_status', 'APPROVED')
+                ->with(['reviews', 'shop'])
+                ->get();
 
         $totalProducts = $products->count();
 
@@ -52,7 +61,10 @@ class ShopController extends Controller
         $trader->load('user');
 
         $shops = $trader->shops()
-            ->with('products')
+            ->with(['products' => function ($query) {
+                $query->where('product_status', 'ACTIVE')
+                    ->where('approval_status', 'APPROVED');
+            }])
             ->orderBy('shop_name')
             ->get();
 

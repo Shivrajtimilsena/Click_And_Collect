@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
             PilotShopsSeeder::class,
             PilotProductCategorySeeder::class,
             PilotProductSeeder::class,
+            PilotFlashDealSeeder::class,
+            PilotReportOrdersSeeder::class,
             PilotCouponSeeder::class,
             PilotCollectionSlotSeeder::class,
         ]);

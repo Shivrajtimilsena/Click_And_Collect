@@ -49,6 +49,11 @@
                     @else
                     <span class="ml-2 text-[10px] font-bold uppercase text-primary tracking-widest">Active</span>
                     @endif
+                    <form method="POST" action="{{ route('trader.shops.destroy', $s) }}" class="ml-1" onsubmit="return confirm('Delete this shop and all its products?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-xs text-error font-bold hover:underline">Delete</button>
+                    </form>
                 </div>
                 @endforeach
             </div>

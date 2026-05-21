@@ -17,6 +17,7 @@ class HomeController extends Controller
         $flashDeals = Product::query()
             ->join('discount', 'product.product_id', '=', 'discount.product_id')
             ->where('product.product_status', 'ACTIVE')
+            ->where('product.approval_status', 'APPROVED')
             ->where('discount.start_date', '<=', now())
             ->where('discount.end_date', '>=', now())
             ->select('product.*')
@@ -27,6 +28,7 @@ class HomeController extends Controller
 
         // Featured products (ordered by most recent or by stock)
         $featuredProducts = Product::where('product_status', 'ACTIVE')
+            ->where('approval_status', 'APPROVED')
             ->with('shop', 'category', 'discount', 'reviews')
             ->orderBy('created_at', 'desc')
             ->limit(24)
@@ -34,7 +36,10 @@ class HomeController extends Controller
 
         // Local traders/shops
         $shops = Shop::where('is_active', 'Y')
-            ->with('products', 'trader')
+            ->with(['products' => function ($query) {
+                $query->where('product_status', 'ACTIVE')
+                    ->where('approval_status', 'APPROVED');
+            }, 'trader'])
             ->limit(5)
             ->get();
 

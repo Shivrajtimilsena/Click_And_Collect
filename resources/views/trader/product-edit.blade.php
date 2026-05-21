@@ -171,7 +171,7 @@
                         <div>
                             <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-4">Allergy Information</label>
                             @php
-                                $productAllergens = $product->allergens ? explode(',', $product->allergens) : [];
+                                $productAllergens = $product->allergy_information ? explode(',', $product->allergy_information) : [];
                             @endphp
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 <label class="flex items-center gap-2 cursor-pointer">
