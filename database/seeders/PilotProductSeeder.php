@@ -37,14 +37,32 @@ class PilotProductSeeder extends Seeder
         ];
 
         $legacyDailyLoafId = DB::table('shop')->where('shop_name', 'The Daily Loaf')->value('shop_id');
-
-        DB::table('product')
-            ->whereIn('shop_id', array_values($shops))
-            ->delete();
+        $shopIds = array_values($shops);
 
         if ($legacyDailyLoafId) {
-            DB::table('product')->where('shop_id', $legacyDailyLoafId)->delete();
+            $shopIds[] = $legacyDailyLoafId;
         }
+
+        $productIds = DB::table('product')
+            ->whereIn('shop_id', $shopIds)
+            ->pluck('product_id');
+
+        if ($productIds->isNotEmpty()) {
+            $orderIds = DB::table('order_item')
+                ->whereIn('product_id', $productIds)
+                ->pluck('order_id')
+                ->unique();
+
+            if ($orderIds->isNotEmpty()) {
+                DB::table('payment')->whereIn('order_id', $orderIds)->delete();
+                DB::table('order_item')->whereIn('order_id', $orderIds)->delete();
+                DB::table('APP_ORDER')->whereIn('order_id', $orderIds)->delete();
+            }
+        }
+
+        DB::table('product')
+            ->whereIn('shop_id', $shopIds)
+            ->delete();
 
         $products = [
             // Hearth & Cleaver Traditional Meats — 2 products
@@ -347,6 +365,7 @@ class PilotProductSeeder extends Seeder
                     'add_date' => now()->toDateString(),
                     'update_date' => now()->toDateString(),
                     'product_status' => 'ACTIVE',
+                    'approval_status' => 'APPROVED',
                     'image_url' => $product['image_url'],
                     'created_at' => $now,
                     'updated_at' => $now,

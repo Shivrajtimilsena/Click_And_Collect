@@ -30,6 +30,7 @@ class Product extends Model
         'add_date',
         'update_date',
         'product_status',
+        'approval_status',
         'image_url',
     ];
 

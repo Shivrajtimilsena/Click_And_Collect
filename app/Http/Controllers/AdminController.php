@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\TraderApprovedMail;
 use App\Mail\TraderRejectedMail;
+use App\Models\Product;
 use App\Models\Shop;
 use App\Models\Trader;
 use App\Models\TraderApplication;
@@ -13,6 +14,7 @@ use App\Services\PayPalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
@@ -26,7 +28,51 @@ class AdminController extends Controller
         $rejectedCount = TraderApplication::where('status', 'REJECTED')->count();
         $pendingWithdrawals = TraderWithdrawal::where('status', 'PENDING')->count();
 
-        return view('admin.dashboard', compact('pendingCount', 'approvedCount', 'rejectedCount', 'pendingWithdrawals'));
+        $pendingProducts = DB::table('product as p')
+            ->join('shop as s', 'p.shop_id', '=', 's.shop_id')
+            ->whereRaw("nvl(p.approval_status, 'APPROVED') = 'PENDING'")
+            ->select([
+                'p.product_id',
+                'p.product_name',
+                'p.description',
+                'p.price',
+                'p.stock',
+                's.shop_name',
+            ])
+            ->orderByDesc('p.product_id')
+            ->get();
+
+        return view('admin.dashboard', compact(
+            'pendingCount',
+            'approvedCount',
+            'rejectedCount',
+            'pendingWithdrawals',
+            'pendingProducts'
+        ));
+    }
+
+    public function products(): View
+    {
+        $products = Product::with('shop')
+            ->where('approval_status', 'APPROVED')
+            ->orderByDesc('product_id')
+            ->paginate(30);
+
+        return view('admin.products', compact('products'));
+    }
+
+    public function approveProduct(Product $product): RedirectResponse
+    {
+        $product->update(['approval_status' => 'APPROVED']);
+
+        return back()->with('success', "Product #PRD-{$product->product_id} approved.");
+    }
+
+    public function rejectProduct(Product $product): RedirectResponse
+    {
+        $product->update(['approval_status' => 'REJECTED']);
+
+        return back()->with('success', "Product #PRD-{$product->product_id} rejected.");
     }
 
     public function applications(): View

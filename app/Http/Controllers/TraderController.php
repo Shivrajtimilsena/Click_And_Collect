@@ -75,7 +75,9 @@ class TraderController extends Controller
             );
         }
 
-        $allShops = $trader->shops()->with('products')->get();
+        $allShops = $trader->shops()->with(['products' => function ($query) {
+            $query->where('approval_status', 'APPROVED');
+        }])->get();
         $currentShop = $this->getCurrentShop();
         $currentShopId = $currentShop?->shop_id;
 
@@ -201,10 +203,13 @@ class TraderController extends Controller
         $trader = $user->trader;
         $currentShopId = $this->getCurrentShopId();
         $currentShop = $this->getCurrentShop();
-        $allShops = $trader->shops()->with('products.category')->get();
+        $allShops = $trader->shops()->with(['products' => function ($query) {
+            $query->where('approval_status', 'APPROVED');
+        }, 'products.category'])->get();
 
         $products = Product::where('shop_id', $currentShopId)
             ->where('product_status', 'ACTIVE')
+            ->where('approval_status', 'APPROVED')
             ->with('shop', 'category', 'discount')
             ->latest()
             ->paginate(30);

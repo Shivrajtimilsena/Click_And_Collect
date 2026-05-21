@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             PilotProductCategorySeeder::class,
             PilotProductSeeder::class,
             PilotFlashDealSeeder::class,
+            PilotReportOrdersSeeder::class,
             PilotCouponSeeder::class,
             PilotCollectionSlotSeeder::class,
         ]);
