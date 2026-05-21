@@ -75,7 +75,9 @@ class TraderController extends Controller
             );
         }
 
-        $allShops = $trader->shops()->with('products')->get();
+        $allShops = $trader->shops()->with(['products' => function ($query) {
+            $query->where('approval_status', 'APPROVED');
+        }])->get();
         $currentShop = $this->getCurrentShop();
         $currentShopId = $currentShop?->shop_id;
 
@@ -201,10 +203,13 @@ class TraderController extends Controller
         $trader = $user->trader;
         $currentShopId = $this->getCurrentShopId();
         $currentShop = $this->getCurrentShop();
-        $allShops = $trader->shops()->with('products.category')->get();
+        $allShops = $trader->shops()->with(['products' => function ($query) {
+            $query->where('approval_status', 'APPROVED');
+        }, 'products.category'])->get();
 
         $products = Product::where('shop_id', $currentShopId)
             ->where('product_status', 'ACTIVE')
+            ->where('approval_status', 'APPROVED')
             ->with('shop', 'category', 'discount')
             ->latest()
             ->paginate(30);
@@ -420,6 +425,8 @@ class TraderController extends Controller
             \Log::info('No image file in request');
         }
 
+        $allergens = $request->has('allergens') ? implode(',', $validated['allergens']) : null;
+
         Product::create([
             'shop_id' => $shop->shop_id,
             'product_category_id' => $validated['product_category_id'],
@@ -427,6 +434,8 @@ class TraderController extends Controller
             'description' => $validated['description'],
             'price' => $validated['price'],
             'stock' => $validated['stock'],
+            'allergy_information' => $allergens,
+            'approval_status' => 'PENDING',
             'product_status' => 'ACTIVE',
             'image_url' => $imageUrl,
         ]);
@@ -513,7 +522,7 @@ class TraderController extends Controller
             'stock' => $validated['stock'],
             'min_order' => $validated['min_order'] ?? null,
             'max_order' => $validated['max_order'] ?? null,
-            'allergens' => $allergens,
+            'allergy_information' => $allergens,
             'image_url' => $imageUrl,
         ]);
 
@@ -815,6 +824,28 @@ class TraderController extends Controller
         $shop->update($shopData);
 
         return redirect()->back()->with('success', "Shop '{$shop->shop_name}' updated successfully.");
+    }
+
+    public function destroyShop(Shop $shop): RedirectResponse
+    {
+        $trader = Auth::user()->trader;
+
+        if ($shop->trader_id !== $trader->trader_id) {
+            abort(403);
+        }
+
+        if ($trader->shops()->count() <= 1) {
+            return redirect()->back()->with('error', 'You must have at least one shop.');
+        }
+
+        $shop->delete();
+
+        if (session('current_shop_id') == $shop->shop_id) {
+            $first = $trader->shops()->first();
+            session(['current_shop_id' => $first?->shop_id]);
+        }
+
+        return redirect()->back()->with('success', "Shop '{$shop->shop_name}' deleted successfully.");
     }
 
     private function formatNotificationMessage($notification): string

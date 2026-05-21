@@ -26,10 +26,11 @@ class Product extends Model
         'amount',
         'max_order',
         'min_order',
-        'allergens',
+        'allergy_information',
         'add_date',
         'update_date',
         'product_status',
+        'approval_status',
         'image_url',
     ];
 

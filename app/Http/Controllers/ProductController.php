@@ -13,7 +13,9 @@ class ProductController extends Controller
     public function index(Request $request): View
     {
         $categories = ProductCategory::all();
-        $query = Product::with('shop', 'reviews');
+        $query = Product::with('shop', 'reviews')
+            ->where('product_status', 'ACTIVE')
+            ->where('approval_status', 'APPROVED');
 
         // Filter by search query
         if ($search = $request->get('search')) {
@@ -91,8 +93,14 @@ class ProductController extends Controller
 
     public function show(Product $product): View
     {
+        if ($product->product_status !== 'ACTIVE' || $product->approval_status !== 'APPROVED') {
+            abort(404);
+        }
+
         $product->load('shop', 'reviews', 'reviews.customer');
         $relatedProducts = Product::where('product_category_id', $product->product_category_id)
+            ->where('product_status', 'ACTIVE')
+            ->where('approval_status', 'APPROVED')
             ->where('product_id', '!=', $product->product_id)
             ->limit(6)
             ->get();
@@ -106,6 +114,8 @@ class ProductController extends Controller
     public function byCategory(ProductCategory $category): View
     {
         $products = Product::where('product_category_id', $category->product_category_id)
+            ->where('product_status', 'ACTIVE')
+            ->where('approval_status', 'APPROVED')
             ->with('shop', 'reviews')
             ->paginate(24);
 

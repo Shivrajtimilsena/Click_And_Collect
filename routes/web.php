@@ -289,6 +289,7 @@ Route::middleware('auth')->group(function () {
         // Shops
         Route::post('/shops', [TraderController::class, 'storeShop'])->name('shops.store');
         Route::patch('/shops/{shop}', [TraderController::class, 'updateShop'])->name('shops.update');
+        Route::delete('/shops/{shop}', [TraderController::class, 'destroyShop'])->name('shops.destroy');
         Route::post('/switch-shop/{shop}', [TraderController::class, 'switchShop'])->name('shops.switch');
 
         // Notifications
@@ -310,6 +311,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/applications/{application}', [AdminController::class, 'showApplication'])->name('application.show');
         Route::post('/applications/{application}/approve', [AdminController::class, 'approve'])->name('application.approve');
         Route::post('/applications/{application}/reject', [AdminController::class, 'reject'])->name('application.reject');
+
+        // Products
+        Route::get('/products', [AdminController::class, 'products'])->name('products.index');
+        Route::post('/products/{product}/approve', [AdminController::class, 'approveProduct'])->name('products.approve');
+        Route::post('/products/{product}/reject', [AdminController::class, 'rejectProduct'])->name('products.reject');
 
         // Withdrawals
         Route::get('/withdrawals', [AdminController::class, 'withdrawals'])->name('withdrawals.index');
