@@ -420,6 +420,8 @@ class TraderController extends Controller
             \Log::info('No image file in request');
         }
 
+        $allergens = $request->has('allergens') ? implode(',', $validated['allergens']) : null;
+
         Product::create([
             'shop_id' => $shop->shop_id,
             'product_category_id' => $validated['product_category_id'],
@@ -427,6 +429,7 @@ class TraderController extends Controller
             'description' => $validated['description'],
             'price' => $validated['price'],
             'stock' => $validated['stock'],
+            'allergy_information' => $allergens,
             'product_status' => 'ACTIVE',
             'image_url' => $imageUrl,
         ]);
@@ -513,7 +516,7 @@ class TraderController extends Controller
             'stock' => $validated['stock'],
             'min_order' => $validated['min_order'] ?? null,
             'max_order' => $validated['max_order'] ?? null,
-            'allergens' => $allergens,
+            'allergy_information' => $allergens,
             'image_url' => $imageUrl,
         ]);
 
