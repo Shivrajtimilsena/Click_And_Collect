@@ -40,8 +40,11 @@
                     <p class="text-lg text-gray-700">By unifying the fragmented local shopping experiences, we empower retailers to support their favorite small businesses through a single, seamless digital storefront. We don't just aggregate; we curate. Every artisan on our platform has been hand-selected for their commitment to quality.</p>
                 </div>
                 <div class="bg-gray-100 rounded-2xl overflow-hidden">
-                    <img src="https://via.placeholder.com/400x500?text=Local+Artisans" alt="Local artisans at work" class="w-full h-full object-cover">
-                </div>
+                  <img src="/images/about_us.jpeg" 
+                   alt="Local artisans at work" 
+                   class="w-full h-90 object-cover">
+</div>
+
             </div>
         </div>
     </div>
