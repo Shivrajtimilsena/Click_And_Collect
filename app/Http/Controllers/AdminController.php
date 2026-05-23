@@ -127,7 +127,12 @@ class AdminController extends Controller
         try {
             Mail::to($user->email)->send(new TraderApprovedMail($user, $password));
         } catch (\Exception $e) {
-            Log::error('Failed to send trader approval email: '.$e->getMessage());
+            Log::error('Failed to send trader approval email', [
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return redirect()->route('admin.applications')->with('warning', 'Application approved and account created, but the approval email could not be sent. Check your mail configuration.');
         }
 
         return redirect()->route('admin.applications')->with('success', 'Application approved. Trader account created and email sent.');
@@ -221,7 +226,11 @@ class AdminController extends Controller
         try {
             Mail::to($user->email)->send(new TraderApprovedMail($user, $password));
         } catch (\Exception $e) {
-            Log::error('Failed to send trader approval email: '.$e->getMessage());
+            Log::error('Failed to send trader approval email from APEX', [
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
 
         return response()->json([
