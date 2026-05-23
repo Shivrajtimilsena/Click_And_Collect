@@ -38,6 +38,7 @@ class Order extends Model
         'order_amount' => 'float',
         'discount_amount' => 'float',
         'total_amount' => 'float',
+        'order_date' => 'datetime',
         'rfid_assigned_at' => 'datetime',
         'collected_at' => 'datetime',
     ];
