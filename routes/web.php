@@ -322,7 +322,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/withdrawals/{withdrawal}/approve', [AdminController::class, 'approveWithdrawal'])->name('withdrawals.approve');
         Route::post('/withdrawals/{withdrawal}/reject', [AdminController::class, 'rejectWithdrawal'])->name('withdrawals.reject');
         Route::post('/withdrawals/{withdrawal}/check-status', [AdminController::class, 'checkWithdrawalStatus'])->name('withdrawals.check-status');
-        Route::post('/applications/{application}/resend-email', [AdminController::class, 'resendApprovalEmail'])->name('application.resend-email');
     });
 });
 

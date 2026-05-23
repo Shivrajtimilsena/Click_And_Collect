@@ -29,10 +29,6 @@
                             <a href="{{ route('admin.application.show', $application) }}" class="bg-primary text-on-primary px-4 py-2 text-sm font-bold hover:opacity-90 transition-all">Review</a>
                         @elseif ($application->status === 'APPROVED')
                             <span class="text-sm px-3 py-1 bg-green-100 text-green-800 font-bold">APPROVED</span>
-                            <form method="POST" action="{{ route('admin.application.resend-email', $application) }}" class="inline">
-                                @csrf
-                                <button type="submit" class="text-xs text-primary font-bold hover:underline">Resend Email</button>
-                            </form>
                         @else
                             <span class="text-sm px-3 py-1 bg-red-100 text-red-800 font-bold">REJECTED</span>
                         @endif
