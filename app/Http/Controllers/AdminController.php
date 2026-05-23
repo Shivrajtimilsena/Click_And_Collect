@@ -399,6 +399,35 @@ class AdminController extends Controller
             ->with('success', "Withdrawal #{$withdrawal->withdrawal_id} rejected.");
     }
 
+    public function resendApprovalEmail(TraderApplication $application): RedirectResponse
+    {
+        if ($application->status !== 'APPROVED') {
+            return back()->with('error', 'Only approved applications can receive approval emails.');
+        }
+
+        $user = User::where('email', $application->email)->first();
+
+        if (! $user) {
+            return back()->with('error', 'No user account found for this application. The user may not have been created yet.');
+        }
+
+        try {
+            Mail::to($user->email)->send(new TraderApprovedMail($user, $application->password));
+            Log::info('Approval email resent', [
+                'email' => $user->email,
+                'application_id' => $application->application_id,
+            ]);
+            return back()->with('success', "Approval email resent to {$user->email}.");
+        } catch (\Exception $e) {
+            Log::error('Failed to resend approval email', [
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return back()->with('error', 'Failed to send email: '.$e->getMessage());
+        }
+    }
+
     public function rejectFromApex(Request $request, TraderApplication $application): JsonResponse
     {
         $apiKey = $request->header('X-API-Key') ?: $request->input('api_key');
